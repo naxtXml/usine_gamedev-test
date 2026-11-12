@@ -34,6 +34,7 @@ button.prim{border-color:#5b3f99;color:#d9c4ff;background:#2a2240}
 button.okb{border-color:#2f6b4f;color:#9be7c0;background:#1c2e26}
 button.blue{border-color:#2a5a75;color:#a9e3ff;background:#1a2a35}
 .topbtns{display:flex;gap:6px;flex-wrap:wrap}
+#mate{flex-direction:column;gap:2px;min-width:150px}#mate .mt label{font-size:11px}#mate .mt.sm label{font-size:10px}#mate .mt.sm .bar{height:4px}
 #mid{display:grid;grid-template-columns:1fr 310px;min-height:0}
 #view{position:relative;overflow:hidden;min-height:0}
 canvas#c{display:block;cursor:crosshair}
@@ -43,6 +44,8 @@ canvas#c{display:block;cursor:crosshair}
 #tabs button.on{color:var(--txt);border-bottom-color:var(--acc);background:var(--panel2)}
 #tabs button .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pur);margin-left:4px;vertical-align:1px}
 #pane{overflow-y:auto;padding:10px 12px 20px;flex:1}
+.ach{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.ach .b{background:var(--panel2);border-radius:8px;padding:6px 2px;text-align:center;opacity:.45;border:1px solid transparent}.ach .b.ok{opacity:1;border-color:#7d5cc0}.ach .b span{font-size:20px;display:block}.ach .b i{font-style:normal;font-size:9.5px;line-height:1.1;display:block;color:var(--mut);margin-top:2px}
+.cosrow{display:flex;flex-wrap:wrap;gap:5px}.cosrow button{font-size:11.5px;padding:4px 7px}.cosrow .swb{width:30px;height:30px;border-radius:50%;padding:0;border:2px solid transparent}.cosrow .swb.on{border-color:#fff}.cosrow button[disabled]{opacity:.4}
 .stt{width:100%;border-collapse:collapse;font-size:12px}.stt th{color:var(--mut);font-weight:500;text-align:right;padding:2px 3px}.stt th:first-child{text-align:left}.stt td{text-align:right;padding:2px 3px;border-top:1px solid var(--line)}.stt td:first-child{text-align:left;white-space:nowrap}
 .mst{padding:6px 0;border-top:1px solid var(--line)}.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}.chips .c{font-size:11px;padding:1px 6px;border-radius:9px;background:var(--panel2)}.chips .ok{color:#4cc38a}.chips .in{color:#ffd23f}.chips .out{color:#ff6b6b}.chips .nrj{color:#ffcc33}
 .tal.done{opacity:0.65}
@@ -109,6 +112,14 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
 #toast.show{opacity:1}
 #toast.good{background:rgba(20,50,35,.92);border-color:var(--ok);color:#c9f5dd}
 #tagR{position:absolute;top:14px;right:14px;background:rgba(20,22,27,.9);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-weight:700;letter-spacing:1px;color:var(--acc);display:none;max-width:60%;text-align:right}
+#chat{position:absolute;left:10px;bottom:148px;width:min(330px,60%);z-index:3;display:flex;flex-direction:column;gap:4px;pointer-events:none}
+#chat[hidden]{display:none}#chatLog{display:flex;flex-direction:column;gap:2px}
+#chatLog .ln{background:rgba(10,12,16,.72);border-radius:6px;padding:3px 8px;font-size:12.5px;color:#e8e2d4;transition:opacity .6s;width:fit-content;max-width:100%}
+#chatLog .ln.old{opacity:0}#chat.open #chatLog .ln.old{opacity:.85}
+#chatBar{pointer-events:auto;display:flex;flex-direction:column;gap:4px}#chatBar[hidden]{display:none}
+#chatIn{width:100%;padding:6px 8px;border-radius:6px;border:1px solid #4a515e;background:#14171c;color:#fff;font:13px system-ui;text-transform:none;letter-spacing:0}
+#chatQuick{display:flex;flex-wrap:wrap;gap:3px}#chatQuick button{font-size:11px;padding:3px 6px}
+#chatBtn{pointer-events:auto;align-self:flex-start;font-size:14px;padding:3px 8px}
 #mini{position:absolute;left:10px;bottom:10px;width:192px;height:128px;border:1px solid #4a515e;border-radius:6px;background:#0d0f12;opacity:.92;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:2}
 #mini.small{width:128px;height:88px}
 #overlay{position:absolute;inset:0;background:rgba(8,9,11,.78);display:flex;align-items:center;justify-content:center;z-index:4}
@@ -156,7 +167,7 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
     <div class="stat wide"><label>Niveau <b id="lvl" style="font-size:12px;color:var(--pur)">1</b> <span id="xpTxt"></span></label><div class="bar xp"><i id="xpBar"></i></div></div>
     <div class="stat wide"><label>Énergie <span id="pwTxt"></span></label><div class="bar"><i id="pwBar"></i></div></div>
     <div class="stat wide"><label id="hpLbl">Noyau <span id="hpTxt"></span></label><div class="bar hp" id="hpBarBox"><i id="hpBar"></i></div></div>
-    <div class="stat wide" id="mate"><label><span id="mateName">Coéquipier</span> <span id="mateTxt"></span></label><div class="bar hp2" id="mateBarBox"><i id="mateBar"></i></div></div>
+    <div class="stat wide" id="mate"></div>
     <div class="spacer"></div>
     <div id="acct" title="Ta progression solo est liée à ton compte claude.ai"><img id="acctImg" alt=""><div><b id="acctName">Connexion…</b><span id="acctSt">Sauvegarde locale</span></div></div>
     <div class="topbtns">
@@ -176,6 +187,7 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
       <div id="banner"></div>
       <div id="toast"></div>
       <div id="tagR"></div>
+      <div id="chat" hidden><div id="chatLog"></div><div id="chatBar" hidden><div id="chatQuick"></div><input id="chatIn" maxlength="80" placeholder="Message… (Entrée envoyer · Échap fermer)" autocomplete="off"></div><button id="chatBtn" title="Chat (Entrée)">💬</button></div>
       <canvas id="mini" width="192" height="128" title="Mini-carte : clique pour t'y déplacer"></canvas>
       <div id="saveDlg" class="dlg" hidden><div class="card">
         <h2>Code de sauvegarde</h2>
@@ -221,7 +233,9 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
 const W=96,H=64,MAP_V=2,TS=32,SAVE_KEY='usine-assiegee-v1',COOP_KEY='usine-assiegee-coop-v1',META_KEY='usine-assiegee-meta-v1',MAX_ROBOTS=5;
 const DIRS=[[1,0],[0,1],[-1,0],[0,-1]];
 const dirOf=(dx,dy)=>DIRS.findIndex(d=>d[0]===dx&&d[1]===dy);
-const PCOL=['#f2a33a','#4fc3f7'];
+const PCOL=['#f2a33a','#4fc3f7','#5fd068','#e76fd0'];
+const hexRgb=h=>{const n=parseInt(h.slice(1),16);return`${n>>16},${n>>8&255},${n&255}`};
+function pcol(o){const c=cosOf(o).col;if(c)return c;return coop()?PCOL[o]||'#ccc':'#f2a33a'}
 
 // ================= DATA =================
 const ITEMS={
@@ -319,6 +333,7 @@ const B={
   extracteur:{cat:'log',n:'Extracteur',cost:{lingot_fer:8},hp:250,col:'#3f8a68',desc:'Colle-le à ton noyau (ou à un de tes coffres) : il en sort l\'objet que tu choisis, côté flèche, 5 par seconde. Clique dessus pour choisir l\'objet.'},
   tunnel_entree:{cat:'log',n:'Tunnel (entrée)',cost:{lingot_fer:6,engrenage:2},hp:150,col:'#5b4a78',reach:5,lvl:3,desc:'Les objets y entrent et passent sous terre jusqu\'à une sortie de tunnel posée dans la même direction, jusqu\'à 5 cases devant. Pratique pour croiser deux lignes.'},
   tunnel_sortie:{cat:'log',n:'Tunnel (sortie)',cost:{lingot_fer:6,engrenage:2},hp:150,col:'#5b4a78',lvl:3,desc:'Ressort les objets d\'une entrée de tunnel située derrière elle (même direction, jusqu\'à 5 cases).'},
+  coffre_partage:{cat:'log',base:'coffre',n:'Coffre partagé',cost:{lingot_fer:20},hp:400,col:'#2f8a7a',cap:600,desc:'Stocke 600 objets. En multi, TOUS les joueurs peuvent y déposer (par tapis) et y puiser pour construire ou fabriquer. Parfait pour mettre en commun.'},
   coffre:{cat:'log',n:'Coffre',cost:{lingot_fer:10},hp:300,col:'#8a5d2e',cap:400,desc:'Stocke 400 objets (par tapis ou par robot). Son contenu compte dans ton stock pour construire et pour l\'Atelier.'},
   robot:{cat:'log',unit:true,n:'Robot collecteur',cost:{acier:20,batterie:5,circuit:10},hp:1500,col:'#e0b341',lvl:10,desc:'Très résistant. Va miner seul, fond le minerai sur place et dépose les lingots dans ton coffre le plus proche. Max 5 par joueur.'},
   foreuse:{cat:'prod',n:'Foreuse',cost:{lingot_fer:8},hp:200,pw:-2,col:'#c77d32',spd:1,desc:'Sur un gisement solide (fer, quartz, or, diamant). Sort le minerai côté flèche.'},
@@ -479,13 +494,57 @@ const GOALS=[
   ['Construire un réacteur à fusion',o=>buildings.some(b=>b.owner===o&&b.type==='reacteur')],
 ];
 
+// ================= SUCCÈS & PERSONNALISATION (permanents) =================
+const myB=()=>buildings.filter(b=>b.owner===ME);
+const ACH=[
+  ['boss1','🐉','Tueur de géants','Vaincre un boss',()=>(S.bossKills||0)>=1],
+  ['boss5','👑','Chasseur de légendes','Vaincre 5 boss dans une même partie',()=>(S.bossKills||0)>=5],
+  ['k100','⚔','Défenseur','Éliminer 100 monstres (au total)',()=>META.cnt.kills>=100],
+  ['k1000','🗡','Exterminateur','Éliminer 1 000 monstres (au total)',()=>META.cnt.kills>=1000],
+  ['k10000','💀','Fléau des monstres','Éliminer 10 000 monstres (au total)',()=>META.cnt.kills>=10000],
+  ['w10','🌊','Tenir bon','Atteindre la vague 10',()=>S.wave>=10&&!S.over],
+  ['w25','🌪','Inébranlable','Atteindre la vague 25',()=>S.wave>=25&&!S.over],
+  ['w50','🌋','Légende','Atteindre la vague 50',()=>S.wave>=50&&!S.over],
+  ['b100','🏭','Industriel','Posséder 100 bâtiments',()=>myB().length>=100],
+  ['b500','🏙','Mégapole','Posséder 500 bâtiments',()=>myB().length>=500],
+  ['t50','🔫','Forteresse','Posséder 50 tourelles',()=>myB().filter(b=>TURRETS.has(b.type)).length>=50],
+  ['belt300','🛤','Réseau logistique','Posséder 300 tapis',()=>myB().filter(b=>BELT.has(b.type)).length>=300],
+  ['tunnel','🚇','Taupe','Relier une entrée de tunnel à sa sortie',()=>myB().some(b=>b.type==='tunnel_entree'&&tunnelExit(b))],
+  ['plan','📐','Architecte','Coller un plan',()=>META.cnt.plans>=1],
+  ['lvl25','⭐','Expérimenté','Atteindre le niveau 25',()=>P(ME).level>=25],
+  ['lvl50','🌟','Maître de l\'usine','Atteindre le niveau 50',()=>P(ME).level>=50],
+  ['res','🔬','Savant','Terminer toutes les recherches',()=>{const r=rsOf(ME);return r&&RESEARCH.every(t=>r.done.includes(t.id))}],
+  ['quant','⚛','Physique quantique','Fabriquer un module quantique',()=>(P(ME).made.module_quantique||0)>=1],
+  ['gard','🤖','Gardien','Déployer un robot gardien',()=>robots.some(r=>r.owner===ME&&r.kind==='gardien')],
+  ['rb1','♻','Renaissance','Renaître une première fois',()=>META.rebirths>=1],
+  ['rb3','🔁','Éternel recommencement','Renaître 3 fois',()=>META.rebirths>=3],
+  ['coop','🤝','Ensemble','Atteindre la vague 5 en partie multi',()=>coop()&&S.wave>=5&&!S.over],
+  ['squad','👥','Escouade complète','Jouer une partie multi à 4 joueurs connectés',()=>coop()&&S.players.length===4&&S.players.every((p,o)=>o===0||p.on)],
+  ['talk','💬','Bavard','Envoyer 10 messages dans le chat',()=>META.cnt.chats>=10],
+];
+const COLORS=[['#f2a33a','Ambre',null],['#4fc3f7','Azur',null],['#5fd068','Jade',null],['#e76fd0','Orchidée',null],['#e5484d','Rubis','k1000'],['#b05cff','Améthyste','w25'],['#ffd23f','Or','rb1'],['#e8f4ff','Givre','w50']];
+const SKINS=[['classique','Classique',null,null],['acier','Acier poli',null,'#9aa4b2'],['or','Doré','rb1','#d4af37'],['neon','Néon','rb2','neon'],['cristal','Cristal','rb3','#a98bea'],['camo','Camouflage','k1000','#5b6b3a'],['royal','Royal','boss5','#7a2bbf']];
+function condOk(c){if(!c)return true;if(/^rb\d$/.test(c)&&!ACH.some(a=>a[0]===c))return META.rebirths>=+c.slice(2);return !!(META.ach&&META.ach[c])}
+function condTxt(c){if(/^rb\d$/.test(c))return `${c.slice(2)} renaissance${+c.slice(2)>1?'s':''}`;const a=ACH.find(x=>x[0]===c);return a?`succès « ${a[2]} »`:c}
+let achBase={S:null,k:0};
+function checkAch(){
+  if(!S||NET.role==='spec')return;META.ach=META.ach||{};META.cnt=META.cnt||{kills:0,plans:0,chats:0};
+  if(achBase.S!==S){achBase={S,k:S.kills}}else{const dk=S.kills-achBase.k;if(dk>0&&dk<5000){META.cnt.kills=(META.cnt.kills||0)+dk;NET.achDirty=true}achBase.k=S.kills}
+  let got=null;for(const a of ACH){if(META.ach[a[0]])continue;let ok=false;try{ok=a[4]()}catch(e){}if(ok){META.ach[a[0]]=Date.now();got=a}}
+  if(got){saveMeta();banner(`🏆 Succès débloqué : ${got[1]} ${got[2]}`,false,5,'pur');sfx('level');renderPane(true)}
+  else if(NET.achDirty&&Math.random()<0.1){NET.achDirty=false;saveMeta()}
+}
+function skinCol(o,now,b){const sk=(cosOf(o).skin)||'classique';if(sk==='classique')return null;const e=SKINS.find(x=>x[0]===sk);if(!e)return null;if(e[3]==='neon'){const h=((now||0)*80+(b.x+b.y)*25)%360;return hsl2hex(h,0.95,0.6)}return e[3]}
+function hsl2hex(h,s2,l){const k=n=>(n+h/30)%12,a=s2*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1));return'#'+[f(0),f(8),f(4)].map(v=>Math.round(v*255).toString(16).padStart(2,'0')).join('')}
 // ================= META (talents, permanent) =================
-let META={points:0,talents:{},rebirths:0};
+let META={points:0,talents:{},rebirths:0,ach:{},cnt:{kills:0,plans:0,chats:0},cos:{}};
 try{const m=JSON.parse(localStorage.getItem(META_KEY)||'null');if(m)META=Object.assign(META,m)}catch(e){}
+META.ach=META.ach||{};META.cnt=Object.assign({kills:0,plans:0,chats:0},META.cnt||{});META.cos=META.cos||{};
 let cloudDirty=false;
 function saveMeta(){META.savedAt=Date.now();try{localStorage.setItem(META_KEY,JSON.stringify(META))}catch(e){}cloudDirty=true;NET.metaDirty=true}
 let guestMeta={talents:{}};
-const metaOf=o=>(o===ME&&NET.role!=='spec'?META:o===0?(isRemote()?NET.hostMeta:META):guestMeta)||{talents:{}};
+const metaOf=o=>(o===ME&&NET.role!=='spec'?META:o===0?(isRemote()?NET.hostMeta:META):(NET.metas&&NET.metas[o])||(o===1?guestMeta:null))||{talents:{}};
+const cosOf=o=>{if(!S||!coop())return META.cos||{};if(o===ME&&NET.role!=='spec')return META.cos||{};return(NET.cosAll&&NET.cosAll[o])||{}};
 const tl=(id,o=0)=>{const m=metaOf(o);const v=(m.talents||{})[id]|0;const t=TALENTS.find(x=>x.id===id);return clamp(v,0,t?t.max:0)};
 const mMach=o=>1+0.1*tl('machines',o)+rsv('mach',o),mArm=o=>1+0.1*tl('armes',o)+rsv('arm',o),mHp=o=>1+0.15*tl('blindage',o)+rsv('hp',o),mPw=o=>1+0.1*tl('energie',o)+rsv('pw',o),mBelt=o=>1+0.15*tl('tapis',o)+rsv('belt',o),mXp=o=>1+0.15*tl('xp',o)+rsv('xp',o),mRob=o=>1+0.25*tl('robots',o)+rsv('rob',o),mRange=o=>1+rsv('range',o);
 const maxHp=b=>B[b.type].hp*mHp(b.owner||0);
@@ -495,7 +554,7 @@ let S,deposit,grid,buildings,chests,robots,monsters,effects,spawnQ,flow,flowDirt
 let tool=null,rot=0,sel=null,cat='log',tab='base',ME=0,robotSeq=1,monSeq=1;
 const cam={x:W/2,y:H/2,z:1};
 const isRemote=()=>NET.role==='guest'||NET.role==='spec';
-const NET={fxQ:[],off:null,jit:40,specs:new Set(),role:'solo',room:null,code:null,guestPeer:null,guestHere:false,guestName:'Coéquipier',hostName:'Hôte',lastSeq:0,sid:null,mySeq:0,myCmds:[],acked:0,lastSt:0,fxOut:[],msgOut:[],bver:1,bSent:0,bAt:0,tickAt:0,hostMeta:{talents:{}},bl:null,status:'',joined:false,metaDirty:true};
+const NET={guests:new Map(),names:[],metas:{},cosAll:[],np:2,fxQ:[],off:null,jit:40,specs:new Set(),role:'solo',room:null,code:null,guestPeer:null,guestHere:false,guestName:'Coéquipier',hostName:'Hôte',lastSeq:0,sid:null,mySeq:0,myCmds:[],acked:0,lastSt:0,fxOut:[],msgOut:[],bver:1,bSent:0,bAt:0,tickAt:0,hostMeta:{talents:{}},bl:null,status:'',joined:false,metaDirty:true};
 
 function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function hsh(x,y,k){let n=Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(k,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
@@ -504,20 +563,24 @@ const xpNeed=l=>40+25*l;
 const P=o=>S.players[o];
 const coop=()=>S&&S.mode==='coop';
 const other=o=>1-o;
+const NP=()=>S?S.players.length:1;
+const mates=()=>S?S.players.map((_,o)=>o).filter(o=>o!==ME):[];
+function activeSlots(){return S.players.map((p,o)=>o).filter(o=>!S.players[o].dead&&(o===0||S.players[o].on))}
+function allVoted(){if(!coop())return false;const a=activeSlots();return a.length>0&&a.every(o=>S.votes[o])}
 
 function newPlayer(o){
   const d=tl('depart',o),mx=3000*(1+0.2*tl('noyau',o));
   return {inv:{lingot_fer:120+100*d,silicium:12+20*d},level:1,xp:0,made:{},goalsDone:[],craftQ:[],coreHp:mx,coreMax:mx,dead:false,prod:6,cons:0,pr:1,fresh:true};
 }
-function newState(seed,mode){
-  const iv=mode==='coop'?900:1800;
-  return {v:3,mode,seed,t:0,wave:0,interval:iv,waveTimer:iv,players:mode==='coop'?[newPlayer(0),newPlayer(1)]:[newPlayer(0)],over:false,paused:false,kills:0,bossKills:0,warned:0,votes:[false,false]};
+function newState(seed,mode,np=2,terr=false){
+  const iv=mode==='coop'?900:1800;np=mode==='coop'?clamp(np|0||2,2,4):1;
+  return {v:3,mode,seed,terr:!!terr,t:0,wave:0,interval:iv,waveTimer:iv,players:Array.from({length:np},(_,o)=>newPlayer(o)),over:false,paused:false,kills:0,bossKills:0,warned:0,votes:Array(np).fill(false)};
 }
-function coreSpots(mode){return mode==='coop'?[{x:39,y:31},{x:50,y:31}]:[{x:47,y:31}]}
+function coreSpots(mode,np=2){if(mode!=='coop')return[{x:47,y:31}];if(np<=2)return[{x:39,y:31},{x:50,y:31}];if(np===3)return[{x:39,y:26},{x:50,y:26},{x:45,y:36}];return[{x:39,y:26},{x:50,y:26},{x:39,y:36},{x:50,y:36}]}
 let SPOTS=coreSpots('solo');
 function inCoreZone(x,y,m){return SPOTS.some(s=>x>=s.x-m&&x<=s.x+2+m&&y>=s.y-m&&y<=s.y+2+m)}
-function genMap(seed,mode){
-  const r=rng(seed),mul=mode==='coop'?1.7:1;
+function genMap(seed,mode,np=2){
+  const r=rng(seed),mul=mode==='coop'?1+0.35*np:1;
   deposit=Array.from({length:H},()=>Array(W).fill(null));
   const cx=W/2,cy=H/2;
   const blob=(item,minD,maxD,minS,maxS)=>{
@@ -531,7 +594,7 @@ function genMap(seed,mode){
     }
   };
   const N=n=>Math.round(n*mul);
-  if(mode==='coop'){blob('minerai_fer',4,7,14,18);blob('minerai_fer',4,7,14,18);blob('quartz',5,9,10,13)}
+  if(mode==='coop'){blob('minerai_fer',4,7,14,18);blob('minerai_fer',4,7,14,18);blob('quartz',5,9,10,13);for(let k=2;k<np;k++){blob('minerai_fer',6,10,14,18);blob('quartz',6,10,10,13)}}
   else{blob('minerai_fer',4,6,14,18);blob('quartz',5,8,9,12)}
   for(let i=0;i<N(3);i++)blob('minerai_fer',7,16,10,15);
   for(let i=0;i<N(2);i++)blob('quartz',9,16,8,12);
@@ -546,9 +609,21 @@ function genMap(seed,mode){
   zblob('volcan','minerai_uranium',3,6,9);zblob('volcan','minerai_or',2,7,10);zblob('volcan','minerai_cuivre',1,8,11);
   zblob('cristaux','cristal_vide',5,6,9);zblob('abysses','minerai_mithril',5,6,9);
 }
-function setupWorld(seed,mode){
-  SPOTS=coreSpots(mode);
-  genMap(seed,mode);
+let TER=new Uint8Array(W*H);
+const terAt=(x,y)=>(x<0||y<0||x>=W||y>=H)?0:TER[y*W+x];
+function buildTerrain(seed){
+  const r=rng((seed^0x5eed1234)>>>0);
+  const put=(x,y,v)=>{if(x<3||y<3||x>=W-3||y>=H-3||inCoreZone(x,y,4))return;TER[y*W+x]=v};
+  const blob=(zone,v,count,minS,maxS,rad,far)=>{for(let i=0;i<count;i++){let x=0,y=0,k=0;do{x=4+((r()*(W-8))|0);y=4+((r()*(H-8))|0);k++}while((ZMAP[y][x]!==zone||far&&Math.hypot(x-W/2,(y-H/2)*1.4)<far)&&k<500);if(k>=500)continue;
+    const n=minS+((r()*(maxS-minS+1))|0);for(let j=0;j<n;j++){const R=rad+(r()<0.4?1:0);for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++)if(dx*dx+dy*dy<=R*R+1&&ZMAP[clamp(y+dy,0,H-1)][clamp(x+dx,0,W-1)]===zone)put(x+dx,y+dy,v);const [ddx,ddy]=DIRS[(r()*4)|0];x=clamp(x+ddx,4,W-5);y=clamp(y+ddy,4,H-5)}}};
+  blob('volcan',1,6,10,18,1);blob('toundra',2,6,14,24,1);blob('marais',3,4,12,20,1);blob('plaines',3,2,6,10,1,17);blob('desert',3,1,5,8,1);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const t=TER[y*W+x];if(t===1||t===3)deposit[y][x]=null}
+}
+function genTerrain(seed,on){TER=new Uint8Array(W*H);if(on&&typeof buildTerrain==='function')buildTerrain(seed)}
+function setupWorld(seed,mode,np=2,terr=false){
+  SPOTS=coreSpots(mode,np);
+  genMap(seed,mode,np);
+  genTerrain(seed,terr);
   grid=Array.from({length:H},()=>Array(W).fill(null));
   buildings=[];chests=[];robots=[];monsters=[];effects=[];spawnQ=[];CAPS=[];
   cores=SPOTS.map((s,o)=>({type:'noyau',owner:o,x:s.x,y:s.y,rot:0,cd:0}));
@@ -556,15 +631,15 @@ function setupWorld(seed,mode){
   for(const c of cores)for(let y=0;y<3;y++)for(let x=0;x<3;x++)grid[c.y+y][c.x+x]=c;
   flow=new Float32Array(W*H);
   renderGround();
-  const my=cores[Math.min(ME,cores.length-1)];cam.x=mode==='coop'?my.x+1.5+(ME===0?3:-3):W/2;cam.y=H/2;
+  const my=cores[Math.min(ME,cores.length-1)];cam.x=mode==='coop'?my.x+1.5:W/2;cam.y=mode==='coop'?my.y+1.5:H/2;
   tool=null;sel=null;
 }
 
 // ================= STOCK (par joueur) =================
 const at=(x,y)=>(x<0||y<0||x>=W||y>=H)?null:grid[y][x];
-function total(k,o=ME){if(isRemote())return P(o).inv[k]||0;let n=P(o).inv[k]||0;for(const c of chests)if(c.owner===o)n+=c.store[k]||0;return n}
+function total(k,o=ME){if(isRemote())return P(o).inv[k]||0;let n=P(o).inv[k]||0;for(const c of chests)if(c.owner===o||c.type==='coffre_partage')n+=c.store[k]||0;return n}
 function canAfford(cost,o=ME,mul=1){for(const k in cost)if(total(k,o)<cost[k]*mul)return false;return true}
-function take(k,n,o){const p=P(o);let r=n;const a=Math.min(p.inv[k]||0,r);p.inv[k]=(p.inv[k]||0)-a;r-=a;for(const c of chests){if(r<=0)break;if(c.owner!==o)continue;const b=Math.min(c.store[k]||0,r);c.store[k]-=b;c.used-=b;r-=b}}
+function take(k,n,o){const p=P(o);let r=n;const a=Math.min(p.inv[k]||0,r);p.inv[k]=(p.inv[k]||0)-a;r-=a;for(const pass of[0,1])for(const c of chests){if(r<=0)break;if(pass===0?(c.owner!==o||c.type==='coffre_partage'):c.type!=='coffre_partage')continue;const b=Math.min(c.store[k]||0,r);c.store[k]-=b;c.used-=b;r-=b}}
 function pay(cost,o,mul=1){for(const k in cost)take(k,cost[k]*mul,o)}
 function addInv(o,k,n){const p=P(o);p.inv[k]=(p.inv[k]||0)+n}
 function refund(cost,o){for(const k in cost)addInv(o,k,cost[k])}
@@ -584,24 +659,24 @@ function initB(b){
   else if(t==='extracteur'){b.filter=b.filter||null;b.pushCd=0}
   else if(t==='tunnel_entree'){b.item=null;b.prog=0}
   else if(t==='tunnel_sortie'){b.q=[];b.pushCd=0}
-  else if(t==='coffre'){b.store=b.store||{};b.used=Object.values(b.store).reduce((a,v)=>a+v,0)}
+  else if(t==='coffre'||t==='coffre_partage'){b.store=b.store||{};b.used=Object.values(b.store).reduce((a,v)=>a+v,0)}
   else if(t==='lanceur'||t==='recepteur'){b.store=b.store||{};b.count=Object.values(b.store).reduce((a,v)=>a+v,0);b.cd=0;b.pushCd=0;b.incoming=0;b.lk=b.lk||null}
 }
 const bsz=t=>(B[t]&&B[t].size)||1;
 function placeB(type,x,y,r,o=0){
   const b={type,x,y,rot:r,owner:o,hp:0};b.hp=maxHp(b);initB(b);
-  const z=bsz(type);for(let j=0;j<z;j++)for(let i=0;i<z;i++)if(grid[y+j]&&x+i<W)grid[y+j][x+i]=b;buildings.push(b);if(type==='coffre')chests.push(b);flowDirty=true;NET.bver++;return b;
+  const z=bsz(type);for(let j=0;j<z;j++)for(let i=0;i<z;i++)if(grid[y+j]&&x+i<W)grid[y+j][x+i]=b;buildings.push(b);if(type==='coffre'||type==='coffre_partage')chests.push(b);flowDirty=true;NET.bver++;return b;
 }
 function removeB(b){
   if(b.type==='noyau')return;
   {const z=bsz(b.type);for(let j=0;j<z;j++)for(let i=0;i<z;i++)if(grid[b.y+j]&&grid[b.y+j][b.x+i]===b)grid[b.y+j][b.x+i]=null}
   let i=buildings.indexOf(b);if(i>=0)buildings.splice(i,1);
-  if(b.type==='coffre'){i=chests.indexOf(b);if(i>=0)chests.splice(i,1)}
+  if(b.type==='coffre'||b.type==='coffre_partage'){i=chests.indexOf(b);if(i>=0)chests.splice(i,1)}
   if(sel===b)sel=null;flowDirty=true;NET.bver++;
 }
 function demolishB(b){
   refund(B[b.type].cost,b.owner);
-  if(b.type==='coffre')for(const k in b.store)addInv(b.owner,k,b.store[k]);
+  if(b.type==='coffre'||b.type==='coffre_partage')for(const k in b.store)addInv(b.owner,k,b.store[k]);
   removeB(b);
 }
 function monsterOn(x,y){return monsters.some(m=>Math.floor(m.x)===x&&Math.floor(m.y)===y)}
@@ -611,8 +686,8 @@ function canPlace(type,x,y,o=ME){
   if(!unlocked(type,o))return `Débloqué au niveau ${B[type].lvl}`;
   if(x<0||y<0||x>=W||y>=H)return 'Hors de la carte';
   if(type==='gardien'){const st=at(x,y);if(!st||st.type!=='station'||st.owner!==o)return 'Pose le robot gardien sur ta station de recharge';if(robots.some(r=>r.kind==='gardien'&&r.st&&r.st[0]===st.x&&r.st[1]===st.y))return 'Cette station a déjà son gardien';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
-  if(B[type].unit){if(!zoneOpen(x,y,o))return 'Zone verrouillée';if(robots.filter(r=>r.owner===o&&(r.kind||'robot')===type).length>=MAX_ROBOTS)return `Maximum ${MAX_ROBOTS} ${B[type].n.toLowerCase()}s`;if(grid[y][x])return 'Case occupée';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
-  {const z=bsz(type);if(x+z>W||y+z>H)return 'Hors de la carte';for(let j=0;j<z;j++)for(let i=0;i<z;i++){if(grid[y+j][x+i])return 'Case occupée';if(!zoneOpen(x+i,y+j,o)){const Z=ZONES[ZMAP[y+j][x+i]];return `${Z.n} : zone débloquée au niveau ${Z.lvl}`}if(z>1&&monsterOn(x+i,y+j))return 'Un monstre est sur cette case'}}
+  if(B[type].unit){if(terAt(x,y)===3)return 'Impossible de poser un robot sur l\'eau';if(!zoneOpen(x,y,o))return 'Zone verrouillée';if(robots.filter(r=>r.owner===o&&(r.kind||'robot')===type).length>=MAX_ROBOTS)return `Maximum ${MAX_ROBOTS} ${B[type].n.toLowerCase()}s`;if(grid[y][x])return 'Case occupée';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
+  {const z=bsz(type);if(x+z>W||y+z>H)return 'Hors de la carte';for(let j=0;j<z;j++)for(let i=0;i<z;i++){if(terAt(x+i,y+j)===3)return 'Impossible de construire sur l\'eau';if(grid[y+j][x+i])return 'Case occupée';if(!zoneOpen(x+i,y+j,o)){const Z=ZONES[ZMAP[y+j][x+i]];return `${Z.n} : zone débloquée au niveau ${Z.lvl}`}if(z>1&&monsterOn(x+i,y+j))return 'Un monstre est sur cette case'}}
   const d=deposit[y][x];
   if(kind(type)==='foreuse'&&(!d||d==='petrole'))return 'La foreuse doit être sur un gisement solide';
   if(type==='pompe'&&d!=='petrole')return 'La pompe doit être sur une nappe de pétrole';
@@ -648,8 +723,8 @@ const ACT={
   },
   rpref(o,id,pref){const r=robots.find(x=>x.id===id);if(!r||r.owner!==o)return null;if(pref!=='auto'&&!ROBOT_ORES.includes(pref))return null;r.pref=pref;r.tx=null;if(r.state==='mine')r.state='seek';return null},
   rdel(o,id){const r=robots.find(x=>x.id===id);if(!r||r.owner!==o)return null;refund(B[r.kind||'robot'].cost,o);for(const k in r.cargo)addInv(o,k,r.cargo[k]);robots=robots.filter(x=>x!==r);if(sel===r)sel=null;return null},
-  give(o,item,n){
-    if(!coop()||!ITEMS[item])return null;const to=other(o);
+  give(o,item,n,to){
+    if(!coop()||!ITEMS[item])return null;if(to==null)to=S.players.findIndex((q,k)=>k!==o&&!q.dead);to=to|0;if(to<0||to>=NP()||to===o)return null;if(P(to).dead)return 'Son noyau est détruit';
     n=Math.min(n|0,Math.floor(total(item,o)));if(n<=0)return 'Rien à donner';
     take(item,n,o);addInv(to,item,n);P(o).fresh=false;
     notify(to,`${playerName(o)} t'a donné ${n} ${ITEMS[item].n}`);
@@ -658,8 +733,8 @@ const ACT={
   filter(o,x,y,item){const b=at(x,y);if(!b||b.type!=='extracteur'||b.owner!==o)return null;b.filter=item&&ITEMS[item]?item:null;NET.bver++;return null},
   link(o,lx,ly,rx,ry){const l=at(lx,ly),r=at(rx,ry);if(!l||!r||l.type!=='lanceur'||r.type!=='recepteur'||l.owner!==o||r.owner!==o)return 'Choisis un de tes réceptionneurs';l.lk=[rx,ry];NET.bver++;return null},
   vote(o,on){if(!coop())return null;S.votes[o]=!!on;return null},
-  revive(o){
-    if(!coop())return null;const t=other(o);
+  revive(o,t){
+    if(!coop())return null;if(t==null)t=S.players.findIndex((q,k)=>k!==o&&q.dead);if(t<0||t>=NP()||t===o)return null;
     if(P(o).dead)return 'Ton propre noyau est détruit';
     if(!P(t).dead)return null;
     if(monsters.length||spawnQ.length)return 'Élimine d\'abord tous les monstres';
@@ -677,6 +752,8 @@ const ACT={
     pay(t.cost,o);r.cur={id,left:t.t};return null;
   },
   rcancel(o){const r=rsOf(o);if(!r||!r.cur)return null;const t=RESEARCH.find(x=>x.id===r.cur.id);if(t)refund(t.cost,o);r.cur=null;return null},
+  ping(o,x,y){x=+x;y=+y;if(!isFinite(x)||!isFinite(y))return null;const t=Date.now();PINGT[o]=PINGT[o]||0;if(t-PINGT[o]<700)return null;PINGT[o]=t;fx({k:'ping',x:clamp(x,0,W),y:clamp(y,0,H),o,t:4,max:4});return null},
+  chat(o,txt){txt=String(txt||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,80);if(!txt)return null;const t=Date.now();CHATT[o]=CHATT[o]||[];CHATT[o]=CHATT[o].filter(x=>t-x<5000);if(CHATT[o].length>=5)return 'Doucement avec le chat 🙂';CHATT[o].push(t);addChat(o,txt);if(NET.role==='host')NET.msgOut.push('#'+o+'|'+txt);return null},
   craft(o,set,i,n){
     const r=RECIPES[set]&&RECIPES[set][i];if(!r||!recUnlocked(r,o))return null;const p=P(o);
     for(let k=0;k<Math.min(n|0,5);k++){if(p.craftQ.length>=30||!canAfford(r.in,o))break;pay(r.in,o);p.craftQ.push({set,i,left:r.t*2})}
@@ -688,10 +765,10 @@ function act(name,...args){
   if(NET.role==='guest'){sendCmd([name,...args]);return null}
   return ACT[name](ME,...args);
 }
-function playerName(o){if(!coop())return 'Toi';return o===0?NET.hostName:NET.guestName}
+function playerName(o){if(!coop())return 'Toi';if(NET.names&&NET.names[o])return NET.names[o];return o===0?NET.hostName:o===1&&NET.role!=='host'?NET.guestName:'Joueur '+(o+1)}
 function notify(o,text){
   if(o===ME){banner(text,false,3,'blue')}
-  else if(NET.role==='host')NET.msgOut.push(text);
+  else if(NET.role==='host')NET.msgOut.push('@'+o+'|'+text);
 }
 
 // ================= LOGISTICS =================
@@ -707,7 +784,7 @@ function accepts(t,item,fx,fy){
   if(t.type==='tunnel_sortie')return false;
   if(t.type==='fusionneur')return side>=0&&!t.buf[side];
   if(t.type==='repartiteur')return side===(t.rot+2)%4&&!t.item;
-  if(t.type==='coffre')return t.used<B.coffre.cap;
+  if(t.type==='coffre'||t.type==='coffre_partage')return t.used<B[t.type].cap;
   if(t.type==='lanceur')return t.count<20;
   if(t.type==='recepteur')return false;
   if(GENS.has(t.type))return item===(B[t.type].fuel||'petrole')&&t.fuel<10;
@@ -727,7 +804,7 @@ function give(t,item,fx,fy){
   if(t.type==='fusionneur'){t.buf[dirOf(fx-t.x,fy-t.y)]=item;return}
   if(t.type==='repartiteur'){t.item=item;return}
   if(t.type==='lanceur'){t.store[item]=(t.store[item]||0)+1;t.count++;return}
-  if(t.type==='coffre'){t.store[item]=(t.store[item]||0)+1;t.used++;const p=P(t.owner);p.made[item]=(p.made[item]||0)+1;stat(t.owner,'n',item);return}
+  if(t.type==='coffre'||t.type==='coffre_partage'){t.store[item]=(t.store[item]||0)+1;t.used++;const p=P(t.owner);p.made[item]=(p.made[item]||0)+1;stat(t.owner,'n',item);return}
   if(GENS.has(t.type)){t.fuel++;return}
   t.inb[item]=(t.inb[item]||0)+1;
 }
@@ -740,7 +817,7 @@ function tryPush(b,item,dir=b.rot){
 function updB(b,dt){
   const d=B[b.type],t=b.type,o=b.owner,pr=P(o).pr;
   if(BELT.has(t)){
-    if(b.item){if(b.prog<1)b.prog=Math.min(1,b.prog+dt*d.spd*mBelt(o));if(b.prog>=1&&tryPush(b,b.item)){b.item=null;b.prog=0}}
+    if(b.item){if(b.prog<1)b.prog=Math.min(1,b.prog+dt*d.spd*mBelt(o)*(TER[b.y*W+b.x]===2?1.6:1));if(b.prog>=1&&tryPush(b,b.item)){b.item=null;b.prog=0}}
     return;
   }
   if(t==='tunnel_entree'){
@@ -797,7 +874,7 @@ function updB(b,dt){
     for(let dI=0;dI<4;dI++){
       if(dI===b.rot)continue;const [dx,dy]=DIRS[dI],src=at(b.x+dx,b.y+dy);if(!src)continue;
       if(src.type==='noyau'&&src.owner===o&&!P(o).dead&&(P(o).inv[k]||0)>=1){if(tryPush(b,k)){P(o).inv[k]-=1;b.pushCd=0.2;b.active=true}return}
-      if(src.type==='coffre'&&src.owner===o&&(src.store[k]||0)>=1){if(tryPush(b,k)){src.store[k]-=1;src.used-=1;b.pushCd=0.2;b.active=true}return}
+      if((src.type==='coffre'&&src.owner===o||src.type==='coffre_partage')&&(src.store[k]||0)>=1){if(tryPush(b,k)){src.store[k]-=1;src.used-=1;b.pushCd=0.2;b.active=true}return}
     }
     return;
   }
@@ -997,7 +1074,7 @@ function computeFlow(){
     const [d,i]=pop();if(d>flow[i])continue;
     const x=i%W,y=(i/W)|0,b=grid[y][x];
     let c=1;if(b&&WALK.has(b.type))c=1;else if(b&&B[b.type]&&B[b.type].lure)c=1;else if(b&&b.type!=='noyau')c=1+b.hp/30;else if(b&&b.type==='noyau'&&P(b.owner).dead)c=500;
-    for(const [dx,dy] of DIRS){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;const n=ny*W+nx,nd=Math.fround(d+c);if(nd<flow[n]){flow[n]=nd;push(nd,n)}}
+    for(const [dx,dy] of DIRS){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;const n=ny*W+nx;if(TER[n]===3)continue;const nd=Math.fround(d+c);if(nd<flow[n]){flow[n]=nd;push(nd,n)}}
   }
 }
 function hurt(m,d,pierce=0){
@@ -1030,8 +1107,8 @@ function levelUpFx(l){
 }
 const MAX_WAVE=220,MAX_ALIVE=320;
 function startWave(){
-  S.wave++;S.waveTimer=S.interval;S.warned=0;S.votes=[false,false];
-  const n=S.wave,cm=coop()?1.5:1,raw=(6+n*4+n*n*0.5)*cm,count=Math.round(Math.min(raw,MAX_WAVE*cm));
+  S.wave++;S.waveTimer=S.interval;S.warned=0;S.votes=Array(NP()).fill(false);
+  const n=S.wave,cm=coop()?1+0.5*(NP()-1):1,raw=(6+n*4+n*n*0.5)*cm,count=Math.round(Math.min(raw,MAX_WAVE*cm));
   // au-delà de MAX_WAVE monstres, on garde la même difficulté en rendant chaque monstre plus résistant (moins d'entités = pas de lag)
   const hpMul=Math.pow(1.24,Math.min(n,10)-1)*Math.pow(1.15,Math.max(0,n-10))*(raw/count),dmgMul=(1+0.08*(n-1))*Math.sqrt(raw/count);
   const nEdges=1+(n>=3?1:0)+(n>=6?1:0)+(n>=9?1:0);
@@ -1051,17 +1128,20 @@ function startWave(){
 function spawnMonster(q,px,py){
   const t=MT[q.type];let x=px,y=py;
   if(x==null){
-    if(q.edge===0){x=W-0.5;y=1+Math.random()*(H-2)}
-    else if(q.edge===1){x=1+Math.random()*(W-2);y=H-0.5}
-    else if(q.edge===2){x=0.5;y=1+Math.random()*(H-2)}
-    else{x=1+Math.random()*(W-2);y=0.5}
+    for(let tr=0;tr<12;tr++){
+      if(q.edge===0){x=W-0.5;y=1+Math.random()*(H-2)}
+      else if(q.edge===1){x=1+Math.random()*(W-2);y=H-0.5}
+      else if(q.edge===2){x=0.5;y=1+Math.random()*(H-2)}
+      else{x=1+Math.random()*(W-2);y=0.5}
+      const ci=clamp(Math.floor(y),0,H-1)*W+clamp(Math.floor(x),0,W-1);if(t.fly||TER[ci]!==3&&flow[ci]<1e8)break;
+    }
   }
   const hp=t.hp*q.hpMul;
   monsters.push({id:monSeq++,type:q.type,wMul:q.wMul||q.hpMul,slow:0,x,y,hp,maxhp:hp,dmg:t.dmg*q.dmgMul,cd:0,ox:(Math.random()-0.5)*0.4,oy:(Math.random()-0.5)*0.4,fx:0,fy:1,seed:Math.random()*10,flash:0,spawnT:6,hpMul:q.hpMul,dmgMul:q.dmgMul});
 }
-let SHIELDS=[0,0],CAPS=[];
+let SHIELDS=[0,0],CAPS=[],LAVAT=0;
 // ----- Statistiques de production (fenêtre glissante de 60 s, non sauvegardées) -----
-const STATS=[newStat(),newStat()];
+const STATS=[newStat(),newStat(),newStat(),newStat()];
 function newStat(){return{cur:{p:{},c:{},n:{}},hist:[],acc:0}}
 function stat(o,k,item,n=1){const s2=STATS[o];if(!s2||!item)return;const m=s2.cur[k];m[item]=(m[item]||0)+n}
 function statTick(dt){for(const s2 of STATS){s2.acc+=dt;if(s2.acc>=10){s2.acc=0;s2.hist.push(s2.cur);if(s2.hist.length>6)s2.hist.shift();s2.cur={p:{},c:{},n:{}}}}}
@@ -1113,8 +1193,8 @@ function killCore(o){
   const p=P(o);p.dead=true;p.coreHp=0;flowDirty=true;
   fx({k:'boom',x:cores[o].x+1.5,y:cores[o].y+1.5,r:3,col:'255,120,60',t:1.2,max:1.2});
   if(coop()&&!S.players.every(q=>q.dead)){
-    notify(o,'Ton noyau est détruit ! Ton coéquipier peut te réanimer une fois la vague éliminée.');
-    notify(other(o),`Le noyau de ${playerName(o)} est détruit ! Élimine tous les monstres pour le réanimer.`);
+    notify(o,'Ton noyau est détruit ! Un coéquipier peut te réanimer une fois la vague éliminée.');
+    for(let k=0;k<NP();k++)if(k!==o)notify(k,`Le noyau de ${playerName(o)} est détruit ! Élimine tous les monstres pour le réanimer.`);
   }
 }
 function explode(m){
@@ -1186,24 +1266,27 @@ function update(dt){
   for(let o=0;o<S.players.length;o++){const p=P(o);p.coreMax=3000*(1+0.2*tl('noyau',o));p.prod=p.dead?0:6;p.cons=0}
   for(const b of buildings){const d=B[b.type],p=P(b.owner);if(GENS.has(b.type)){if(b.burn>0)p.prod+=d.pw}else if(d.pw>0)p.prod+=d.pw;else if(d.pw<0)p.cons-=d.pw}
   for(let o=0;o<S.players.length;o++){const p=P(o);p.prod=Math.round(p.prod*mPw(o));p.pr=p.cons>0?Math.min(1,p.prod/p.cons):1}
-  SHIELDS=[0,0];for(const b of buildings)if(b.type==='bouclier'&&P(b.owner).pr>0.5)SHIELDS[b.owner]++;
+  SHIELDS=S.players.map(()=>0);for(const b of buildings)if(b.type==='bouclier'&&P(b.owner).pr>0.5)SHIELDS[b.owner]++;
   for(let i=0;i<buildings.length;i++)updB(buildings[i],dt);
   for(const r of robots)updR(r,dt);
   updCaps(dt);
   statTick(dt);
+  if(S.terr){LAVAT+=dt;if(LAVAT>=0.5){const k=LAVAT;LAVAT=0;
+    for(const b of [...buildings]){if(TER[b.y*W+b.x]!==1)continue;b.hp-=maxHp(b)*0.01*k;NET.bdirtyHp=true;if(Math.random()<0.3)addPart({kind:'smoke',x:b.x+0.5,y:b.y+0.6,vx:0,vy:-0.5,life:1,max:1,size:0.12,col:'255,120,50'});if(b.hp<=0){if(B[b.type].lure){detonate(b);continue}fx({k:'boom',x:b.x+0.5,y:b.y+0.5,r:0.9,col:'255,120,40',t:0.45,max:0.45});removeB(b)}}
+    for(const m of monsters){if(MT[m.type].fly||m.hp<=0)continue;const ci=clamp(Math.floor(m.y),0,H-1)*W+clamp(Math.floor(m.x),0,W-1);if(TER[ci]===1){m.hp-=m.maxhp*0.03*k;m.flash=0.05;if(m.hp<=0)hurt(m,1)}}}}
   for(let o=0;o<S.players.length;o++){const r=rsOf(o);if(r&&r.cur){r.cur.left-=dt;if(r.cur.left<=0){const t=RESEARCH.find(x=>x.id===r.cur.id);if(t&&!r.done.includes(t.id))r.done.push(t.id);r.cur=null;if(t){notify(o,`🔬 Recherche terminée : ${t.n} (${t.d})`);if(o===ME)sfx('level')}applyTalentsLive()}}}
   for(let o=0;o<S.players.length;o++){const p=P(o);if(p.craftQ.length){const q=p.craftQ[0];q.left-=dt*mMach(o);if(q.left<=0){const r=RECIPES[q.set][q.i];addInv(o,r.out,r.n);p.made[r.out]=(p.made[r.out]||0)+r.n;p.craftQ.shift()}}}
   flowTimer-=dt;if(flowDirty&&flowTimer<=0){computeFlow();flowDirty=false;flowTimer=0.3}
   S.waveTimer-=dt;
   if(S.waveTimer<=60&&S.warned<1){S.warned=1;const t=S.wave%10===9?'Le BOSS arrive dans 1 minute !':'Attaque dans 1 minute !';banner(t,true,3);if(NET.role==='host')NET.msgOut.push('!'+t)}
-  if(S.waveTimer<=0||(coop()&&S.votes[0]&&S.votes[1]))startWave();
+  if(S.waveTimer<=0||allVoted())startWave();
   for(let i=spawnQ.length-1;i>=0;i--){spawnQ[i].t-=dt;if(spawnQ[i].t<=0){if(monsters.length>=MAX_ALIVE&&!MT[spawnQ[i].type].boss){spawnQ[i].t=1;continue}spawnMonster(spawnQ[i]);spawnQ.splice(i,1)}}
   for(const c of cores){
     const o=c.owner;if(P(o).dead)continue;
     c.cd-=dt;if(c.cd>0)continue;
     let best=null,bd=4.5*4.5;const cx=c.x+1.5,cy=c.y+1.5;
     for(const m of monsters){if(m.hp<=0)continue;const dd=(m.x-cx)**2+(m.y-cy)**2;if(dd<bd){bd=dd;best=m}}
-    if(best){hurt(best,6*(1+0.5*tl('noyau',o)));c.cd=0.5;fx({k:'shot',x1:cx,y1:cy,x2:best.x,y2:best.y,col:PCOL[o]==='#4fc3f7'&&coop()?'#a9e3ff':'#ffcf87',w:0.06,t:0.08,max:0.08})}
+    if(best){hurt(best,6*(1+0.5*tl('noyau',o)));c.cd=0.5;fx({k:'shot',x1:cx,y1:cy,x2:best.x,y2:best.y,col:shade(pcol(o),0.45),w:0.06,t:0.08,max:0.08})}
   }
   for(const m of monsters)if(m.hp>0)updM(m,dt);
   monsters=monsters.filter(m=>m.hp>0);
@@ -1230,6 +1313,7 @@ function onEffect(e){
     sfx(c==='#5ff3ff'?'laser':c==='#e6a6ff'||c==='#9fd6ff'?'plasma':'shot');
     for(let i=0;i<2;i++)addPart({kind:'spark',x:e.x2,y:e.y2,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,life:0.18,max:0.18,size:0.05,col:c});
   }else if(e.k==='zap')sfx('zap');
+  else if(e.k==='ping'){sfx('ping');if(e.o!==ME&&coop())toast(`📍 ${playerName(e.o)} te montre un endroit`,true)}
   else if(e.k==='boom'&&e.r>=0.6){sfx('boom');for(let i=0;i<Math.min(14,e.r*8);i++)addPart({kind:'spark',x:e.x,y:e.y,vx:(Math.random()-0.5)*6*e.r,vy:(Math.random()-0.5)*6*e.r,life:0.4,max:0.4,size:0.07,col:`rgb(${e.col})`})}
 }
 function cosmeticUpdate(dt){
@@ -1285,6 +1369,8 @@ function sfx(name){
     case 'demolish':tone(0,'triangle',420,180,0.1,0.07);break;
     case 'hit':tone(0,'sine',95,45,0.28,0.25);break;
     case 'wave':for(let i=0;i<3;i++){tone(i*0.42,'sawtooth',440,660,0.2,0.07);tone(i*0.42+0.2,'sawtooth',660,440,0.2,0.07)}break;
+    case 'ping':tone(0,'sine',880,880,0.12,0.12);tone(0.14,'sine',1320,1320,0.18,0.1);break;
+    case 'chat':tone(0,'triangle',700,900,0.06,0.05);break;
     case 'level':[523,659,784,1047].forEach((f,i)=>tone(i*0.09,'triangle',f,f,0.18,0.09));break;
   }
 }
@@ -1314,9 +1400,17 @@ function renderGround(){
     for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){const i=((y+dy)*GW+x+dx)*4;px[i]=r+gr;px[i+1]=gg+gr;px[i+2]=b+gr;px[i+3]=255}
   }
   g.putImageData(img,0,0);
+  // terrain spécial : lave, glace, eau
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const t=TER[y*W+x];if(!t)continue;const X=x*TS,Y=y*TS;
+    const nb=(dx,dy)=>terAt(x+dx,y+dy)===t;
+    if(t===3){g.fillStyle='#1b4a73';g.fillRect(X,Y,TS,TS);g.fillStyle='rgba(120,190,255,0.18)';if(!nb(0,-1))g.fillRect(X,Y,TS,4);if(!nb(-1,0))g.fillRect(X,Y,4,TS);if(!nb(1,0))g.fillRect(X+TS-4,Y,4,TS);if(!nb(0,1))g.fillRect(X,Y+TS-4,TS,4);
+      g.strokeStyle='rgba(190,230,255,0.25)';g.lineWidth=1;for(let k=0;k<2;k++){const wy=Y+8+hsh(x,y,k+30)*(TS-16),wx=X+4+hsh(x,y,k+40)*(TS-20);g.beginPath();g.moveTo(wx,wy);g.quadraticCurveTo(wx+5,wy-3,wx+10,wy);g.quadraticCurveTo(wx+15,wy+3,wx+20,wy);g.stroke()}}
+    else if(t===1){g.fillStyle='#3a1208';g.fillRect(X,Y,TS,TS);const gr=g.createRadialGradient(X+TS/2,Y+TS/2,2,X+TS/2,Y+TS/2,TS*0.75);gr.addColorStop(0,'rgba(255,170,40,0.95)');gr.addColorStop(0.55,'rgba(230,70,20,0.8)');gr.addColorStop(1,'rgba(90,20,5,0.4)');g.fillStyle=gr;g.fillRect(X,Y,TS,TS);
+      g.strokeStyle='rgba(40,12,6,0.85)';g.lineWidth=2;g.beginPath();let lx=X+hsh(x,y,51)*TS,ly=Y;g.moveTo(lx,ly);for(let k=0;k<4;k++){lx=X+hsh(x,y,52+k)*TS;ly+=TS/4;g.lineTo(lx,ly)}g.stroke()}
+    else if(t===2){g.fillStyle='#a9d4e8';g.fillRect(X,Y,TS,TS);g.fillStyle='rgba(255,255,255,0.35)';g.fillRect(X+2,Y+2,TS*0.5,3);g.strokeStyle='rgba(90,140,170,0.55)';g.lineWidth=1;g.beginPath();g.moveTo(X+hsh(x,y,61)*TS,Y+hsh(x,y,62)*TS);g.lineTo(X+hsh(x,y,63)*TS,Y+hsh(x,y,64)*TS);g.lineTo(X+hsh(x,y,65)*TS,Y+hsh(x,y,66)*TS);g.stroke()}}
   // décor : touffes d'herbe, cailloux, fleurs
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-    if(deposit[y][x]||inCoreZone(x,y,0))continue;
+    if(deposit[y][x]||inCoreZone(x,y,0)||TER[y*W+x])continue;
     const X=x*TS,Y=y*TS,zn=ZMAP[y][x];
     if(zn==='volcan'&&hsh(x,y,71)<0.18){g.strokeStyle='rgba(255,110,40,0.55)';g.lineWidth=1.5;g.beginPath();let lx=X+hsh(x,y,72)*TS,ly=Y+hsh(x,y,73)*TS;g.moveTo(lx,ly);for(let k=0;k<3;k++){lx+=(hsh(x,y,74+k)-0.5)*14;ly+=(hsh(x,y,77+k)-0.5)*14;g.lineTo(lx,ly)}g.stroke();continue}
     if(zn==='toundra'&&hsh(x,y,71)<0.5){g.fillStyle='rgba(240,248,255,0.35)';for(let k=0;k<4;k++){g.beginPath();g.arc(X+hsh(x,y,80+k)*TS,Y+hsh(x,y,84+k)*TS,1+hsh(x,y,88+k)*2.5,0,7);g.fill()}continue}
@@ -1356,6 +1450,7 @@ function renderGround(){
   // fond de la mini-carte
   miniBase=document.createElement('canvas');miniBase.width=W*2;miniBase.height=H*2;const mg=miniBase.getContext('2d');
   mg.drawImage(groundCv,0,0,W*2,H*2);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const t=TER[y*W+x];if(t){mg.fillStyle=t===3?'#2a6fb0':t===1?'#e0561e':'#cfeaf5';mg.fillRect(x*2,y*2,2,2)}}
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){const d=deposit[y][x];if(d){mg.fillStyle=d==='petrole'?'#2a2038':DEP[d].fg;mg.globalAlpha=0.75;mg.fillRect(x*2,y*2,2,2);mg.globalAlpha=1}}
 }
 function drawItem(c,item,x,y,sz){
@@ -1383,7 +1478,8 @@ function body(c,x,y,s,col){
 }
 function badge(c,x,y,s){c.fillStyle='#ffd23f';c.strokeStyle='rgba(0,0,0,0.6)';c.lineWidth=1;c.beginPath();c.moveTo(x+s*0.1,y+s*0.3);c.lineTo(x+s*0.2,y+s*0.12);c.lineTo(x+s*0.3,y+s*0.3);c.closePath();c.fill();c.stroke()}
 function drawB(c,b,x,y,s,now){
-  const d=B[b.type],cx=x+s/2,cy=y+s/2,k=b.type==='noyau'?'noyau':kind(b.type);
+  let d=B[b.type];const cx=x+s/2,cy=y+s/2,k=b.type==='noyau'?'noyau':kind(b.type);
+  if(TURRETS.has(b.type)&&S){const sc=skinCol(b.owner||0,now,b);if(sc){d=Object.assign({},d,{col:sc});if(now>0&&(sc==='#d4af37'||(cosOf(b.owner||0).skin==='neon'))){c.save();c.globalAlpha=0.25;c.fillStyle=sc;c.beginPath();c.arc(cx,cy,s*0.55,0,7);c.fill();c.restore()}}}
   if(k==='station'){
     const S2=s*2,mx=x+s,my=y+s;
     c.fillStyle='rgba(0,0,0,0.3)';rr(c,x+s*0.2,y+s*0.28,S2*0.94,S2*0.94,s*0.3);c.fill();
@@ -1394,7 +1490,7 @@ function drawB(c,b,x,y,s,now){
     c.setLineDash([s*0.12,s*0.1]);c.strokeStyle='#ffd23f';c.lineWidth=Math.max(1,s*0.04);c.beginPath();c.arc(mx,my,s*0.45,0,7);c.stroke();c.setLineDash([]);
     c.fillStyle='#8a97a6';for(const [a,e] of[[0.25,0.25],[1.75,0.25],[0.25,1.75],[1.75,1.75]]){rr(c,x+s*a-s*0.13,y+s*e-s*0.13,s*0.26,s*0.26,s*0.06);c.fill()}
     c.fillStyle='#ffcc33';c.beginPath();c.moveTo(mx+s*0.06,my-s*0.25);c.lineTo(mx-s*0.12,my+s*0.04);c.lineTo(mx,my+s*0.04);c.lineTo(mx-s*0.06,my+s*0.25);c.lineTo(mx+s*0.12,my-s*0.04);c.lineTo(mx,my-s*0.04);c.closePath();c.globalAlpha=now>0&&robots&&robots.some(r=>r.kind==='gardien'&&r.st&&r.st[0]===b.x&&r.st[1]===b.y)?0.25:0.9;c.fill();c.globalAlpha=1;
-    if(coop()&&now>0){c.fillStyle=PCOL[b.owner];c.beginPath();c.moveTo(x+S2,y+S2);c.lineTo(x+S2-s*0.3,y+S2);c.lineTo(x+S2,y+S2-s*0.3);c.closePath();c.fill()}
+    if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.beginPath();c.moveTo(x+S2,y+S2);c.lineTo(x+S2-s*0.3,y+S2);c.lineTo(x+S2,y+S2-s*0.3);c.closePath();c.fill()}
     return;
   }
   if(k==='noyau'){c.fillStyle='rgba(0,0,0,0.3)';rr(c,x+s*0.3,y+s*0.4,s*2.9,s*2.9,s*0.4);c.fill()}
@@ -1500,7 +1596,8 @@ function drawB(c,b,x,y,s,now){
       c.fillStyle=d.col;rr(c,x+s*0.12,y+s*0.18,s*0.76,s*0.66,s*0.06);c.fill();
       c.fillStyle='#5c3b1c';c.fillRect(x+s*0.12,y+s*0.4,s*0.76,s*0.06);
       c.fillStyle='#c9cfd6';c.fillRect(x+s*0.44,y+s*0.36,s*0.12,s*0.16);
-      const f=(b.used||0)/B.coffre.cap;c.fillStyle='rgba(0,0,0,0.6)';c.fillRect(x+s*0.16,y+s*0.74,s*0.68,s*0.06);c.fillStyle='#ffd23f';c.fillRect(x+s*0.16,y+s*0.74,s*0.68*f,s*0.06);
+      if(b.type==='coffre_partage'){c.strokeStyle='#bff5e6';c.lineWidth=Math.max(1,s*0.04);for(const sg of[-1,1]){c.beginPath();c.arc(cx+sg*s*0.1,y+s*0.28,s*0.07,0,7);c.stroke()}}
+      const f=(b.used||0)/B[b.type].cap;c.fillStyle='rgba(0,0,0,0.6)';c.fillRect(x+s*0.16,y+s*0.74,s*0.68,s*0.06);c.fillStyle='#ffd23f';c.fillRect(x+s*0.16,y+s*0.74,s*0.68*f,s*0.06);
       break;}
     case 'foreuse':{
       body(c,x,y,s,d.col);
@@ -1595,7 +1692,7 @@ function drawB(c,b,x,y,s,now){
       break;}
     case 'noyau':{
       const S3=s*3,ccx=x+S3/2,ccy=y+S3/2,pulse=0.5+0.5*Math.sin(now*2),dead=S&&P(b.owner)&&P(b.owner).dead;
-      const col=coop()?PCOL[b.owner]:'#f2a33a';
+      const col=pcol(b.owner);
       c.fillStyle=dead?'#1b1d21':'#262a32';rr(c,x+s*0.08,y+s*0.08,S3-s*0.16,S3-s*0.16,s*0.35);c.fill();
       c.strokeStyle=dead?'#4a4f58':col;c.lineWidth=Math.max(1.5,s*0.08);c.stroke();
       c.fillStyle='#1a1d22';for(let i=0;i<4;i++){c.save();c.translate(ccx,ccy);c.rotate(i*Math.PI/2);c.fillRect(s*1.15,-s*0.3,s*0.3,s*0.6);c.restore()}
@@ -1604,12 +1701,12 @@ function drawB(c,b,x,y,s,now){
         c.fillStyle='#9aa1ad';c.font=`700 ${Math.max(9,s*0.32)}px system-ui`;c.textAlign='center';c.fillText('DÉTRUIT',ccx,ccy+s*1.1);
         return;
       }
-      const rgb=col==='#4fc3f7'?'79,195,247':'242,163,58';
+      const rgb=hexRgb(col);
       const gr=c.createRadialGradient(ccx,ccy,0,ccx,ccy,s*1.15);
       gr.addColorStop(0,'rgba(255,240,220,0.95)');gr.addColorStop(0.45,`rgba(${rgb},${0.45+0.3*pulse})`);gr.addColorStop(1,`rgba(${rgb},0)`);
       c.fillStyle=gr;c.beginPath();c.arc(ccx,ccy,s*1.15,0,7);c.fill();
       c.fillStyle='#14161b';c.beginPath();for(let i=0;i<8;i++){const a=i/8*Math.PI*2+Math.PI/8;c.lineTo(ccx+Math.cos(a)*s*0.55,ccy+Math.sin(a)*s*0.55)}c.closePath();c.fill();
-      c.fillStyle=col==='#4fc3f7'?'#bfeaff':'#ffcf87';c.beginPath();c.arc(ccx,ccy,s*0.24*(0.9+0.15*pulse),0,7);c.fill();
+      c.fillStyle=shade(col,0.55);c.beginPath();c.arc(ccx,ccy,s*0.24*(0.9+0.15*pulse),0,7);c.fill();
       if(now>0&&buildings&&buildings.some(q=>q.type==='bouclier'&&q.owner===b.owner)){c.strokeStyle=`rgba(90,209,255,${0.35+0.2*Math.sin(now*2)})`;c.lineWidth=Math.max(1.5,s*0.08);c.beginPath();c.arc(ccx,ccy,s*1.9,0,7);c.stroke();c.fillStyle='rgba(90,209,255,0.06)';c.fill()}
       return;}
   }
@@ -1621,7 +1718,7 @@ function drawB(c,b,x,y,s,now){
   if(d.pw<0&&S&&now>0&&P(b.owner)&&P(b.owner).pr<0.999&&Math.sin(now*6)>0){
     c.fillStyle='#ffcc33';c.beginPath();c.moveTo(x+s*0.86,y+s*0.1);c.lineTo(x+s*0.76,y+s*0.27);c.lineTo(x+s*0.84,y+s*0.27);c.lineTo(x+s*0.78,y+s*0.42);c.lineTo(x+s*0.93,y+s*0.22);c.lineTo(x+s*0.85,y+s*0.22);c.closePath();c.fill();
   }
-  if(coop()&&now>0){c.fillStyle=PCOL[b.owner];c.beginPath();c.moveTo(x+s,y+s);c.lineTo(x+s*0.78,y+s);c.lineTo(x+s,y+s*0.78);c.closePath();c.fill()}
+  if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.beginPath();c.moveTo(x+s,y+s);c.lineTo(x+s*0.78,y+s);c.lineTo(x+s,y+s*0.78);c.closePath();c.fill()}
 }
 function drawDrone(c,r,px,py,T,now){
   const s=T*0.7,hov=T*0.35+Math.sin(now*5+r.x)*T*0.05;
@@ -1629,7 +1726,7 @@ function drawDrone(c,r,px,py,T,now){
   py-=hov;
   c.strokeStyle='#3b4250';c.lineWidth=Math.max(1,T*0.05);c.beginPath();c.moveTo(px-s*0.45,py-s*0.45);c.lineTo(px+s*0.45,py+s*0.45);c.moveTo(px+s*0.45,py-s*0.45);c.lineTo(px-s*0.45,py+s*0.45);c.stroke();
   for(const [a,e] of[[-1,-1],[1,-1],[-1,1],[1,1]]){const X=px+a*s*0.45,Y=py+e*s*0.45;c.fillStyle='rgba(200,230,255,0.35)';c.beginPath();c.ellipse(X,Y,s*0.24,s*0.24*Math.abs(Math.sin(now*40+a+e)),0,0,7);c.fill();c.fillStyle='#222';c.beginPath();c.arc(X,Y,s*0.05,0,7);c.fill()}
-  c.fillStyle=coop()&&r.owner===1?'#6cc7ef':'#58d6a8';rr(c,px-s*0.25,py-s*0.25,s*0.5,s*0.5,s*0.14);c.fill();c.strokeStyle='#1d4a3a';c.lineWidth=Math.max(1,T*0.035);c.stroke();
+  c.fillStyle=coop()&&r.owner>0?shade(pcol(r.owner),0.15):'#58d6a8';rr(c,px-s*0.25,py-s*0.25,s*0.5,s*0.5,s*0.14);c.fill();c.strokeStyle='#1d4a3a';c.lineWidth=Math.max(1,T*0.035);c.stroke();
   c.fillStyle=r.state==='mine'?'#ff9a3d':'#5ff3ff';c.beginPath();c.arc(px,py-s*0.05,s*0.08,0,7);c.fill();
   const cap=Math.round(40*mRob(r.owner||0)),f=Math.min(1,(r.count||0)/cap);
   c.fillStyle='rgba(0,0,0,0.6)';c.fillRect(px-s*0.25,py+s*0.12,s*0.5,s*0.07);c.fillStyle='#ffd23f';c.fillRect(px-s*0.25,py+s*0.12,s*0.5*f,s*0.07);
@@ -1643,7 +1740,7 @@ function drawGardien(c,r,px,py,T,now){
   c.fillStyle='rgba(0,0,0,0.35)';c.beginPath();c.ellipse(px,py+s*0.4,s*0.45,s*0.15,0,0,7);c.fill();
   c.fillStyle='#2a2e36';c.fillRect(px-s*0.36,py+s*0.05+bob,s*0.2,s*0.38);c.fillRect(px+s*0.16,py+s*0.05-bob,s*0.2,s*0.38);
   c.fillStyle='#3a404b';rr(c,px-s*0.56,py-s*0.3,s*0.2,s*0.42,s*0.07);c.fill();rr(c,px+s*0.36,py-s*0.3,s*0.2,s*0.42,s*0.07);c.fill();
-  const col=coop()&&r.owner===1?'#4a8cc7':'#c23b3b';
+  const col=coop()&&r.owner>0?shade(pcol(r.owner),-0.15):'#c23b3b';
   c.fillStyle=col;rr(c,px-s*0.36,py-s*0.38,s*0.72,s*0.5,s*0.12);c.fill();c.strokeStyle='#3a1010';c.lineWidth=Math.max(1,T*0.04);c.stroke();
   c.fillStyle='#14161b';rr(c,px-s*0.2,py-s*0.32,s*0.4,s*0.14,s*0.05);c.fill();
   c.fillStyle=fight?'#ff3b3b':'#ffb0b0';c.fillRect(px-s*0.16,py-s*0.28,s*0.32*(fight?1:0.3+0.7*(r.charge||0)),s*0.06);
@@ -1657,8 +1754,8 @@ function drawRobot(c,r,px,py,T,now){
   const s=T*0.78,bob=Math.sin(now*6+(r.x+r.y))*T*0.02;
   c.fillStyle='rgba(0,0,0,0.3)';c.beginPath();c.ellipse(px,py+s*0.42,s*0.42,s*0.14,0,0,7);c.fill();
   c.fillStyle='#2a2e36';c.fillRect(px-s*0.48,py-s*0.3,s*0.16,s*0.62);c.fillRect(px+s*0.32,py-s*0.3,s*0.16,s*0.62);
-  c.fillStyle=coop()&&r.owner===1?'#6cc7ef':'#e0b341';rr(c,px-s*0.34,py-s*0.34+bob,s*0.68,s*0.6,s*0.12);c.fill();
-  c.strokeStyle=coop()&&r.owner===1?'#1d4a5e':'#6b4f12';c.lineWidth=Math.max(1,T*0.04);c.stroke();
+  c.fillStyle=coop()&&r.owner>0?shade(pcol(r.owner),0.15):'#e0b341';rr(c,px-s*0.34,py-s*0.34+bob,s*0.68,s*0.6,s*0.12);c.fill();
+  c.strokeStyle=coop()&&r.owner>0?shade(pcol(r.owner),-0.6):'#6b4f12';c.lineWidth=Math.max(1,T*0.04);c.stroke();
   c.fillStyle='#1b2330';rr(c,px-s*0.22,py-s*0.24+bob,s*0.44,s*0.18,s*0.06);c.fill();
   c.fillStyle=r.state==='mine'?'#ff9a3d':'#5ff3ff';c.beginPath();c.arc(px-s*0.1,py-s*0.15+bob,s*0.04,0,7);c.arc(px+s*0.1,py-s*0.15+bob,s*0.04,0,7);c.fill();
   c.strokeStyle='#cfd5dc';c.lineWidth=Math.max(1,T*0.03);c.beginPath();c.moveTo(px,py-s*0.34+bob);c.lineTo(px,py-s*0.5+bob);c.stroke();
@@ -1726,6 +1823,7 @@ function draw(now){
   ctx.strokeStyle='#5a3a20';ctx.lineWidth=2;ctx.strokeRect(ox-1,oy-1,W*T+2,H*T+2);
   const x0=Math.floor(-ox/T)-1,x1=Math.ceil((cw-ox)/T)+1,y0=Math.floor(-oy/T)-1,y1=Math.ceil((ch-oy)/T)+1;
   const vis=b=>b.x>=x0&&b.x<=x1&&b.y>=y0&&b.y<=y1;
+  if(S.terr){for(let y=Math.max(0,y0);y<=Math.min(H-1,y1);y++)for(let x=Math.max(0,x0);x<=Math.min(W-1,x1);x++){const t=TER[y*W+x];if(t===1){ctx.globalAlpha=0.18+0.14*Math.sin(now*2+x*0.7+y*1.3);ctx.fillStyle='#ffb347';ctx.fillRect(ox+x*T,oy+y*T,T,T)}else if(t===3){ctx.globalAlpha=0.25;ctx.strokeStyle='#cfeaff';ctx.lineWidth=1;const wy=oy+(y+0.5+0.25*Math.sin(now*1.5+x))*T;ctx.beginPath();ctx.moveTo(ox+x*T+T*0.15,wy);ctx.lineTo(ox+x*T+T*0.55,wy);ctx.stroke()}}ctx.globalAlpha=1}
   for(const b of buildings)if(BELT.has(b.type)&&vis(b))drawB(ctx,b,ox+b.x*T,oy+b.y*T,T,now);
   for(const b of buildings)if(BELT.has(b.type)&&b.item&&vis(b)){const [dx,dy]=DIRS[b.rot];drawItem(ctx,b.item,ox+(b.x+0.5+dx*(b.prog-0.5))*T,oy+(b.y+0.5+dy*(b.prog-0.5))*T,T*0.34)}
   for(const b of buildings)if(!BELT.has(b.type)&&vis(b))drawB(ctx,b,ox+b.x*T,oy+b.y*T,T,now);
@@ -1738,6 +1836,13 @@ function draw(now){
   for(const m of monsters)drawM(ctx,m,ox+m.x*T,oy+m.y*T,T,now);
   for(const e of effects){
     const a=Math.max(0,e.t/e.max);
+    if(e.k==='ping'){
+      const col=pcol(e.o),X=ox+e.x*T,Y=oy+e.y*T,ph=(e.max-e.t);
+      for(let k=0;k<3;k++){const f=((ph*1.2+k/3)%1);ctx.globalAlpha=Math.min(1,a*2)*(1-f);ctx.strokeStyle=col;ctx.lineWidth=3;ctx.beginPath();ctx.arc(X,Y,T*(0.3+f*1.6),0,7);ctx.stroke()}
+      ctx.globalAlpha=Math.min(1,a*2);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(X,Y);ctx.arc(X,Y-T*0.75,T*0.32,Math.PI*0.75,Math.PI*2.25);ctx.closePath();ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(X,Y-T*0.75,T*0.12,0,7);ctx.fill();
+      ctx.font='700 12px system-ui';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(playerName(e.o),X,Y-T*1.2);
+      if(X<0||Y<0||X>cw||Y>ch){const ang=Math.atan2(Y-ch/2,X-cw/2),ex2=clamp(cw/2+Math.cos(ang)*cw,24,cw-24),ey2=clamp(ch/2+Math.sin(ang)*ch,24,ch-24);ctx.save();ctx.translate(ex2,ey2);ctx.rotate(ang);ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-8,-10);ctx.lineTo(-8,10);ctx.closePath();ctx.fill();ctx.restore()}
+      ctx.globalAlpha=1;continue}
     if(e.k==='shot'){ctx.globalAlpha=a;ctx.strokeStyle=e.col;ctx.lineWidth=Math.max(1,e.w*T);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(ox+e.x1*T,oy+e.y1*T);ctx.lineTo(ox+e.x2*T,oy+e.y2*T);ctx.stroke();ctx.globalAlpha=1}
     else if(e.k==='zap'){ctx.globalAlpha=a;ctx.strokeStyle=e.col;ctx.lineWidth=Math.max(1,e.w*T);ctx.beginPath();const n=6;ctx.moveTo(ox+e.x1*T,oy+e.y1*T);for(let i=1;i<n;i++){const f=i/n;ctx.lineTo(ox+(e.x1+(e.x2-e.x1)*f)*T+(hsh(i,e.seed|0,7)-0.5)*T*0.5,oy+(e.y1+(e.y2-e.y1)*f)*T+(hsh(i,e.seed|0,9)-0.5)*T*0.5)}ctx.lineTo(ox+e.x2*T,oy+e.y2*T);ctx.stroke();ctx.globalAlpha=1}
     else{ctx.fillStyle=`rgba(${e.col},${a*0.6})`;ctx.beginPath();ctx.arc(ox+e.x*T,oy+e.y*T,e.r*T*(1.2-a*0.6),0,7);ctx.fill()}
@@ -1780,8 +1885,8 @@ function draw(now){
     for(const r of robots)light(r.x,r.y,2,0.85);
     for(const c of CAPS){const f=Math.min(1,c.t/c.dur);light(c.sx+(c.tx-c.sx)*f,c.sy+(c.ty-c.sy)*f,1.4,0.8)}
     for(const p of parts)if(p.kind==='fire')light(p.x,p.y,0.8,0.5*(p.life/p.max));
-    for(let y=Math.max(0,Math.floor(-oy/T));y<=Math.min(H-1,Math.ceil((ch-oy)/T));y++)for(let x=Math.max(0,Math.floor(-ox/T));x<=Math.min(W-1,Math.ceil((cw-ox)/T));x++)if(deposit[y][x]==='minerai_uranium')light(x+0.5,y+0.5,0.9,0.45);
-    for(const e of effects){if(e.k==='boom')light(e.x,e.y,e.r*2.5,0.9*(e.t/e.max));else light(e.x2,e.y2,0.9,0.7*(e.t/e.max))}
+    for(let y=Math.max(0,Math.floor(-oy/T));y<=Math.min(H-1,Math.ceil((ch-oy)/T));y++)for(let x=Math.max(0,Math.floor(-ox/T));x<=Math.min(W-1,Math.ceil((cw-ox)/T));x++)if(deposit[y][x]==='minerai_uranium')light(x+0.5,y+0.5,0.9,0.45);else if(TER[y*W+x]===1)light(x+0.5,y+0.5,1.2,0.5);
+    for(const e of effects){if(e.k==='boom')light(e.x,e.y,e.r*2.5,0.9*(e.t/e.max));else if(e.k==='ping')light(e.x,e.y,2.5,0.9);else light(e.x2,e.y2,0.9,0.7*(e.t/e.max))}
     for(const m of monsters)if(MT[m.type].boss)light(m.x,m.y,2.5,0.5);
     ctx.drawImage(lightCv,0,0,cw,ch);
     // yeux qui brillent dans le noir
@@ -1855,7 +1960,7 @@ function pastePlan(x0,y0){
     if(NET.role==='guest')guestPredictPlace(it.t,x,y,it.r);
     if(it.rc)act('recipe',x,y,it.rc);if(it.fl)act('filter',x,y,it.fl);
   }
-  if(ok)sfx('build');
+  if(ok){sfx('build');META.cnt.plans=(META.cnt.plans||0)+1}
   toast(fail?`${ok} bâtiments posés, ${fail} impossibles (ressources, case occupée ou zone)`:`${ok} bâtiments posés`,!fail);
   refreshUI(true);
 }
@@ -1879,6 +1984,22 @@ function drawBlueprint(ox,oy,T,now){
     ctx.fillStyle='rgba(10,14,20,0.85)';ctx.fillRect(ox+X0*T,oy+(Y0+c.h)*T+4,tw+12,20);ctx.fillStyle=miss.length?'#ff8a8a':'#cfeaff';ctx.fillText(txt,ox+X0*T+6,oy+(Y0+c.h)*T+18,520);
   }
 }
+// ----- Ping & chat -----
+function doPing(){if(!S||!coop()){toast('Le ping sert en partie multi (Alt + clic ou G)');return}if(!mouse.inside)return;act('ping',+mouse.wx.toFixed(1),+mouse.wy.toFixed(1))}
+const CHAT=[];const QUICK=['👋 Salut !','🆘 Viens m\'aider !','⛏ J\'ai besoin de fer','✅ Prêt pour la vague','⚠ Attention, boss !','🧱 Je m\'occupe des murs','👍 GG !'];
+function addChat(o,txt){CHAT.push({o,txt,t:Date.now()});if(CHAT.length>30)CHAT.shift();renderChat();if(o!==ME)sfx('chat')}
+function renderChat(){
+  const box=$('chat');box.hidden=!(S&&coop());if(box.hidden)return;
+  const now=Date.now(),open=!$('chatBar').hidden;box.classList.toggle('open',open);
+  $('chatLog').innerHTML=CHAT.slice(open?-10:-6).map(m=>`<div class="ln${now-m.t>12000?' old':''}"><b style="color:${pcol(m.o)}">${esc(playerName(m.o))}</b> ${esc(m.txt)}</div>`).join('');
+}
+function openChat(){if(!S||!coop()||NET.role==='spec')return;$('chatBar').hidden=false;$('chatQuick').innerHTML=QUICK.map((q,i)=>`<button data-q="${i}">${q}</button>`).join('');renderChat();setTimeout(()=>$('chatIn').focus(),0)}
+function closeChat(){$('chatBar').hidden=true;$('chatIn').blur();renderChat()}
+function sendChat(t){t=(t||'').trim();if(!t)return;const err=act('chat',t);if(err)toast(err);else{META.cnt.chats=(META.cnt.chats||0)+1;if(NET.role==='guest')addChat(ME,t.slice(0,80))}}
+document.getElementById('chatIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'){sendChat($('chatIn').value);$('chatIn').value='';closeChat()}else if(e.key==='Escape')closeChat()});
+document.getElementById('chatQuick').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(b){sendChat(QUICK[+b.dataset.q]);closeChat()}});
+document.getElementById('chatBtn').onclick=()=>{if($('chatBar').hidden)openChat();else closeChat()};
+setInterval(()=>{if(S)renderChat()},1500);
 function newRobotGhost(k='robot'){return{isRobot:true,kind:k,owner:ME,x:0,y:0,hp:1,maxhp:1,state:'seek',count:0,charge:1}}
 function rangeCircle(type,x,y,T){if(!B[type].range)return;ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.setLineDash([5,5]);ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(x,y,B[type].range*(TURRETS.has(type)?mRange(ME):1)*T,0,7);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fill()}
 
@@ -1921,7 +2042,7 @@ function buildToolbar(){
 function setTool(t){if(NET.role==='spec')t=null;tool=t;if(t)BP.mode=null;for(const k in toolEls)toolEls[k].el.classList.toggle('sel',k===t);if(t)sel=null}
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));renderPane(true)});
 
-function ownerLine(o){return coop()?`<p><span class="sw" style="background:${PCOL[o]}"></span> ${o===ME?'À toi':'À '+esc(playerName(o))}</p>`:''}
+function ownerLine(o){return coop()?`<p><span class="sw" style="background:${pcol(o)}"></span> ${o===ME?'À toi':'À '+esc(playerName(o))}</p>`:''}
 function infoHtml(){
   if(hoverTool){const d=B[hoverTool];return`<b class="t">${d.n}</b><p class="mut">${d.desc}</p>${!unlocked(hoverTool)?`<p class="bad">Débloqué au niveau ${d.lvl}</p>`:''}${d.pw?`<p>Énergie : <b>${d.pw>0?'+':''}${d.pw}</b></p>`:''}${d.range?`<p>Portée ${d.range} · Dégâts ${d.dmg} · ${d.rate} tirs/s</p>`:''}<p>Coût :</p>${costHtml(d.cost)}`}
   let hb=null;
@@ -1930,6 +2051,7 @@ function infoHtml(){
   if(b)return b.isRobot?robotInfo(b,b===sel):bInfo(b,b===sel);
   if(tool){const d=B[tool];return`<b class="t">${d.n}</b><p class="mut">${d.desc}</p><p>Coût :</p>${costHtml(d.cost)}<p class="mut" style="margin-top:6px">R pour tourner · Échap ou clic droit pour annuler</p>`}
   if(mouse.inside&&mouse.tx>=0&&mouse.tx<W&&mouse.ty>=0&&mouse.ty<H&&!zoneOpen(mouse.tx,mouse.ty)){const z=ZONES[ZMAP[mouse.ty][mouse.tx]];return`<b class="t">🔒 ${z.n}</b><p class="mut">Zone débloquée au niveau ${z.lvl}. Tu ne peux pas encore y construire.</p>`}
+  if(mouse.inside&&mouse.tx>=0&&mouse.tx<W&&mouse.ty>=0&&mouse.ty<H){const t=terAt(mouse.tx,mouse.ty);if(t===3)return'<b class="t">🌊 Eau</b><p class="mut">Les monstres terrestres ne peuvent pas la traverser (les volants si). Impossible d\'y construire, mais un tunnel peut passer dessous.</p>';if(t===1)return'<b class="t">🌋 Lave</b><p class="mut">Les bâtiments posés dessus perdent 1 % de PV par seconde. Les monstres terrestres qui la traversent brûlent.</p>';if(t===2)return'<b class="t">❄ Glace</b><p class="mut">Les tapis posés sur la glace vont 60 % plus vite.</p>'}
   if(mouse.inside&&mouse.tx>=0&&mouse.tx<W&&mouse.ty>=0&&mouse.ty<H){const d=deposit[mouse.ty][mouse.tx];if(d)return`<b class="t">Gisement</b><p>${sw(d)} ${ITEMS[d].n}</p><p class="mut">${d==='petrole'?'Pose une pompe à pétrole ici.':'Pose une foreuse ici.'}</p>`}
   return`<p class="mut">Survole ou clique un bâtiment ou un robot pour voir son état. Survole un bouton en bas pour voir son coût.${coop()?' Clic droit sur le noyau de ton coéquipier pour lui donner des matériaux.':''}</p>`;
 }
@@ -1971,14 +2093,15 @@ function bInfo(b,isSel){
   if(b.type==='tunnel_entree'){const ex=tunnelExit(b);h+=ex?`<p class="okc">Relié à une sortie à ${ex[1]} case${ex[1]>1?'s':''}</p>`:'<p class="bad">Aucune sortie : pose une « Tunnel (sortie) » dans la même direction, jusqu\'à 5 cases devant</p>'}
   if(b.type==='tunnel_sortie'){let ok=false;const [dx,dy]=DIRS[b.rot];for(let k2=1;k2<=5;k2++){const c2=at(b.x-dx*k2,b.y-dy*k2);if(c2&&c2.type==='tunnel_entree'&&c2.rot===b.rot&&c2.owner===b.owner){ok=true;break}}h+=ok?'<p class="okc">Reliée à une entrée</p>':'<p class="bad">Aucune entrée derrière elle (même direction, 5 cases max)</p>'}
   if(b.type==='extracteur'){
-    const src=[0,1,2,3].filter(i=>i!==b.rot).map(i=>at(b.x+DIRS[i][0],b.y+DIRS[i][1])).find(q=>q&&(q.type==='noyau'||q.type==='coffre')&&q.owner===b.owner);
+    const src=[0,1,2,3].filter(i=>i!==b.rot).map(i=>at(b.x+DIRS[i][0],b.y+DIRS[i][1])).find(q=>q&&((q.type==='noyau'||q.type==='coffre')&&q.owner===b.owner||q.type==='coffre_partage'));
     h+=src?`<p class="okc">Branché sur ${src.type==='noyau'?'ton noyau':'un coffre'}</p>`:'<p class="bad">Colle-le à ton noyau ou à un de tes coffres</p>';
     h+=`<p>Objet extrait : ${b.filter?sw(b.filter)+' <b>'+ITEMS[b.filter].n+'</b>':'<span class="mut">aucun</span>'}</p>`;
     if(isSel&&mine){const ks=ITEM_ORDER.filter(k=>k===b.filter||Math.floor(total(k))>0);h+='<p class="mut">Choisis l\'objet à sortir :</p><div class="btnrow">'+ks.map(k=>`<button class="${k===b.filter?'prim':''}" data-flt="${k}" title="${ITEMS[k].n}">${sw(k)} ${ITEMS[k].n}</button>`).join('')+(b.filter?'<button data-flt="">Aucun</button>':'')+'</div>'}
   }
   if(b.type==='lanceur'){const tg=b.lk?at(b.lk[0],b.lk[1]):null;h+=`<p>Chargement : ${Math.round(b.count||0)} / 20</p>`+(tg&&tg.type==='recepteur'?`<p class="okc">Cible : réceptionneur à ${Math.round(Math.hypot(tg.x-b.x,tg.y-b.y))} cases</p>`:'<p class="bad">Aucun réceptionneur : pose-en un près de ton noyau</p>');if(isSel&&mine)h+=`<div class="btnrow"><button class="blue" data-act="link">${linkFrom===b?'Clique un réceptionneur sur la carte…':'Changer de cible'}</button></div>`}
   if(b.type==='recepteur')h+=`<p>Stock : ${Math.round(b.count||0)} / 40</p><p class="mut">Oriente la flèche vers ton noyau, un tapis ou une machine (touche R).</p>`;
-  if(b.type==='coffre'){if(guest)h+=`<p>Rempli : ${Math.round((b.used||0))} / ${d.cap}</p>`;else{const ks=Object.keys(b.store).filter(k=>b.store[k]>0);h+=`<p>Rempli : ${b.used} / ${d.cap}</p><div class="inv">${ks.map(k=>`<div class="it">${sw(k)}<span>${ITEMS[k].n}</span><span class="n">${b.store[k]}</span></div>`).join('')||'<span class="mut">Vide</span>'}</div>`}}
+  if(b.type==='coffre_partage')h+='<p class="okc">🤝 Partagé : tout le monde peut y déposer et y puiser</p>';
+  if(b.type==='coffre'||b.type==='coffre_partage'){if(guest)h+=`<p>Rempli : ${Math.round((b.used||0))} / ${d.cap}</p>`;else{const ks=Object.keys(b.store).filter(k=>b.store[k]>0);h+=`<p>Rempli : ${b.used} / ${d.cap}</p><div class="inv">${ks.map(k=>`<div class="it">${sw(k)}<span>${ITEMS[k].n}</span><span class="n">${b.store[k]}</span></div>`).join('')||'<span class="mut">Vide</span>'}</div>`}}
   if(GENS.has(b.type)){const fu=ITEMS[d.fuel||'petrole'].n;h+=(guest?'':`<p>${fu} en réserve : ${b.fuel}</p>`)+(b.burn>0?`<p class="okc">En marche (+${d.pw} énergie)</p>`:`<p class="bad">À l'arrêt — amène du ${fu.toLowerCase()} par tapis</p>`)}
   if(TURRETS.has(b.type)){h+=`<p>Portée ${d.range} · Dégâts ${Math.round(d.dmg*mArm(b.owner))}${d.splash?' (zone)':''}${d.chain?` (${d.chain} rebonds)`:''} · ${d.rate} tirs/s</p>`;if(d.ammo&&mine)h+=`<p>Munitions en stock : ${Math.floor(total('munitions'))}</p>`}
   if(d.pw<0){const p=P(b.owner);h+=`<p class="${p.pr<1?'bad':'mut'}">Consomme ${-d.pw} énergie${p.pr<1?` — tourne à ${Math.round(p.pr*100)} %`:''}</p>`}
@@ -1990,7 +2113,7 @@ function paneBase(){
   const p=P(ME),spec=NET.role==='spec';
   let h=`<h3>${coop()?'Ton stock (noyau + coffres)':'Stock (noyau + coffres)'}</h3><div class="inv">`+ITEM_ORDER.filter((k,i)=>i<BASE_ITEMS||Math.floor(total(k))>0).map(k=>{const v=Math.floor(total(k));return`<div class="it${v?'':' zero'}">${sw(k)}<span>${ITEMS[k].n}</span><span class="n">${v}</span></div>`}).join('')+'</div>';
  if(spec)h=`<h3>Stock de ${esc(NET.hostName)}</h3>`+h.slice(h.indexOf('</h3>')+5);
-  if(coop()&&!spec)h+=`<div class="btnrow"><button class="blue" data-act="give" ${P(other(ME)).dead?'disabled':''}>Donner des matériaux à ${esc(playerName(other(ME)))}</button></div>`;
+  if(coop()&&!spec)h+=`<div class="btnrow"><button class="blue" data-act="give" ${mates().every(o=>P(o).dead)?'disabled':''}>Donner des matériaux${NP()===2?' à '+esc(playerName(mates()[0])):' à un coéquipier'}</button></div>`;
   h+=`<h3>Infos</h3><div class="card" style="min-height:90px">${infoHtml()}</div>`;
   let cur=-1;for(let i=0;i<GOALS.length;i++)if(!p.goalsDone.includes(i)){cur=i;break}
   h+='<h3>Objectifs (+60 XP chacun)</h3><ol class="goals">'+GOALS.map((g,i)=>`<li class="${p.goalsDone.includes(i)?'done':i===cur?'cur':''}">${g[0]}</li>`).join('')+'</ol>';
@@ -1998,7 +2121,7 @@ function paneBase(){
     <div><kbd>Clic</kbd> poser · <b>glisser</b> pour une ligne de tapis/murs</div>
     <div><kbd>Clic droit</kbd> démolir (remboursé)${coop()?' · sur le noyau du coéquipier : donner':''}</div>
     <div><kbd>R</kbd> tourner · <kbd>1</kbd>…<kbd>9</kbd> bâtiment · <kbd>Tab</kbd> catégorie</div>
-    <div><kbd>B</kbd> copier une zone (plan) · <kbd>V</kbd> recoller le dernier plan</div>
+    <div><kbd>B</kbd> copier une zone (plan) · <kbd>V</kbd> recoller le dernier plan</div>${coop()?'<div><kbd>Alt</kbd>+<kbd>Clic</kbd> ou <kbd>G</kbd> : ping · <kbd>Entrée</kbd> : chat</div>':''}
     <div><kbd>Z Q S D</kbd> / flèches / glisser : vue · <kbd>Molette</kbd> zoom · mini-carte cliquable</div>
     <div>${coop()?'':'<kbd>Espace</kbd> pause · '}<kbd>Échap</kbd> annuler</div></div>`;
   return h;
@@ -2012,9 +2135,13 @@ function tierContent(lv){
   if(lv===MAXLVL)items.push('✦ Renaissance : 200 points de talent (solo)');
   return items;
 }
+function achHtml(){
+  const got=ACH.filter(a=>META.ach[a[0]]).length;
+  return`<h3>Succès (${got}/${ACH.length})</h3><div class="ach">${ACH.map(a=>{const ok=META.ach[a[0]];return`<div class="b${ok?' ok':''}" title="${a[2]} — ${a[3]}${ok?' ✓':''}"><span>${ok?a[1]:'🔒'}</span><i>${a[2]}</i></div>`}).join('')}</div><p class="mut" style="font-size:11.5px">Monstres éliminés au total : ${Math.floor(META.cnt.kills||0)}. Certains succès débloquent des couleurs et des skins (onglet Talents).</p>`;
+}
 function paneProg(){
   const p=P(ME),need=xpNeed(p.level);
-  let h=`<h3>Niveau</h3><div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline"><span class="big pur">Niv ${p.level}</span><span class="mut">${Math.floor(p.xp)} / ${need} XP</span></div><div class="bar xp"><i style="width:${p.xp/need*100}%"></i></div><p class="mut" style="margin-top:6px">Gagne de l'XP en tuant des monstres (plus la vague est haute, plus ça rapporte) et en réussissant les objectifs. Tous les 5 niveaux : nouveaux bâtiments et recettes.${coop()?' En coop, chaque monstre tué rapporte de l\'XP aux deux joueurs.':''}</p><p class="mut">Monstres tués : ${S.kills} · Renaissances : ${META.rebirths}</p></div>`;
+  let h=achHtml()+`<h3>Niveau</h3><div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline"><span class="big pur">Niv ${p.level}</span><span class="mut">${Math.floor(p.xp)} / ${need} XP</span></div><div class="bar xp"><i style="width:${p.xp/need*100}%"></i></div><p class="mut" style="margin-top:6px">Gagne de l'XP en tuant des monstres (plus la vague est haute, plus ça rapporte) et en réussissant les objectifs. Tous les 5 niveaux : nouveaux bâtiments et recettes.${coop()?' En coop, chaque monstre tué rapporte de l\'XP aux deux joueurs.':''}</p><p class="mut">Monstres tués : ${S.kills} · Renaissances : ${META.rebirths}</p></div>`;
   h+='<h3>Déblocages</h3>';
   for(const lv of TIERS){const ok=p.level>=lv;h+=`<div class="tier${ok?'':' locked'}"><h4><span>Niveau ${lv}</span><span class="${ok?'okc':'mut'}">${ok?'débloqué':'🔒'}</span></h4><ul>${(lv===1?['🏗 Bâtiments de base','🏗 Fusionneur, répartiteur, coffre']:tierContent(lv)).map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
   const can=p.level>=MAXLVL&&!coop();
@@ -2085,6 +2212,8 @@ function paneTalents(){
     const r=META.talents[t.id]||0,max=r>=t.max;
     h+=`<div class="tal"><div class="r"><b>${t.n}</b><div class="mut">${t.d}</div><div class="pips">${Array.from({length:t.max},(_,i)=>`<i class="${i<r?'on':''}"></i>`).join('')}</div></div><button class="prim" data-tal="${t.id}" ${max||META.points<t.cost?'disabled':''}>${max?'Max':`+1 (${t.cost} pts)`}</button></div>`;
   }
+  h+=`<h3>Personnalisation</h3><p class="mut" style="font-size:12px">Couleur de ton noyau${coop()?' (et de tes bâtiments en multi)':''} :</p><div class="cosrow">${COLORS.map(([c,n,cd])=>`<button class="swb${(META.cos.col||'')===c?' on':''}" style="background:${c}" data-cos="col:${c}" title="${n}${condOk(cd)?'':' — 🔒 '+condTxt(cd)}" ${condOk(cd)?'':'disabled'}></button>`).join('')}<button data-cos="col:" class="${META.cos.col?'':'prim'}">Auto</button></div>
+    <p class="mut" style="font-size:12px;margin-top:8px">Skin de tes tourelles :</p><div class="cosrow">${SKINS.map(([id,n,cd,c])=>`<button data-cos="skin:${id}" class="${(META.cos.skin||'classique')===id?'prim':''}" ${condOk(cd)?'':'disabled'} title="${condOk(cd)?n:'🔒 '+condTxt(cd)}">${c&&c!=='neon'?`<span class="sw" style="background:${c}"></span>`:c==='neon'?'🌈 ':''}${n}${condOk(cd)?'':' 🔒'}</button>`).join('')}</div>`;
   const spent=TALENTS.reduce((a,t)=>a+(META.talents[t.id]||0)*t.cost,0);
   if(spent)h+=`<div class="btnrow"><button data-act="talreset">Réinitialiser les talents (rend ${spent} pts)</button></div>`;
   return h;
@@ -2108,6 +2237,8 @@ $('pane').addEventListener('pointerdown',e=>{
   if(rsb&&!rsb.disabled){const err=act('research',rsb.dataset.rs);if(err)toast(err);else if(NET.role==='guest'){const t=RESEARCH.find(x=>x.id===rsb.dataset.rs);const r=rsOf(ME);r.cur={id:t.id,left:t.t};pay(t.cost,ME)}else sfx('build');renderPane(true);return}
   const bu=e.target.closest('[data-bpuse]');if(bu){const q=loadPlans()[+bu.dataset.bpuse];if(q){BP.clip=JSON.parse(JSON.stringify(q));startPaste()}return}
   const bd=e.target.closest('[data-bpdel]');if(bd){const pl=loadPlans();pl.splice(+bd.dataset.bpdel,1);savePlans(pl);renderPane(true);return}
+  const cb=e.target.closest('[data-cos]');
+  if(cb&&!cb.disabled){const [k,v]=cb.dataset.cos.split(':');META.cos=Object.assign({},META.cos);if(v)META.cos[k]=v;else delete META.cos[k];saveMeta();renderPane(true);return}
   const tb=e.target.closest('[data-tal]');
   if(tb&&!tb.disabled){const t=TALENTS.find(x=>x.id===tb.dataset.tal);if(META.points>=t.cost&&(META.talents[t.id]||0)<t.max){META.points-=t.cost;META.talents[t.id]=(META.talents[t.id]||0)+1;saveMeta();applyTalentsLive()}renderPane(true);return}
   const a=e.target.closest('[data-act]');
@@ -2122,7 +2253,7 @@ $('pane').addEventListener('pointerdown',e=>{
   if(k==='bppaste'&&BP.clip)startPaste();
   if(k==='bpsave'&&BP.clip){const nm=prompt('Nom du plan :',BP.clip.name||'Mon plan');if(nm!==null){const pl=loadPlans();pl.unshift(Object.assign({},BP.clip,{name:nm.slice(0,30)||'Plan'}));savePlans(pl.slice(0,12));toast('Plan enregistré',true)}}
   if(k==='link'&&sel&&sel.type==='lanceur'){linkFrom=sel;toast('Clique sur un de tes réceptionneurs (Échap pour annuler)',true)}
-  if(k==='revive'){const err=act('revive');if(err)toast(err)}
+  if(k==='revive'){const err=act('revive',sel&&sel.type==='noyau'?sel.owner:undefined);if(err)toast(err)}
   if(k==='talreset'){for(const t of TALENTS){META.points+=(META.talents[t.id]||0)*t.cost}META.talents={};saveMeta();applyTalentsLive()}
   if(k==='rebirth'&&P(ME).level>=MAXLVL&&!coop()){if(rbArm&&Date.now()-rbArm<4000){rbArm=0;rebirth();return}rbArm=Date.now()}
   renderPane(true);
@@ -2139,21 +2270,25 @@ function rebirth(){
 }
 
 // ----- Don de matériaux -----
-function openGive(){
+let GIVE_TO=1;
+function openGive(to){
   if(!coop())return;
-  if(P(other(ME)).dead){toast('Son noyau est détruit : réanime-le d\'abord');return}
-  $('giveSub').textContent=`Envoie des matériaux de ton stock vers le noyau de ${playerName(other(ME))}.`;
-  renderGive();$('giveDlg').hidden=false;
+  if(to==null||to===ME)to=mates().find(o=>!P(o).dead);
+  if(to==null){toast('Aucun coéquipier à qui donner');return}
+  if(P(to).dead){toast('Son noyau est détruit : réanime-le d\'abord');return}
+  GIVE_TO=to;renderGive();$('giveDlg').hidden=false;
 }
 function renderGive(){
   const ks=ITEM_ORDER.filter(k=>Math.floor(total(k))>0);
+  $('giveSub').innerHTML=`Envoie des matériaux de ton stock vers le noyau de <b style="color:${pcol(GIVE_TO)}">${esc(playerName(GIVE_TO))}</b>.`+(NP()>2?'<div class="btnrow">'+mates().map(o=>`<button data-gto="${o}" class="${o===GIVE_TO?'prim':''}" ${P(o).dead?'disabled':''}>${esc(playerName(o))}</button>`).join('')+'</div>':'');
   $('giveList').innerHTML=ks.length?ks.map(k=>{const v=Math.floor(total(k));return`<div class="giverow">${sw(k)}<span class="r">${ITEMS[k].n} <span class="mut">(${v})</span></span><button data-g="${k}:10" ${v<1?'disabled':''}>10</button><button data-g="${k}:100" ${v<1?'disabled':''}>100</button><button data-g="${k}:${v}">Tout</button></div>`}).join(''):'<p class="mut">Ton stock est vide.</p>';
 }
+$('giveSub').addEventListener('click',e=>{const b=e.target.closest('[data-gto]');if(b){GIVE_TO=+b.dataset.gto;renderGive()}});
 $('giveList').addEventListener('click',e=>{
   const b=e.target.closest('[data-g]');if(!b)return;const [k,n]=b.dataset.g.split(':');
   const amount=Math.min(+n,Math.floor(total(k)));if(amount<=0)return;
-  const err=act('give',k,amount);
-  if(err)toast(err);else{toast(`${amount} ${ITEMS[k].n} envoyés à ${playerName(other(ME))}`,true);if(NET.role==='guest')P(ME).inv[k]=Math.max(0,(P(ME).inv[k]||0)-amount)}
+  const err=act('give',k,amount,GIVE_TO);
+  if(err)toast(err);else{toast(`${amount} ${ITEMS[k].n} envoyés à ${playerName(GIVE_TO)}`,true);if(NET.role==='guest')P(ME).inv[k]=Math.max(0,(P(ME).inv[k]||0)-amount)}
   renderGive();
 });
 $('bCloseGive').onclick=()=>{$('giveDlg').hidden=true};
@@ -2171,9 +2306,9 @@ function refreshUI(force){
   const pb=$('pwBar');pb.style.width=(p.cons?Math.min(100,p.prod/p.cons*100):100)+'%';pb.style.background=p.pr<1?'#e5484d':'#4cc38a';
   $('hpLbl').firstChild.textContent=coop()?'Ton noyau ':'Noyau ';
   $('hpTxt').textContent=p.dead?'DÉTRUIT':`${Math.ceil(p.coreHp)} / ${Math.ceil(p.coreMax)}`;$('hpBar').style.width=(p.coreHp/p.coreMax*100)+'%';
-  $('hpBarBox').className='bar '+(coop()&&ME===1?'hp2':'hp');
+  $('hpBarBox').className='bar hp';$('hpBar').style.background=coop()?pcol(ME):'';
   $('mate').style.display=coop()?'flex':'none';
-  if(coop()){const q=P(other(ME));$('mateName').textContent=playerName(other(ME));$('mateTxt').textContent=q.dead?'· DÉTRUIT':`· niv ${q.level} · ${Math.ceil(q.coreHp)}`;$('mateBar').style.width=(q.coreHp/q.coreMax*100)+'%';$('mateBarBox').className='bar '+(ME===1?'hp':'hp2')}
+  if(coop()){const ms=mates(),sm=ms.length>1;$('mate').innerHTML=ms.map(o=>{const q=P(o);const off=o!==0&&!q.on&&(NET.role==='host'||isRemote());return`<div class="mt${sm?' sm':''}"><label><span>${esc(playerName(o))}</span> <span style="opacity:.75">${q.dead?'· DÉTRUIT':off?'· absent':`· niv ${q.level}${sm?'':' · '+Math.ceil(q.coreHp)}`}</span></label><div class="bar"><i style="width:${q.coreHp/q.coreMax*100}%;background:${pcol(o)}"></i></div></div>`}).join('')}
   $('rbTag').textContent=spec?'Spectateur':coop()?(NET.role==='host'?'Coop · hôte':'Coop · invité'):META.rebirths?`Renaissance ${META.rebirths}`:'prototype';
   // boutons
   $('bPause').style.display=coop()||spec?'none':'';
@@ -2182,9 +2317,9 @@ function refreshUI(force){
   $('bWave').style.display=spec?'none':'';
   $('bNew').style.display=isRemote()?'none':'';
   const wb=$('bWave');
-  if(coop()){const n=(S.votes[0]?1:0)+(S.votes[1]?1:0);wb.textContent=S.votes[ME]?`Prêt ✓ (${n}/2) — annuler`:`Lancer la vague (${n}/2)`;wb.className=S.votes[ME]?'okb':'warn'}
+  if(coop()){const a=activeSlots(),n=a.filter(o=>S.votes[o]).length;wb.textContent=S.votes[ME]?`Prêt ✓ (${n}/${a.length}) — annuler`:`Lancer la vague (${n}/${a.length})`;wb.className=S.votes[ME]?'okb':'warn'}
   else{wb.textContent='Attaque maintenant';wb.className='warn'}
-  const canRevive=coop()&&!p.dead&&P(other(ME)).dead&&monsters.length===0&&(isRemote()||spawnQ.length===0);
+  const canRevive=coop()&&!p.dead&&mates().some(o=>P(o).dead)&&monsters.length===0&&(isRemote()||spawnQ.length===0);
   $('bRevive').style.display=canRevive&&!spec?'':'none';
   for(const t in toolEls)toolEls[t].el.classList.toggle('poor',unlocked(t)&&!canAfford(B[t].cost));
   const lb=document.querySelector('#tabs [data-tab=labo]');{const r=rsOf(ME);const avail=r&&!r.cur&&RESEARCH.some(t=>!r.done.includes(t.id)&&p.level>=t.lvl&&(t.req||[]).every(q=>r.done.includes(q))&&canAfford(t.cost));lb.innerHTML='Labo'+(r&&r.cur?' ⏳':avail?'<span class="dot"></span>':'')}
@@ -2219,7 +2354,7 @@ function robotAtMouse(){return robots.find(r=>Math.hypot(r.x-mouse.wx,r.y-mouse.
 function rightClickAt(x,y,first){
   const b=at(x,y);
   if(!b)return;
-  if(b.type==='noyau'){if(first&&coop()&&b.owner!==ME){openGive()}return}
+  if(b.type==='noyau'){if(first&&coop()&&b.owner!==ME){openGive(b.owner)}return}
   if(b.owner!==ME){if(first)toast('Ce bâtiment appartient à ton coéquipier');return}
   act('demolish',x,y);sfx('demolish');
   for(let i=0;i<8;i++)addPart({kind:'debris',x:x+0.5,y:y+0.5,vx:(Math.random()-0.5)*3,vy:(Math.random()-0.5)*3,life:0.6,max:0.6,size:0.08,col:B[b.type].col||'#888'});
@@ -2236,6 +2371,7 @@ canvas.addEventListener('mousedown',e=>{
     else toast('Ce n\'est pas un de tes réceptionneurs');
     linkFrom=null;refreshUI(true);return;
   }
+  if(e.button===0&&e.altKey){e.preventDefault();doPing();return}
   if(BP.mode){
     if(e.button===2){BP.mode=null;BP.start=null;return}
     if(e.button===0&&BP.mode==='select'){BP.start=[mouse.tx,mouse.ty];BP.end=[mouse.tx,mouse.ty];return}
@@ -2290,6 +2426,8 @@ window.addEventListener('keydown',e=>{
   const i=DIGITS.indexOf(e.code);
   if(i>=0){const list=TYPES.filter(t=>B[t].cat===cat);const t=list[i];if(t){if(!unlocked(t))toast(`${B[t].n} : débloqué au niveau ${B[t].lvl}`);else setTool(tool===t?null:t)}e.preventDefault();return}
   if(e.code==='Tab'){e.preventDefault();const ix=CATS.findIndex(c=>c[0]===cat);cat=CATS[(ix+(e.shiftKey?CATS.length-1:1))%CATS.length][0];setTool(null);buildToolbar();return}
+  if(e.code==='KeyG'){doPing();return}
+  if((e.code==='Enter'||e.code==='KeyT')&&coop()){e.preventDefault();openChat();return}
   if(e.code==='KeyB'){if(BP.mode==='select'){BP.mode=null;BP.start=null}else startSelect();return}
   if(e.code==='KeyV'&&BP.clip){startPaste();return}
   if(e.code==='KeyR'&&BP.mode==='paste'){rotateClip();return}
@@ -2330,10 +2468,11 @@ function drawMini(){
   if(!S||!miniBase)return;
   mctx.drawImage(miniBase,0,0);
   mctx.fillStyle='rgba(0,0,0,0.55)';for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(!zoneOpen(x,y))mctx.fillRect(x*2,y*2,2,2);
-  for(const b of buildings){mctx.fillStyle=TURRETS.has(b.type)?'#ffffff':coop()?PCOL[b.owner]:(BELT.has(b.type)?'#8a90a0':'#d9a35a');mctx.fillRect(b.x*2,b.y*2,2,2)}
-  for(const c of cores){mctx.fillStyle=P(c.owner).dead?'#555':coop()?PCOL[c.owner]:'#f2a33a';mctx.fillRect(c.x*2-1,c.y*2-1,8,8)}
+  for(const b of buildings){mctx.fillStyle=TURRETS.has(b.type)?'#ffffff':coop()?pcol(b.owner):(BELT.has(b.type)?'#8a90a0':'#d9a35a');mctx.fillRect(b.x*2,b.y*2,2,2)}
+  for(const c of cores){mctx.fillStyle=P(c.owner).dead?'#555':coop()?pcol(c.owner):'#f2a33a';mctx.fillRect(c.x*2-1,c.y*2-1,8,8)}
   mctx.fillStyle='#ffd23f';for(const r of robots)mctx.fillRect(r.x*2-1,r.y*2-1,2.5,2.5);
   mctx.fillStyle='#ffffff';for(const c of CAPS){const f=Math.min(1,c.t/c.dur);mctx.fillRect((c.sx+(c.tx-c.sx)*f)*2-1,(c.sy+(c.ty-c.sy)*f)*2-1,2,2)}
+  for(const e of effects)if(e.k==='ping'&&Math.sin(Date.now()/120)>0){mctx.strokeStyle=pcol(e.o);mctx.lineWidth=2;mctx.beginPath();mctx.arc(e.x*2,e.y*2,6,0,7);mctx.stroke()}
   for(const m of monsters){const t=MT[m.type];mctx.fillStyle=t.boss?'#c77dff':'#ff4d4d';const z=t.boss?5:2;mctx.fillRect(m.x*2-z/2,m.y*2-z/2,z,z)}
   const T=TS*cam.z,vw=cw/T,vh=ch/T;mctx.strokeStyle='#fff';mctx.lineWidth=1;mctx.strokeRect((cam.x-vw/2)*2,(cam.y-vh/2)*2,vw*2,vh*2);
 }
@@ -2346,7 +2485,7 @@ miniCv.addEventListener('contextmenu',e=>e.preventDefault());
 
 // ================= SAVE / LOAD =================
 function snapshot(){
-  return {v:3,mapV:MAP_V,savedAt:Date.now(),S,gm:guestMeta,b:buildings.map(b=>({t:b.type,x:b.x,y:b.y,r:b.rot,h:b.hp,o:b.owner,rc:b.recipe||0,st:b.store,lk:b.lk,fl:b.filter})),rb:robots.map(r=>({x:r.x,y:r.y,h:r.hp,c:r.cargo,n:r.count,p:r.pref,o:r.owner,k:r.kind,ch:r.charge,st:r.st})),m:monsters.map(m=>({t:m.type,x:m.x,y:m.y,h:m.hp,mh:m.maxhp,d:m.dmg,hm:m.hpMul,dm:m.dmgMul})),q:spawnQ};
+  return {v:3,mapV:MAP_V,savedAt:Date.now(),S,gm:{metas:NET.metas||{}},b:buildings.map(b=>({t:b.type,x:b.x,y:b.y,r:b.rot,h:b.hp,o:b.owner,rc:b.recipe||0,st:b.store,lk:b.lk,fl:b.filter})),rb:robots.map(r=>({x:r.x,y:r.y,h:r.hp,c:r.cargo,n:r.count,p:r.pref,o:r.owner,k:r.kind,ch:r.charge,st:r.st})),m:monsters.map(m=>({t:m.type,x:m.x,y:m.y,h:m.hp,mh:m.maxhp,d:m.dmg,hm:m.hpMul,dm:m.dmgMul})),q:spawnQ};
 }
 let localSavedAt=0;
 function save(){
@@ -2364,10 +2503,13 @@ function applySave(d){
   $('overlay').hidden=true;
   const s=migrateS(d.S);
   if(!d.mapV){const sx=16,sy=10;for(const o of d.b||[]){o.x+=sx;o.y+=sy;if(o.lk){o.lk[0]+=sx;o.lk[1]+=sy}}for(const o of d.rb||[]){o.x+=sx;o.y+=sy}for(const o of d.m||[]){o.x+=sx;o.y+=sy}}
-  setupWorld(s.seed,s.mode);
-  S=Object.assign(newState(s.seed,s.mode),s);S.paused=false;
+  const snp=(s.players||[]).length||1;
+  setupWorld(s.seed,s.mode,snp,!!s.terr);
+  S=Object.assign(newState(s.seed,s.mode,snp,!!s.terr),s);S.paused=false;
+  if(!Array.isArray(S.votes)||S.votes.length!==snp)S.votes=Array(snp).fill(false);
+  for(const p of S.players)p.on=false;
   for(const p of S.players){p.craftQ=p.craftQ||[];p.goalsDone=p.goalsDone||[];p.made=p.made||{}}
-  if(d.gm)guestMeta=d.gm;
+  if(d.gm){if(d.gm.metas){NET.metas=d.gm.metas}else{guestMeta=d.gm;NET.metas={1:d.gm}}}
   for(const o of d.b){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}if(o.lk)b.lk=o.lk;if(o.fl&&ITEMS[o.fl])b.filter=o.fl}
   robots=(d.rb||[]).map(o=>{const r=newRobot(o.x,o.y,o.o||0,UNIT_KINDS.includes(o.k)?o.k:'robot');r.hp=o.h;r.cargo=o.c||{};r.count=o.n||0;r.pref=o.p||'auto';if(o.ch!=null)r.charge=o.ch;if(o.st)r.st=d.mapV?o.st:[o.st[0]+16,o.st[1]+10];return r});
   const okM=o=>o&&MT[o.t]&&isFinite(o.x)&&isFinite(o.y)&&isFinite(o.h)&&o.h>0;
@@ -2375,7 +2517,7 @@ function applySave(d){
   spawnQ=(Array.isArray(d.q)?d.q:[]).filter(q=>q&&MT[q.type]).slice(0,MAX_WAVE*2);
   if(!isFinite(S.waveTimer)||S.waveTimer<0)S.waveTimer=S.interval||900;
   // partie à deux quittée pendant une vague : on repart proprement, sans monstres, vague dans 3 min
-  if(S.mode==='coop'&&(monsters.length||spawnQ.length||d.fixWave)){monsters=[];spawnQ=[];S.waveTimer=180;S.warned=0;S.votes=[false,false];
+  if(S.mode==='coop'&&(monsters.length||spawnQ.length||d.fixWave)){monsters=[];spawnQ=[];S.waveTimer=180;S.warned=0;S.votes=Array(S.players.length).fill(false);
     for(const p of S.players){if(p.dead){p.dead=false;p.coreHp=Math.max(1,p.coreMax*0.5)}}S.over=false;
     for(const r of robots)if(r.kind==='gardien'){r.state='dock';if(r.st){r.x=r.st[0]+1;r.y=r.st[1]+1}}
     S.resetMsg=true}
@@ -2388,7 +2530,8 @@ function loadKey(k){try{const raw=localStorage.getItem(k);if(!raw)return false;r
 function hasKey(k){try{return!!localStorage.getItem(k)}catch(e){return false}}
 function newGame(mode='solo'){
   const seed=(Math.random()*1e9)|0;
-  S=newState(seed,mode);setupWorld(seed,mode);computeFlow();flowDirty=false;
+  const np=mode==='coop'?(arguments[1]||NET.np||(S&&S.mode==='coop'?S.players.length:2)):1;
+  S=newState(seed,mode,np,true);setupWorld(seed,mode,np,true);computeFlow();flowDirty=false;
   $('overlay').hidden=true;
   buildToolbar();save();refreshUI(true);
   banner(mode==='coop'?'Partie à deux : première attaque dans 15 minutes. Chacun son noyau, mais on se défend ensemble !':'Première attaque dans 30 minutes. Commence par une foreuse sur du fer (brun) !',false,6);
@@ -2529,7 +2672,6 @@ async function mqttJoin(name,role,opts={}){
     if(topic!==inT)return;let m;try{m=JSON.parse(payload.toString())}catch(e){return}
     if(!m||typeof m!=='object'||m.f===myId)return;
     if(m.to&&m.to!==myId)return;
-    if(role==='host'&&m.t==='pr'&&!(m.presence&&m.presence.role==='spec')){if(guestId&&m.f!==guestId&&peers[guestId]){send({t:'ev',topic:'full',data:{},to:m.f});return}guestId=m.f}
     if(m.t==='ev'&&typeof m.topic==='string')fireTopic(m.topic,m.data,m.f);
     else if(m.t==='pr'&&m.presence&&typeof m.presence==='object'){const isNew=!peers[m.f];peers[m.f]={peer:m.f,by:null,isMe:false,sameTab:false,kind:'viewer',guest:false,presence:m.presence,updatedAt:Date.now(),last:Date.now()};firePeers(isNew?[peers[m.f]]:[],isNew?[]:[peers[m.f]],[])}
     else if(m.t==='hb'&&peers[m.f])peers[m.f].last=Date.now();
@@ -2583,7 +2725,6 @@ async function peerJoin(name,role){
   });
   if(role==='host'){
     peer.on('connection',conn=>{
-      if(conns.some(c=>c.open)){conn.on('open',()=>{try{conn.send({t:'ev',topic:'full',data:{}})}catch(e){}setTimeout(()=>conn.close(),800)});return}
       conns.push(conn);wire(conn);conn.on('open',()=>{try{conn.send({t:'pr',presence:mypres})}catch(e){}});
     });
   }else{
@@ -2609,12 +2750,12 @@ function renderMp(){
   const c=$('mpCard');
   if(NET.role==='solo'){
     const hasCoop=hasKey(COOP_KEY);
-    c.innerHTML=`<h2>Multijoueur à deux</h2>
-      <p class="mut">Chacun a son noyau (à 8 cases l'un de l'autre) et son propre stock. Vagues toutes les 15 minutes, plus de minerai, et la vague peut être lancée plus tôt si vous êtes prêts tous les deux. Si un noyau tombe, l'autre joueur peut le réanimer une fois les monstres éliminés.</p>
+    c.innerHTML=`<h2>Multijoueur (2 à 4 joueurs)</h2>
+      <p class="mut">Chacun a son noyau (en carré, à 8 cases les uns des autres) et son propre stock. Vagues toutes les 15 minutes, plus de minerai, et la vague peut être lancée plus tôt si vous êtes prêts tous les deux. Si un noyau tombe, l'autre joueur peut le réanimer une fois les monstres éliminés.</p>
       ${onClaude()?'':`<h4>Ton pseudo</h4><input id="mpName" maxlength="20" placeholder="Pseudo" value="${esc(getPseudo())}" style="text-transform:none;letter-spacing:0;font:14px system-ui">`}
       <h4>Héberger</h4>
       <p class="mut" style="font-size:12px">L'hôte fait tourner la partie : garde l'onglet ouvert pendant que vous jouez.</p>
-      <div class="btnrow"><button class="blue" id="mpHost">Créer une nouvelle partie à deux</button>${hasCoop?'<button id="mpResume">Reprendre la partie à deux sauvegardée</button>':''}</div>
+      <div class="btnrow"><button class="blue" data-np="2">Nouvelle partie · 2 joueurs</button><button class="blue" data-np="3">3 joueurs</button><button class="blue" data-np="4">4 joueurs</button></div>${hasCoop?'<div class="btnrow"><button id="mpResume">Reprendre la partie multi sauvegardée</button></div>':''}
       <h4>Rejoindre</h4>
       <div style="display:flex;gap:6px"><input id="mpCode" maxlength="5" placeholder="CODE" autocomplete="off"><button class="okb" id="mpJoin" style="flex:none">Rejoindre</button></div>
       <p class="mut" style="font-size:12px;margin-top:8px">${onClaude()?'Ton ami doit être connecté à claude.ai et avoir accès à ce jeu : invite-le par e-mail depuis le bouton Partager (un simple lien public ne suffit pas pour le multijoueur).':'Envoie le lien du jeu et le code à ton ami : vos deux jeux communiquent par un relais internet gratuit, sans compte. L\'hôte garde son onglet ouvert et visible.'}</p>
@@ -2626,7 +2767,7 @@ function renderMp(){
       <div class="btnrow"><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
     if($('mpName'))$('mpName').addEventListener('change',e=>setPseudo(e.target.value));
     const savePseudo=()=>{if($('mpName'))setPseudo($('mpName').value)};
-    $('mpHost').onclick=()=>{savePseudo();startHost(false)};
+    c.querySelectorAll('[data-np]').forEach(b=>b.onclick=()=>{savePseudo();NET.np=+b.dataset.np;startHost(false)});
     if(hasCoop)$('mpResume').onclick=()=>{savePseudo();startHost(true)};
     if($('mpExp'))$('mpExp').onclick=()=>coopExportUI(JSON.parse(localStorage.getItem(COOP_KEY)||'null'));
     $('mpImpBtn').onclick=coopImportUI;
@@ -2637,13 +2778,15 @@ function renderMp(){
     $('mpLeave').onclick=leaveCoop;
   }else{
     const here=NET.role==='host'?NET.guestHere:Date.now()-NET.lastSt<5000;
-    c.innerHTML=`<h2>Partie à deux</h2>
+    const plist=coop()?S.players.map((q,o)=>`<div style="display:flex;align-items:center;gap:6px;font-size:13px"><span class="sw" style="background:${pcol(o)}"></span>${esc(playerName(o))}${o===ME?' <span class="mut">(toi)</span>':''}<span class="mut" style="margin-left:auto">${o===0?'hôte':q.on?'connecté':'place libre'}</span></div>`).join(''):'';
+    c.innerHTML=`<h2>Partie multi${coop()?' · '+S.players.length+' joueurs':''}</h2>
       <p>Code de la partie :</p><div class="code">${NET.code}</div>${NET.transport==='relay'&&MQ.bi>=0?`<p class="mut" style="font-size:11.5px;margin-top:6px">Relais : ${esc(BROKERS[MQ.bi].replace(/^wss:\/\//,'').replace(/\/mqtt$/,''))}</p>`:''}
       <p style="margin-top:10px">${NET.role==='host'?(here?`<span class="okc">✓ ${esc(NET.guestName)} est connecté</span>`:'<span class="mut">En attente de ton coéquipier… donne-lui ce code.</span>'):(here?`<span class="okc">✓ Connecté à la partie de ${esc(NET.hostName)}</span>`:'<span class="mut">Connexion à l\'hôte…</span>')}</p>
       ${!onClaude()&&NET.matePid&&here?(isFriend(NET.matePid)?`<p class="okc" style="font-size:12.5px">✓ ${esc(NET.role==='host'?NET.guestName:NET.hostName)} est dans tes amis</p>`:`<div class="btnrow"><button class="blue" data-mp="addmate">Ajouter ${esc(NET.role==='host'?NET.guestName:NET.hostName)} en ami</button></div>`):''}
+      <div class="card" style="margin-top:8px">${plist}</div>
       <div id="mpMsg" class="msg"></div>
       ${NET.role==='host'?'<div class="btnrow"><button id="mpExp">Exporter la partie (code)</button></div><div id="mpSaveBox"></div>':''}
-      <div class="btnrow"><button class="danger" id="mpLeave">Quitter la partie à deux</button><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
+      <div class="btnrow"><button class="danger" id="mpLeave">Quitter la partie multi</button><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
     $('mpLeave').onclick=leaveCoop;
     if($('mpExp'))$('mpExp').onclick=()=>{save();coopExportUI(snapshot())};
   }
@@ -2687,38 +2830,53 @@ async function startHost(resume){
   if(S&&S.mode==='solo')save();
   if(NET.transport!=='claude'&&getPseudo())NET.myName=getPseudo();
   specBye();NET.specs=new Set();
-  NET.role='host';NET.room=room;NET.code=code;NET.guestHere=false;NET.lastSeq=0;NET.sid=null;ME=0;NET.hostName=NET.myName||'Hôte';
+  NET.role='host';NET.room=room;NET.code=code;NET.guestHere=false;NET.lastSeq=0;NET.sid=null;ME=0;NET.hostName=NET.myName||'Hôte';NET.guests=new Map();NET.names=[NET.hostName];NET.cosAll=[];
   let resumed=false;if(resume){try{resumed=loadKey(COOP_KEY)&&S&&S.mode==='coop'}catch(e){resumed=false}}
-  if(!resumed){if(resume)toast('La sauvegarde à deux était illisible : nouvelle partie');newGame('coop')}
+  if(!resumed){if(resume)toast('La sauvegarde multi était illisible : nouvelle partie');newGame('coop',NET.np||2)}
   else if(S.resetMsg){delete S.resetMsg;setTimeout(()=>banner('La partie avait été quittée pendant une vague : monstres retirés, prochaine vague dans 3 min',false,6,'blue'),300)}
   room.onPeers(ch=>{
     for(const p of [...ch.joined,...ch.updated]){if(p.isMe||!p.presence)continue;if(p.presence.role==='guest')onGuestPresence(p);else if(p.presence.role==='spec')onSpecPresence(NET.specs,p,NET.room)}
     for(const p of ch.left)NET.specs.delete(p.peer);
-    for(const p of ch.left)if(p.peer===NET.guestPeer){NET.guestHere=false;setTimeout(publishPresence,100);banner(`${NET.guestName} s'est déconnecté — partie en pause`,true,4)}
+    for(const p of ch.left){const g=NET.guests.get(p.peer);if(!g)continue;NET.guests.delete(p.peer);if(S.players[g.slot])S.players[g.slot].on=false;S.votes[g.slot]=false;NET.guestHere=NET.guests.size>0;setTimeout(publishPresence,100);banner(`${g.name} s'est déconnecté${NET.guestHere?'':' — partie en pause'}`,true,4);if(!$('mpDlg').hidden&&!NET.mpBusy)renderMp()}
   });
   room.presence({role:'host',code});
   buildToolbar();refreshUI(true);renderMp();publishPresence();
-  banner(`Partie à deux créée — code ${code}`,false,5,'blue');
+  banner(`Partie multi créée (${S.players.length} joueurs) — code ${code}`,false,5,'blue');
+}
+const validPid=x=>typeof x==='string'&&/^[A-Z0-9]{8}$/.test(x);
+function pickSlot(pid){
+  const used=new Set([...NET.guests.values()].map(g=>g.slot));
+  if(validPid(pid)){const i=S.players.findIndex((q,o)=>o>0&&q.pid===pid&&!used.has(o));if(i>0)return i}
+  for(let o=1;o<NP();o++)if(!used.has(o)&&!S.players[o].pid)return o;
+  for(let o=1;o<NP();o++)if(!used.has(o))return o;
+  return -1;
 }
 function onGuestPresence(p){
-  const pr=p.presence;
-  if(NET.guestPeer!==p.peer||NET.sid!==pr.sid){
-    NET.guestPeer=p.peer;NET.sid=pr.sid;NET.lastSeq=0;NET.guestHere=true;NET.bSent=0;
-    if(USER&&p.by)USER.profiles([p.by]).then(ps=>{const n=ps[p.by]&&ps[p.by].name;if(n){NET.guestName=n;refreshUI(true)}}).catch(()=>{});
-    else if(typeof pr.name==='string')NET.guestName=pr.name.slice(0,24)||'Coéquipier';
+  const pr=p.presence;let g=NET.guests.get(p.peer);
+  if(!g||g.sid!==pr.sid){
+    const slot=g?g.slot:pickSlot(pr.pid);
+    if(slot<0){NET.room.emit('full',{sid:pr.sid}).catch(()=>{});return}
+    g={slot,sid:pr.sid,lastSeq:0,name:'Joueur '+(slot+1)};NET.guests.set(p.peer,g);
+    if(typeof pr.name==='string'&&pr.name)g.name=pr.name.slice(0,24);
+    if(USER&&p.by)USER.profiles([p.by]).then(ps=>{const n=ps[p.by]&&ps[p.by].name;if(n){g.name=n;NET.names[g.slot]=n;refreshUI(true)}}).catch(()=>{});
+    NET.names[slot]=g.name;NET.guestName=g.name;S.players[slot].on=true;if(validPid(pr.pid))S.players[slot].pid=pr.pid;
+    NET.guestHere=true;NET.bSent=0;
     hostSendHello();
-    banner(`${NET.guestName} a rejoint la partie !`,false,4,'blue');
-    if(!$('mpDlg').hidden&&!NET.mpBusy)renderMp();
+    banner(`${g.name} a rejoint la partie !`,false,4,'blue');
+    if(!$('mpDlg').hidden&&!NET.mpBusy)renderMp();setTimeout(publishPresence,100);
   }
-  NET.guestHere=true;
-  if(typeof pr.pid==='string'&&/^[A-Z0-9]{8}$/.test(pr.pid)&&NET.matePid!==pr.pid){NET.matePid=pr.pid;publishPresence();if(!isFriend(pr.pid)&&!onClaude())setTimeout(()=>toast(`Ajoute ${NET.guestName} en ami depuis le menu Multijoueur`,true),3000)}
-  if(pr.meta&&typeof pr.meta==='object'){const t={};for(const x of TALENTS){t[x.id]=clamp((pr.meta[x.id]|0),0,x.max)}guestMeta={talents:t};const p1=P(1);if(p1&&p1.fresh&&S.wave===0){const n=newPlayer(1);p1.inv=n.inv;p1.coreMax=n.coreMax;p1.coreHp=n.coreMax;p1.fresh=false}}
+  S.players[g.slot].on=true;NET.guestHere=true;
+  if(validPid(pr.pid)&&NET.matePid!==pr.pid){NET.matePid=pr.pid;publishPresence();if(!isFriend(pr.pid)&&!onClaude())setTimeout(()=>toast(`Ajoute ${g.name} en ami depuis le menu Multijoueur`,true),3000)}
+  if(pr.cos&&typeof pr.cos==='object')NET.cosAll[g.slot]=sanCos(pr.cos);
+  if(pr.meta&&typeof pr.meta==='object'){const t={};for(const x of TALENTS){t[x.id]=clamp((pr.meta[x.id]|0),0,x.max)}NET.metas[g.slot]={talents:t};if(g.slot===1)guestMeta=NET.metas[1];const pp=P(g.slot);if(pp&&pp.fresh&&S.wave===0){const n=newPlayer(g.slot);pp.inv=n.inv;pp.coreMax=n.coreMax;pp.coreHp=n.coreMax;pp.fresh=false}}
   if(Array.isArray(pr.cmds)){
-    const cmds=pr.cmds.filter(c=>c&&typeof c.n==='number'&&c.n>NET.lastSeq).sort((a,b)=>a.n-b.n);
-    for(const c of cmds){NET.lastSeq=c.n;const a=Array.isArray(c.a)?c.a:[];if(!GUEST_ACTS.has(a[0]))continue;try{const err=ACT[a[0]](1,...a.slice(1));if(err&&a[0]!=='place')NET.msgOut.push('?'+err)}catch(e){}}
+    const cmds=pr.cmds.filter(c=>c&&typeof c.n==='number'&&c.n>g.lastSeq).sort((a,b)=>a.n-b.n);
+    for(const c of cmds){g.lastSeq=c.n;const a=Array.isArray(c.a)?c.a:[];if(!GUEST_ACTS.has(a[0]))continue;try{const err=ACT[a[0]](g.slot,...a.slice(1));if(err&&a[0]!=='place')NET.msgOut.push('?'+g.slot+'|'+err)}catch(e){}}
   }
 }
-const GUEST_ACTS=new Set(['research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
+function sanCos(c){const o={};if(typeof c.col==='string'&&/^#[0-9a-fA-F]{6}$/.test(c.col))o.col=c.col;if(typeof c.skin==='string'&&c.skin.length<16)o.skin=c.skin;return o}
+const PINGT={},CHATT={};
+const GUEST_ACTS=new Set(['ping','chat','research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
 function bcRoom(){
   if(NET.role==='host'&&NET.room&&(NET.guestHere||NET.specs.size))return NET.room;
   if(NET.role==='solo'&&SPEC.room&&SPEC.specs.size)return SPEC.room;
@@ -2732,7 +2890,7 @@ function onSpecPresence(set,p,room){
 }
 function hostSendHello(room=NET.room){
   if(!room)return;
-  room.emit('hello',{seed:S.seed,mode:S.mode,name:NET.transport==='claude'?NET.hostName:myName(),pid:PID,meta:META.talents||{}}).catch(()=>{});
+  room.emit('hello',{np:S.players.length,terr:!!S.terr,seed:S.seed,mode:S.mode,name:NET.transport==='claude'?NET.hostName:myName(),pid:PID,meta:META.talents||{}}).catch(()=>{});
   NET.bSent=0;
 }
 function encBuildings(){
@@ -2746,7 +2904,7 @@ function encBuildings(){
     else if(b.type==='lanceur')ex=Math.round((b.count||0)/20*63);
     else if(b.type==='recepteur')ex=Math.round((b.count||0)/40*63);
     else if(GENS.has(b.type))ex=b.burn>0?1:0;
-    else if(b.type==='coffre')ex=Math.round(b.used/B.coffre.cap*63);
+    else if(b.type==='coffre'||b.type==='coffre_partage')ex=Math.round(b.used/B[b.type].cap*63);
     else if(b.type==='reparateur')ex=b.healing?1:0;
     s+=e1(TYPES.indexOf(b.type))+e2(b.x)+e2(b.y)+e1(b.rot||0)+e1(b.owner)+e1(b.hp/maxHp(b)*63)+e1(ex);
   }
@@ -2761,7 +2919,7 @@ function hostNetTick(now){
   if(now-(NET.fastAt||0)>=(monsters.length>150?160:monsters.length>60?125:100)){NET.fastAt=now;
     const ts=Math.round(now);
     let ms='';for(const m of monsters)ms+=e2(m.id%4096)+e1(MTYPES.indexOf(m.type))+e2(m.x*40)+e2(m.y*40)+e1(m.hp/m.maxhp*63)+e1(((Math.atan2(m.fy,m.fx)/(Math.PI*2))*64+64)%64);
-    const f=NET.fxOut.splice(0,40).map(e=>[Math.round(e.nt||now)].concat(e.k==='boom'?['b',+e.x.toFixed(1),+e.y.toFixed(1),+e.r.toFixed(2),e.col,e.max]:[e.k==='zap'?'z':'s',+e.x1.toFixed(2),+e.y1.toFixed(2),+e.x2.toFixed(2),+e.y2.toFixed(2),e.col,e.w,e.max,e.seed||0]));NET.fxOut.length=0;
+    const f=NET.fxOut.splice(0,40).map(e=>[Math.round(e.nt||now)].concat(e.k==='ping'?['p',+e.x.toFixed(1),+e.y.toFixed(1),e.o,e.max]:e.k==='boom'?['b',+e.x.toFixed(1),+e.y.toFixed(1),+e.r.toFixed(2),e.col,e.max]:[e.k==='zap'?'z':'s',+e.x1.toFixed(2),+e.y1.toFixed(2),+e.x2.toFixed(2),+e.y2.toFixed(2),e.col,e.w,e.max,e.seed||0]));NET.fxOut.length=0;
     const n=Math.max(1,Math.ceil(ms.length/3500)),rp=robots.map(r=>[r.id,Math.round(r.x*20),Math.round(r.y*20)]);
     for(let i=0;i<n;i++){const o={i,n,ts,d:ms.slice(i*3500,(i+1)*3500)};if(i===0){o.rp=rp;if(f.length)o.f=f}RM.emit('mo',o).catch(()=>{})}
   }
@@ -2769,14 +2927,14 @@ function hostNetTick(now){
   // bâtiments : quand ils changent (max 3/s) et toutes les 4 s
   if(NET.bver!==NET.bSent&&now-NET.bAt>330||now-NET.bAt>4000){NET.bSent=NET.bver;NET.bAt=now;sendChunks('bl',encBuildings(),{v:NET.bver},RM)}
   // état
-  const ps=S.players.map((p,o)=>({i:ITEM_ORDER.map(k=>Math.floor(total(k,o))),l:p.level,x:Math.floor(p.xp),h:Math.ceil(p.coreHp),m:Math.ceil(p.coreMax),d:p.dead?1:0,pp:p.prod,pc:p.cons,g:p.goalsDone,cq:p.craftQ.length?[p.craftQ.length,+p.craftQ[0].left.toFixed(1),ITEM_ORDER.indexOf(RECIPES[p.craftQ[0].set][p.craftQ[0].i].out)]:0,rs:p.rs?[p.rs.done,p.rs.cur?p.rs.cur.id:0,p.rs.cur?Math.ceil(p.rs.cur.left):0]:0}));
+  const ps=S.players.map((p,o)=>({i:ITEM_ORDER.map(k=>Math.floor(total(k,o))),l:p.level,x:Math.floor(p.xp),h:Math.ceil(p.coreHp),m:Math.ceil(p.coreMax),d:p.dead?1:0,pp:p.prod,pc:p.cons,g:p.goalsDone,cq:p.craftQ.length?[p.craftQ.length,+p.craftQ[0].left.toFixed(1),ITEM_ORDER.indexOf(RECIPES[p.craftQ[0].set][p.craftQ[0].i].out)]:0,rs:p.rs?[p.rs.done,p.rs.cur?p.rs.cur.id:0,p.rs.cur?Math.ceil(p.rs.cur.left):0]:0,on:o===0||p.on?1:0}));
   if(now-(NET.spAt||0)>2000){NET.spAt=now;NET.spOut=S.players.map((p,o)=>{const pm=perMin(o),rd=x=>{const r={};for(const k in x)if(x[k]>=0.5)r[k]=Math.round(x[k]);return r};return{p:rd(pm.p),c:rd(pm.c),n:rd(pm.n),s:prodSummary(o)}})}else NET.spOut=null;
   let ta='';for(const b of buildings)if(TURRETS.has(b.type)&&b.tgt)ta+=e2(b.x)+e2(b.y)+e1(((b.angle/(Math.PI*2))*64+64)%64)+(b.noAmmo?'1':'0');
   const rb=robots.map(r=>[r.id,Math.round(r.x*10),Math.round(r.y*10),Math.round(r.hp),Math.round(r.maxhp),RSTATES.indexOf(r.state),r.count,r.owner,r.pref,r.tx??-1,r.ty??-1,r.mine?ITEM_ORDER.indexOf(r.mine):-1,r.nochest?1:0,UNIT_KINDS.indexOf(r.kind||'robot'),Math.round((r.charge||0)*100),Math.round(r.ftime||0)]);
   const msg=NET.msgOut.splice(0,5);
   const cp=CAPS.map(c=>[Math.round(c.sx*10),Math.round(c.sy*10),Math.round(c.tx*10),Math.round(c.ty*10),+c.t.toFixed(2),+c.dur.toFixed(2),ITEM_ORDER.indexOf(c.it)]);
   const lk=buildings.filter(b=>b.type==='lanceur'&&b.lk).map(b=>[b.x,b.y,b.lk[0],b.lk[1]]);
-  RM.emit('st',{sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ack:NET.lastSeq,ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
+  RM.emit('st',{sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ak:Object.fromEntries([...NET.guests.values()].map(g=>[g.slot,g.lastSeq])),sl:Object.fromEntries([...NET.guests.values()].map(g=>[g.sid,g.slot])),nm:NET.names,pc:S.players.map((_,o)=>o===0?sanCos(META.cos||{}):NET.cosAll[o]||{}),ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
   if(now-(NET.biAt||0)<400)return;NET.biAt=now;
   let bi='';for(const b of buildings)if(BELT.has(b.type)&&b.item)bi+=e2(b.x)+e2(b.y)+e1(ITEM_ORDER.indexOf(b.item))+e1(b.prog*63);
   sendChunks('bi',bi,{ts:Math.round(now)},RM);
@@ -2797,7 +2955,7 @@ async function startGuest(codeRaw){
   NET.role='guest';NET.room=room;NET.code=code;NET.joined=false;NET.mySeq=0;NET.myCmds=[];NET.sid=Math.random().toString(36).slice(2,10);NET.lastSt=0;NET.hostName='Hôte';NET.guestName=NET.myName||'Toi';NET.bl={};NET.mo={};NET.bi={};netReset();
   ME=1;S=null;
   bindRemote(room);
-  room.on('full',()=>{mpMsg('Cette partie est déjà complète (2 joueurs).','bad');leaveCoop()});
+  room.on('full',m=>{const d=m&&m.data;if(d&&d.sid&&d.sid!==NET.sid)return;mpMsg('Cette partie est déjà complète.','bad');toast('Cette partie est déjà complète');leaveCoop()});
   guestPresence();
   refreshUI(true);renderMp();
   setTimeout(()=>{if(NET.role==='guest'&&!NET.joined)mpMsg('Aucune partie trouvée avec ce code pour l\'instant. Vérifie le code et que l\'hôte a bien le jeu ouvert.','bad')},8000);
@@ -2806,7 +2964,8 @@ function bindRemote(room){
   room.on('bye',()=>{if(NET.role==='spec'){toast('Ton ami a changé de partie');leaveCoop()}});
   room.on('hello',m=>{if(m.isMe)return;const d=m.data||{};if(typeof d.seed!=='number')return;NET.hostName=typeof d.name==='string'?d.name.slice(0,24):'Hôte';if(typeof d.pid==='string'&&/^[A-Z0-9]{8}$/.test(d.pid))NET.matePid=d.pid;NET.hostMeta={talents:d.meta||{}};
     const md=d.mode==='solo'?'solo':'coop';
-    if(!S||S.seed!==d.seed||S.mode!==md){S=newState(d.seed,md);setupWorld(d.seed,md);buildToolbar();banner(NET.role==='spec'?`👁 Tu regardes la partie de ${NET.hostName}`:`Connecté à la partie de ${NET.hostName} !`,false,4,'blue')}
+    const np=md==='coop'?clamp(d.np|0||2,2,4):1,terr=!!d.terr;
+    if(!S||S.seed!==d.seed||S.mode!==md||S.players.length!==np||!!S.terr!==terr){S=newState(d.seed,md,np,terr);setupWorld(d.seed,md,np,terr);buildToolbar();banner(NET.role==='spec'?`👁 Tu regardes la partie de ${NET.hostName}`:`Connecté à la partie de ${NET.hostName} !`,false,4,'blue')}
     NET.joined=true;$('mpDlg').hidden=true;refreshUI(true);publishPresence()});
   room.on('bl',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;const key=d.v;NET.bl[key]=NET.bl[key]||[];NET.bl[key][d.i]=d.d;if(NET.bl[key].filter(x=>x!=null).length===d.n){guestApplyBuildings(NET.bl[key].join(''));NET.bl={}}});
   room.on('mo',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;
@@ -2820,7 +2979,7 @@ function bindRemote(room){
 }
 function guestPresence(){
   if(NET.role!=='guest'||!NET.room)return;
-  NET.room.presence({role:'guest',pid:PID,sid:NET.sid,name:(NET.myName||'').slice(0,24),meta:META.talents||{},cmds:NET.myCmds.slice(0,60)}).catch(()=>{});
+  NET.room.presence({role:'guest',pid:PID,sid:NET.sid,name:(NET.myName||'').slice(0,24),meta:META.talents||{},cos:META.cos||{},cmds:NET.myCmds.slice(0,60)}).catch(()=>{});
 }
 function sendCmd(a){NET.myCmds.push({n:++NET.mySeq,a});if(NET.myCmds.length<=60)guestPresence()}
 function guestPredictPlace(t,x,y,r){
@@ -2837,15 +2996,15 @@ function guestApplyBuildings(str){
   for(const c of cores)for(let y=0;y<3;y++)for(let x=0;x<3;x++)grid[c.y+y][c.x+x]=c;
   for(let i=0;i+9<=str.length;i+=9){
     const t=TYPES[d1(str,i)];if(!t)continue;const x=d2(str,i+1),y=d2(str,i+3);if(x<0||y<0||x>=W||y>=H||grid[y][x])continue;
-    const b={type:t,x,y,rot:d1(str,i+5)&3,owner:d1(str,i+6)?1:0,hp:0};initB(b);b.hp=d1(str,i+7)/63*maxHp(b);const ex=d1(str,i+8);
+    const b={type:t,x,y,rot:d1(str,i+5)&3,owner:Math.min(3,d1(str,i+6)),hp:0};initB(b);b.hp=d1(str,i+7)/63*maxHp(b);const ex=d1(str,i+8);
     if(t==='cryo')b.active=!!ex;
     if(t==='extracteur')b.filter=ex>0?ITEM_ORDER[ex-1]||null:null;
     if(t==='lanceur')b.count=ex/63*20;if(t==='recepteur')b.count=ex/63*40;
     b.warn=!!(ex&32);
-    if(MACHINES.has(t)){b.recipe=ex&15;b.crafting=ex&16?{t:1}:null;b.prog=0.5}else if(GENS.has(t))b.burn=ex?1:0;else if(t==='coffre')b.used=ex/63*B.coffre.cap;else if(t==='reparateur')b.healing=!!ex;
+    if(MACHINES.has(t)){b.recipe=ex&15;b.crafting=ex&16?{t:1}:null;b.prog=0.5}else if(GENS.has(t))b.burn=ex?1:0;else if(t==='coffre'||t==='coffre_partage')b.used=ex/63*B[t].cap;else if(t==='reparateur')b.healing=!!ex;
     if(DRILLS.has(t))b.spin=0;
     const k=x+','+y;if(keepItems[k]&&BELT.has(t)){b.item=keepItems[k][0];b.prog=keepItems[k][1]}
-    {const z=bsz(t);for(let j=0;j<z;j++)for(let i=0;i<z;i++)if(y+j<H&&x+i<W)grid[y+j][x+i]=b}buildings.push(b);if(t==='coffre')chests.push(b);
+    {const z=bsz(t);for(let j=0;j<z;j++)for(let i=0;i<z;i++)if(y+j<H&&x+i<W)grid[y+j][x+i]=b}buildings.push(b);if(t==='coffre'||t==='coffre_partage')chests.push(b);
   }
   if(selXY){sel=at(selXY[0],selXY[1])}
 }
@@ -2902,17 +3061,21 @@ function guestApplyState(d){
   if(typeof d.wt==='number')S.waveTimer=d.wt;
   if(Array.isArray(d.cp)){const n0=CAPS.length;CAPS=d.cp.map(a=>({sx:a[0]/10,sy:a[1]/10,tx:a[2]/10,ty:a[3]/10,t:a[4],dur:a[5],it:ITEM_ORDER[a[6]]||'lingot_fer'}));if(CAPS.some(c=>c.t<0.3))sfx('launch')}
   if(Array.isArray(d.lk))for(const a of d.lk){const b=at(a[0],a[1]);if(b&&b.type==='lanceur'){b.lk=[a[2],a[3]];b.aim=Math.atan2(a[3]-a[1],a[2]-a[0])}}
-  if(Array.isArray(d.v))S.votes=[!!d.v[0],!!d.v[1]];
+  if(Array.isArray(d.v))S.votes=S.players.map((_,o)=>!!d.v[o]);
   S.kills=d.k|0;S.bossKills=d.bk|0;
   if(d.hm)NET.hostMeta={talents:d.hm};
-  if(typeof d.ack==='number'){const before=NET.myCmds.length;NET.myCmds=NET.myCmds.filter(c=>c.n>d.ack);if(before>60&&NET.myCmds.length)guestPresence()}
+  if(d.sl&&NET.role==='guest'&&typeof d.sl[NET.sid]==='number'&&d.sl[NET.sid]!==ME&&d.sl[NET.sid]<S.players.length){ME=d.sl[NET.sid];const c=cores[ME];if(c){cam.x=c.x+1.5;cam.y=c.y+1.5}buildToolbar();refreshUI(true)}
+  if(Array.isArray(d.nm))NET.names=d.nm.map(x=>typeof x==='string'?x.slice(0,24):'');
+  if(Array.isArray(d.pc))NET.cosAll=d.pc.map(c=>c&&typeof c==='object'?sanCos(c):{});
+  const ackv=d.ak&&typeof d.ak[ME]==='number'?d.ak[ME]:d.ack;
+  if(typeof ackv==='number'){const before=NET.myCmds.length;NET.myCmds=NET.myCmds.filter(c=>c.n>ackv);if(before>60&&NET.myCmds.length)guestPresence()}
   if(Array.isArray(d.ps))d.ps.forEach((q,o)=>{
     const p=S.players[o];if(!p||!q)return;
     const inv={};ITEM_ORDER.forEach((k,j)=>{inv[k]=(q.i&&q.i[j])|0});p.inv=inv;
     if(o===ME&&q.l>p.level){p.level=q.l;levelUpFx(q.l)}else p.level=q.l|0||1;
     p.xp=q.x|0;p.coreHp=+q.h||0;p.coreMax=+q.m||3000;
     const wasDead=p.dead;p.dead=!!q.d;if(!wasDead&&p.dead)fx({k:'boom',x:cores[o].x+1.5,y:cores[o].y+1.5,r:3,col:'255,120,60',t:1.2,max:1.2});
-    p.prod=q.pp|0;p.cons=q.pc|0;p.pr=p.cons>0?Math.min(1,p.prod/p.cons):1;p.goalsDone=Array.isArray(q.g)?q.g:[];
+    p.on=!!q.on;p.prod=q.pp|0;p.cons=q.pc|0;p.pr=p.cons>0?Math.min(1,p.prod/p.cons):1;p.goalsDone=Array.isArray(q.g)?q.g:[];
     if(Array.isArray(q.rs)){p.rs={done:Array.isArray(q.rs[0])?q.rs[0]:[],cur:q.rs[1]?{id:q.rs[1],left:q.rs[2]|0}:null}}
     p.craftQ=Array.isArray(q.cq)?Array.from({length:q.cq[0]},(_,j)=>j===0?{set:'_',left:q.cq[1],out:ITEM_ORDER[q.cq[2]]}:{set:'_',left:0}):[];
   });
@@ -2920,10 +3083,10 @@ function guestApplyState(d){
   // tourelles
   if(typeof d.ta==='string'){for(let i=0;i+6<=d.ta.length;i+=6){const b=at(d2(d.ta,i),d2(d.ta,i+2));if(b&&TURRETS.has(b.type)){b.angT=d1(d.ta,i+4)/64*Math.PI*2;if(b.angle==null)b.angle=b.angT;b.noAmmo=d.ta[i+5]==='1';if(b.type==='tesla')b.fire=0.2}}}
   // robots
-  if(Array.isArray(d.rb)){const old={};for(const r of robots)old[r.id]=r;robots=d.rb.map(a=>{let r=old[a[0]];if(!r){r={isRobot:true,id:a[0],x:a[1]/10,y:a[2]/10,cargo:{}}}if(!r.buf){r.nx=a[1]/10;r.ny=a[2]/10}r.hp=a[3];r.maxhp=a[4];r.state=RSTATES[a[5]]||'seek';r.count=a[6];r.owner=a[7]?1:0;r.pref=a[8];r.gx=a[9]>=0?a[9]:null;r.gy=a[10];r.mine=a[11]>=0?ITEM_ORDER[a[11]]:null;r.nochest=!!a[12];r.kind=UNIT_KINDS[a[13]]||'robot';r.charge=(a[14]||0)/100;r.ftime=a[15]||0;return r});if(sel&&sel.isRobot)sel=robots.find(r=>r.id===sel.id)||null}
+  if(Array.isArray(d.rb)){const old={};for(const r of robots)old[r.id]=r;robots=d.rb.map(a=>{let r=old[a[0]];if(!r){r={isRobot:true,id:a[0],x:a[1]/10,y:a[2]/10,cargo:{}}}if(!r.buf){r.nx=a[1]/10;r.ny=a[2]/10}r.hp=a[3];r.maxhp=a[4];r.state=RSTATES[a[5]]||'seek';r.count=a[6];r.owner=a[7]|0;r.pref=a[8];r.gx=a[9]>=0?a[9]:null;r.gy=a[10];r.mine=a[11]>=0?ITEM_ORDER[a[11]]:null;r.nochest=!!a[12];r.kind=UNIT_KINDS[a[13]]||'robot';r.charge=(a[14]||0)/100;r.ftime=a[15]||0;return r});if(sel&&sel.isRobot)sel=robots.find(r=>r.id===sel.id)||null}
   // effets
   if(Array.isArray(d.fx))for(const a of d.fx){if(typeof a[0]==='number')continue;const e=a[0]==='b'?{k:'boom',x:a[1],y:a[2],r:a[3],col:a[4],t:a[5],max:a[5]}:{k:a[0]==='z'?'zap':'shot',x1:a[1],y1:a[2],x2:a[3],y2:a[4],col:a[5],w:a[6],t:a[7],max:a[7],seed:a[8]};effects.push(e);onEffect(e)}
-  if(Array.isArray(d.msg))for(const t of d.msg){if(typeof t!=='string')continue;if(NET.role==='spec'&&t[0]!=='!')continue;if(t[0]==='!'){banner(t.slice(1),true,5);if(t.includes('Vague'))sfx('wave')}else if(t[0]==='?')toast(t.slice(1));else banner(t,false,4,'blue')}
+  if(Array.isArray(d.msg))for(const t of d.msg){if(typeof t!=='string')continue;if(NET.role==='spec'&&t[0]!=='!'&&t[0]!=='#')continue;if(t[0]==='!'){banner(t.slice(1),true,5);if(t.includes('Vague'))sfx('wave')}else if(t[0]==='?'){const k=t.indexOf('|');if(k>0){if(+t.slice(1,k)===ME)toast(t.slice(k+1))}else toast(t.slice(1))}else if(t[0]==='@'){const k=t.indexOf('|');if(+t.slice(1,k)===ME)banner(t.slice(k+1),false,4,'blue')}else if(t[0]==='#'){const k=t.indexOf('|');addChat(+t.slice(1,k),t.slice(k+1))}else banner(t,false,4,'blue')}
   if(d.o&&!S.over){S.over=true;showGameOver()}else if(!d.o)S.over=false;
 }
 function guestFrame(dt){
@@ -2935,7 +3098,7 @@ function guestFrame(dt){
     if(r.gx!=null&&(r.state==='seek'||r.state==='mine')){r.tx=r.gx;r.ty=r.gy}else r.tx=null}
   for(const b of buildings)if(b.angT!=null&&b.angle!=null){let da=((b.angT-b.angle+Math.PI*3)%(Math.PI*2))-Math.PI;b.angle+=da*Math.min(1,dt*12)}
   if(NET.fxQ&&NET.fxQ.length){const lim=rt==null?Infinity:rt;const keep=[];
-    for(const a of NET.fxQ){if(a[0]>lim&&a[0]-lim<1500){keep.push(a);continue}const q=a.slice(1);const e=q[0]==='b'?{k:'boom',x:q[1],y:q[2],r:q[3],col:q[4],t:q[5],max:q[5]}:{k:q[0]==='z'?'zap':'shot',x1:q[1],y1:q[2],x2:q[3],y2:q[4],col:q[5],w:q[6],t:q[7],max:q[7],seed:q[8]};effects.push(e);onEffect(e)}
+    for(const a of NET.fxQ){if(a[0]>lim&&a[0]-lim<1500){keep.push(a);continue}const q=a.slice(1);const e=q[0]==='p'?{k:'ping',x:q[1],y:q[2],o:q[3]|0,t:q[4],max:q[4]}:q[0]==='b'?{k:'boom',x:q[1],y:q[2],r:q[3],col:q[4],t:q[5],max:q[5]}:{k:q[0]==='z'?'zap':'shot',x1:q[1],y1:q[2],x2:q[3],y2:q[4],col:q[5],w:q[6],t:q[7],max:q[7],seed:q[8]};effects.push(e);onEffect(e)}
     NET.fxQ=keep}
   for(const b of buildings){if(BELT.has(b.type)&&b.item&&b.prog<1)b.prog=Math.min(1,b.prog+dt*B[b.type].spd*mBelt(b.owner));if(MACHINES.has(b.type)&&b.crafting)b.spin=(b.spin||0)+dt*4;if(DRILLS.has(b.type))b.spin=(b.spin||0)+dt*8*(P(b.owner).pr||1)}
   for(const e of effects)e.t-=dt;effects=effects.filter(e=>e.t>0);
@@ -2949,7 +3112,7 @@ async function leaveCoop(){
   NET.specs=new Set();
   if(NET.room){try{await NET.room.leave()}catch(e){}}
   if(NET.role==='host')save();
-  NET.role='solo';NET.room=null;NET.code=null;NET.guestHere=false;NET.matePid=null;ME=0;setTimeout(publishPresence,300);
+  NET.role='solo';NET.room=null;NET.code=null;NET.guestHere=false;NET.matePid=null;NET.guests=new Map();NET.names=[];NET.cosAll=[];ME=0;setTimeout(publishPresence,300);
   $('mpDlg').hidden=true;
   if(!loadKey(SAVE_KEY))newGame('solo');
   buildToolbar();refreshUI(true);banner('Retour en solo',false,2);
@@ -3003,7 +3166,7 @@ function publishPresence(){
   let room=null,bi=null;
   if(st==='solo'&&SPEC.room){room='sp-'+PID.toLowerCase();bi=SOC.bi}
   else if((st==='host'||st==='guest')&&NET.transport==='relay'&&NET.code){room='ua-'+NET.code.toLowerCase();bi=MQ.bi}
-  const pl={name:myName(),st,room,bi,code:NET.role==='host'&&!NET.guestHere?NET.code:null,t:Date.now()};
+  const pl={name:myName(),st,room,bi,code:NET.role==='host'&&S&&NET.guests.size<S.players.length-1?NET.code:null,t:Date.now()};
   try{SOC.client.publish(pTopic(PID),JSON.stringify(pl),{retain:true,qos:0})}catch(e){}
 }
 function sendInbox(pid,msg){if(!SOC.client||!SOC.client.connected)return false;msg.from=PID;msg.name=myName();msg.t=Date.now();try{SOC.client.publish(iTopic(pid),JSON.stringify(msg),{qos:0});return true}catch(e){return false}}
@@ -3068,7 +3231,7 @@ async function inviteFriend(pid){
   const f=FRIENDS.find(x=>x.pid===pid);if(!f)return;
   if(NET.role==='guest'){toast('Tu es déjà dans la partie de quelqu\'un');return}
   if(NET.role==='solo'){await startHost(false);if(NET.role!=='host')return}
-  if(NET.guestHere){toast('Ta partie est déjà complète');return}
+  if(S&&NET.guests.size>=S.players.length-1){toast('Ta partie est déjà complète');return}
   if(sendInbox(pid,{type:'invite',code:NET.code}))toast(`Invitation envoyée à ${f.name}`,true);else toast('Impossible d\'envoyer l\'invitation (relais indisponible)');
 }
 function friendsHtml(){
@@ -3109,7 +3272,7 @@ $('mpDlg').addEventListener('click',async e=>{
 resize();
 if(!loadKey(SAVE_KEY)||S.mode!=='solo')newGame('solo');else{buildToolbar();banner('Partie reprise',false,2)}
 refreshUI(true);
-let last=performance.now(),saveAcc=0,uiAcc=0,cloudAcc=0;
+let last=performance.now(),saveAcc=0,uiAcc=0,cloudAcc=0,achAcc=0;
 // quand l'onglet de l'hôte passe en arrière-plan, requestAnimationFrame s'arrête :
 // un minuteur dans un Worker (peu bridé) continue de faire tourner la partie et l'envoi réseau.
 try{
@@ -3140,6 +3303,7 @@ function frameBody(nowMs){
     hostNetTick(nowMs);
   }
   draw(nowMs/1000);
+  achAcc+=dt;if(achAcc>2){achAcc=0;checkAch()}
   uiAcc+=dt;if(uiAcc>0.2){uiAcc=0;drawMini();refreshUI();if(!$('mpDlg').hidden&&NET.role!=='solo'&&!NET.mpBusy&&Math.random()<0.2&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))renderMp()}
   saveAcc+=dt;if(saveAcc>5){saveAcc=0;save()}
   cloudAcc+=dt;if(cloudAcc>30){cloudAcc=0;cloudPush()}

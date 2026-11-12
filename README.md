@@ -27,6 +27,12 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 - Nouvelles machines (forge, centrifugeuse, éolienne, réacteur à fusion, foreuse laser, tapis express) et défenses (lance-flammes, tourelle cryo, canon électromagnétique, mur en titane, bouclier).
 - Monstres variés (kamikaze, blindé, guérisseur, araignée, spectre, brute de cristal, nécromancien) et **6 boss** : Titan (vague 10), Reine des essaims (20), Golem de cristal (30), Dragon (40), Hydre (50), Liche (60), puis le cycle recommence en plus fort.
 
+## Succès, biomes et personnalisation
+
+- **24 succès** (premier boss, 1 000 monstres, usine de 500 bâtiments…), conservés d'une partie à l'autre.
+- **Biomes** (nouvelles parties) : lave qui abîme les bâtiments et brûle les monstres, glace où les tapis vont 60 % plus vite, eau infranchissable pour les monstres terrestres.
+- **Personnalisation** : couleur de ton noyau et skins de tourelles, débloqués par les renaissances et les succès.
+
 ## Commandes
 
 | Action | Touche |
@@ -39,10 +45,16 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 | Zoom | Molette |
 | Pause | Espace |
 | Copier une zone (plan) / recoller | B / V |
+| Ping (multi) | Alt + clic ou G |
+| Chat (multi) | Entrée |
 
-## Multijoueur à deux
+## Multijoueur (2 à 4 joueurs)
 
-Bouton **Multijoueur** : l'un crée la partie et donne le code de 5 lettres, l'autre le saisit. Chacun a son noyau et son stock, vous pouvez vous donner des matériaux (clic droit sur le noyau de l'autre), réanimer le noyau tombé du coéquipier une fois la vague éliminée, et lancer la vague plus tôt si vous êtes prêts tous les deux. Vagues toutes les 15 minutes.
+Bouton **Multijoueur** : l'un crée la partie (2, 3 ou 4 joueurs, noyaux en carré) et donne le code de 5 lettres, les autres le saisissent. Chacun a son noyau et son stock, vous pouvez vous donner des matériaux (clic droit sur le noyau de l'autre), réanimer le noyau tombé du coéquipier une fois la vague éliminée, et lancer la vague plus tôt si vous êtes prêts tous les deux. Vagues toutes les 15 minutes.
+
+- **Ping** : Alt + clic (ou G) montre un endroit à tes coéquipiers.
+- **Chat** : Entrée pour écrire, avec des messages rapides.
+- **Coffre partagé** : tout le monde peut y déposer et y puiser.
 
 Les deux jeux communiquent par un relais internet gratuit (serveur MQTT public), sans compte. L'hôte garde son onglet ouvert.
 
