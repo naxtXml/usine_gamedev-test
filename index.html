@@ -977,10 +977,12 @@ function levelUpFx(l){
   else banner(`Niveau ${l}`,false,2,'pur');
   buildToolbar();
 }
+const MAX_WAVE=220,MAX_ALIVE=320;
 function startWave(){
   S.wave++;S.waveTimer=S.interval;S.warned=0;S.votes=[false,false];
-  const n=S.wave,cm=coop()?1.5:1,count=Math.round((6+n*4+n*n*0.5)*cm);
-  const hpMul=Math.pow(1.24,Math.min(n,10)-1)*Math.pow(1.15,Math.max(0,n-10)),dmgMul=1+0.08*(n-1);
+  const n=S.wave,cm=coop()?1.5:1,raw=(6+n*4+n*n*0.5)*cm,count=Math.round(Math.min(raw,MAX_WAVE*cm));
+  // au-delà de MAX_WAVE monstres, on garde la même difficulté en rendant chaque monstre plus résistant (moins d'entités = pas de lag)
+  const hpMul=Math.pow(1.24,Math.min(n,10)-1)*Math.pow(1.15,Math.max(0,n-10))*(raw/count),dmgMul=(1+0.08*(n-1))*Math.sqrt(raw/count);
   const nEdges=1+(n>=3?1:0)+(n>=6?1:0)+(n>=9?1:0);
   const edges=[0,1,2,3].sort(()=>Math.random()-0.5).slice(0,nEdges);
   for(let i=0;i<count;i++){
@@ -1045,7 +1047,7 @@ function updM(m,dt){
   m.cd-=dt;if(m.flash>0)m.flash-=dt;
   const spd=m.slow>0?0.5:1;if(m.slow>0)m.slow-=dt;
   if(t.heal){for(const o of monsters){if(o!==m&&o.hp>0&&o.hp<o.maxhp&&(o.x-m.x)**2+(o.y-m.y)**2<4)o.hp=Math.min(o.maxhp,o.hp+t.heal*(m.wMul||m.hpMul||1)*dt)}}
-  if(t.boss){m.spawnT-=dt;if(m.spawnT<=0){
+  if(t.boss){m.spawnT-=dt;if(m.spawnT<=0&&monsters.length>=MAX_ALIVE*0.8){m.spawnT=2}else if(m.spawnT<=0){
     const q={hpMul:m.wMul||1,dmgMul:m.dmgMul};
     if(m.type==='titan'){m.spawnT=6;for(let i=0;i<2;i++)spawnMonster(Object.assign({type:'rampant'},q),m.x+(Math.random()-0.5),m.y+(Math.random()-0.5))}
     else if(m.type==='reine'){m.spawnT=5;for(let i=0;i<3;i++)spawnMonster(Object.assign({type:'coureur'},q),m.x+(Math.random()-0.5),m.y+(Math.random()-0.5));spawnMonster(Object.assign({type:'volant'},q),m.x,m.y)}
@@ -1058,7 +1060,7 @@ function updM(m,dt){
    if(gd){const dx=gd.x-m.x,dy=gd.y-m.y,dist=Math.hypot(dx,dy)||1;m.fx=dx/dist;m.fy=dy/dist;
      if(dist<t.r+0.8){if(m.cd<=0){m.cd=1;if(t.blast){explode(m);return}gd.hp-=m.dmg*0.5}}else{const step=Math.min(dist-t.r-0.75,t.sp*spd*dt);m.x+=m.fx*step;m.y+=m.fy*step}
      return}}
-  if(t.summon){m.sumT=(m.sumT||5)-dt;if(m.sumT<=0){m.sumT=5;for(let i=0;i<2;i++)spawnMonster({type:'rampant',hpMul:m.wMul||m.hpMul,dmgMul:m.dmgMul},m.x+(Math.random()-0.5),m.y+(Math.random()-0.5))}}
+  if(t.summon){m.sumT=(m.sumT||5)-dt;if(m.sumT<=0&&monsters.length<MAX_ALIVE*0.8){m.sumT=5;for(let i=0;i<2;i++)spawnMonster({type:'rampant',hpMul:m.wMul||m.hpMul,dmgMul:m.dmgMul},m.x+(Math.random()-0.5),m.y+(Math.random()-0.5))}}
   if(t.fly){
     let best=null,bd=1e9;for(const c of cores){if(P(c.owner).dead)continue;const d=(c.x+1.5-m.x)**2+(c.y+1.5-m.y)**2;if(d<bd){bd=d;best=c}}
     for(const b of buildings){const l=B[b.type].lure;if(!l)continue;const d=(b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2;if(d<bd&&d<(-l*1.5)**2){
@@ -1110,7 +1112,7 @@ function update(dt){
   S.waveTimer-=dt;
   if(S.waveTimer<=60&&S.warned<1){S.warned=1;const t=S.wave%10===9?'Le BOSS arrive dans 1 minute !':'Attaque dans 1 minute !';banner(t,true,3);if(NET.role==='host')NET.msgOut.push('!'+t)}
   if(S.waveTimer<=0||(coop()&&S.votes[0]&&S.votes[1]))startWave();
-  for(let i=spawnQ.length-1;i>=0;i--){spawnQ[i].t-=dt;if(spawnQ[i].t<=0){spawnMonster(spawnQ[i]);spawnQ.splice(i,1)}}
+  for(let i=spawnQ.length-1;i>=0;i--){spawnQ[i].t-=dt;if(spawnQ[i].t<=0){if(monsters.length>=MAX_ALIVE&&!MT[spawnQ[i].type].boss){spawnQ[i].t=1;continue}spawnMonster(spawnQ[i]);spawnQ.splice(i,1)}}
   for(const c of cores){
     const o=c.owner;if(P(o).dead)continue;
     c.cd-=dt;if(c.cd>0)continue;
@@ -2493,7 +2495,7 @@ function sendChunks(topic,str,extra,room=NET.room){
 }
 function hostNetTick(now){
   const RM=bcRoom();if(!RM)return;
-  if(now-(NET.fastAt||0)>=100){NET.fastAt=now;
+  if(now-(NET.fastAt||0)>=(monsters.length>150?160:monsters.length>60?125:100)){NET.fastAt=now;
     const ts=Math.round(now);
     let ms='';for(const m of monsters)ms+=e2(m.id%4096)+e1(MTYPES.indexOf(m.type))+e2(m.x*40)+e2(m.y*40)+e1(m.hp/m.maxhp*63)+e1(((Math.atan2(m.fy,m.fx)/(Math.PI*2))*64+64)%64);
     const f=NET.fxOut.splice(0,40).map(e=>[Math.round(e.nt||now)].concat(e.k==='boom'?['b',+e.x.toFixed(1),+e.y.toFixed(1),+e.r.toFixed(2),e.col,e.max]:[e.k==='zap'?'z':'s',+e.x1.toFixed(2),+e.y1.toFixed(2),+e.x2.toFixed(2),+e.y2.toFixed(2),e.col,e.w,e.max,e.seed||0]));NET.fxOut.length=0;
@@ -2849,11 +2851,15 @@ try{
     if(!document.hidden||!S||isRemote()||!bcRoom())return;
     const nowMs=performance.now();if(nowMs-last<40)return;
     const dt=Math.min(0.1,(nowMs-last)/1000);last=nowMs;
-    update(dt);hostNetTick(nowMs);
-    saveAcc+=dt;if(saveAcc>5){saveAcc=0;save()}
+    try{update(dt);hostNetTick(nowMs);saveAcc+=dt;if(saveAcc>5){saveAcc=0;save()}}catch(e){console.error(e)}
   };
 }catch(e){}
+let loopErr=0;
 function frame(nowMs){
+  requestAnimationFrame(frame);
+  try{frameBody(nowMs)}catch(e){console.error(e);if(Date.now()-loopErr>10000){loopErr=Date.now();toast('Petite erreur interne ignorée, la partie continue')}}
+}
+function frameBody(nowMs){
   const dt=Math.min(0.1,(nowMs-last)/1000);last=nowMs;
   if(S){
     const ps=14*dt/cam.z;
@@ -2870,7 +2876,6 @@ function frame(nowMs){
   uiAcc+=dt;if(uiAcc>0.2){uiAcc=0;drawMini();refreshUI();if(!$('mpDlg').hidden&&NET.role!=='solo'&&Math.random()<0.2&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))renderMp()}
   saveAcc+=dt;if(saveAcc>5){saveAcc=0;save()}
   cloudAcc+=dt;if(cloudAcc>30){cloudAcc=0;cloudPush()}
-  requestAnimationFrame(frame);
 }
 window.addEventListener('beforeunload',save);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){save();cloudPush()}});
