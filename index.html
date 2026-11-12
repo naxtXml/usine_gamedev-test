@@ -131,6 +131,13 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
 .dlg input{font-size:16px;letter-spacing:3px;text-transform:uppercase}
 .code{font:700 28px ui-monospace,monospace;letter-spacing:6px;color:var(--blue);background:#0d0f12;border:1px dashed #2a5a75;border-radius:8px;padding:8px 14px;display:inline-block;user-select:text;-webkit-user-select:text}
 .msg{min-height:18px;margin-top:8px;font-size:12.5px}
+.friend{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.friend .r{flex:1;min-width:0}
+.friend .r b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.friend button{padding:3px 8px;font-size:11.5px}
+.dotst{width:9px;height:9px;border-radius:50%;flex:none;background:#555}
+.dotst.on{background:var(--ok)} .dotst.host{background:var(--blue)} .dotst.busy{background:var(--acc)}
+.fcode{font:700 14px ui-monospace,monospace;letter-spacing:2px;color:var(--blue);user-select:text;-webkit-user-select:text}
 .giverow{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px}
 .giverow .r{flex:1}
 .giverow button{padding:3px 8px;font-size:11.5px}
@@ -178,6 +185,10 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
         <div id="saveMsg" class="msg"></div>
       </div></div>
       <div id="mpDlg" class="dlg" hidden><div class="card" id="mpCard"></div></div>
+      <div id="invDlg" class="dlg" hidden><div class="card" style="width:min(400px,92%);text-align:center">
+        <h2 id="invTitle">Invitation</h2><p class="mut" id="invTxt"></p>
+        <div class="btnrow" style="justify-content:center"><button class="okb" id="invYes">Rejoindre</button><button id="invNo">Ignorer</button></div>
+      </div></div>
       <div id="giveDlg" class="dlg" hidden><div class="card">
         <h2>Donner des matériaux</h2>
         <p class="mut" id="giveSub">Choisis ce que tu envoies au noyau de ton coéquipier.</p>
@@ -1805,10 +1816,10 @@ canvas.addEventListener('wheel',e=>{
 },{passive:false});
 const keys={};
 const DIGITS=['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9'];
-const anyDlg=()=>!$('saveDlg').hidden||!$('mpDlg').hidden||!$('giveDlg').hidden;
+const anyDlg=()=>!$('saveDlg').hidden||!$('mpDlg').hidden||!$('giveDlg').hidden||!$('invDlg').hidden;
 window.addEventListener('keydown',e=>{
   if(e.target&&(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'))return;
-  if(anyDlg()){if(e.code==='Escape'){closeSaveDlg(true);$('mpDlg').hidden=true;$('giveDlg').hidden=true}return}
+  if(anyDlg()){if(e.code==='Escape'){closeSaveDlg(true);$('mpDlg').hidden=true;$('giveDlg').hidden=true;$('invDlg').hidden=true}return}
   if(!S)return;
   const i=DIGITS.indexOf(e.code);
   if(i>=0){const list=TYPES.filter(t=>B[t].cat===cat);const t=list[i];if(t){if(!unlocked(t))toast(`${B[t].n} : débloqué au niveau ${B[t].lvl}`);else setTool(tool===t?null:t)}e.preventDefault();return}
@@ -2131,6 +2142,7 @@ function renderMp(){
       <div style="display:flex;gap:6px"><input id="mpCode" maxlength="5" placeholder="CODE" autocomplete="off"><button class="okb" id="mpJoin" style="flex:none">Rejoindre</button></div>
       <p class="mut" style="font-size:12px;margin-top:8px">${onClaude()?'Ton ami doit être connecté à claude.ai et avoir accès à ce jeu : invite-le par e-mail depuis le bouton Partager (un simple lien public ne suffit pas pour le multijoueur).':'Envoie le lien du jeu et le code à ton ami : vos deux jeux communiquent par un relais internet gratuit, sans compte. L\'hôte garde son onglet ouvert et visible.'}</p>
       <div id="mpMsg" class="msg"></div>
+      ${friendsHtml()}
       <div class="btnrow"><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
     if($('mpName'))$('mpName').addEventListener('change',e=>setPseudo(e.target.value));
     const savePseudo=()=>{if($('mpName'))setPseudo($('mpName').value)};
@@ -2143,6 +2155,7 @@ function renderMp(){
     c.innerHTML=`<h2>Partie à deux</h2>
       <p>Code de la partie :</p><div class="code">${NET.code}</div>${NET.transport==='relay'&&MQ.bi>=0?`<p class="mut" style="font-size:11.5px;margin-top:6px">Relais : ${esc(BROKERS[MQ.bi].replace(/^wss:\/\//,'').replace(/\/mqtt$/,''))}</p>`:''}
       <p style="margin-top:10px">${NET.role==='host'?(here?`<span class="okc">✓ ${esc(NET.guestName)} est connecté</span>`:'<span class="mut">En attente de ton coéquipier… donne-lui ce code.</span>'):(here?`<span class="okc">✓ Connecté à la partie de ${esc(NET.hostName)}</span>`:'<span class="mut">Connexion à l\'hôte…</span>')}</p>
+      ${!onClaude()&&NET.matePid&&here?(isFriend(NET.matePid)?`<p class="okc" style="font-size:12.5px">✓ ${esc(NET.role==='host'?NET.guestName:NET.hostName)} est dans tes amis</p>`:`<div class="btnrow"><button class="blue" data-mp="addmate">Ajouter ${esc(NET.role==='host'?NET.guestName:NET.hostName)} en ami</button></div>`):''}
       <div id="mpMsg" class="msg"></div>
       <div class="btnrow"><button class="danger" id="mpLeave">Quitter la partie à deux</button><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
     $('mpLeave').onclick=leaveCoop;
@@ -2167,10 +2180,10 @@ async function startHost(resume){
   if(!(resume&&loadKey(COOP_KEY)&&S.mode==='coop'))newGame('coop');
   room.onPeers(ch=>{
     for(const p of [...ch.joined,...ch.updated])if(!p.isMe&&p.presence&&p.presence.role==='guest')onGuestPresence(p);
-    for(const p of ch.left)if(p.peer===NET.guestPeer){NET.guestHere=false;banner(`${NET.guestName} s'est déconnecté — partie en pause`,true,4)}
+    for(const p of ch.left)if(p.peer===NET.guestPeer){NET.guestHere=false;setTimeout(publishPresence,100);banner(`${NET.guestName} s'est déconnecté — partie en pause`,true,4)}
   });
   room.presence({role:'host',code});
-  buildToolbar();refreshUI(true);renderMp();
+  buildToolbar();refreshUI(true);renderMp();publishPresence();
   banner(`Partie à deux créée — code ${code}`,false,5,'blue');
 }
 function onGuestPresence(p){
@@ -2184,6 +2197,7 @@ function onGuestPresence(p){
     if(!$('mpDlg').hidden)renderMp();
   }
   NET.guestHere=true;
+  if(typeof pr.pid==='string'&&/^[A-Z0-9]{8}$/.test(pr.pid)&&NET.matePid!==pr.pid){NET.matePid=pr.pid;publishPresence();if(!isFriend(pr.pid)&&!onClaude())setTimeout(()=>toast(`Ajoute ${NET.guestName} en ami depuis le menu Multijoueur`,true),3000)}
   if(pr.meta&&typeof pr.meta==='object'){const t={};for(const x of TALENTS){t[x.id]=clamp((pr.meta[x.id]|0),0,x.max)}guestMeta={talents:t};const p1=P(1);if(p1&&p1.fresh&&S.wave===0){const n=newPlayer(1);p1.inv=n.inv;p1.coreMax=n.coreMax;p1.coreHp=n.coreMax;p1.fresh=false}}
   if(Array.isArray(pr.cmds)){
     const cmds=pr.cmds.filter(c=>c&&typeof c.n==='number'&&c.n>NET.lastSeq).sort((a,b)=>a.n-b.n);
@@ -2193,7 +2207,7 @@ function onGuestPresence(p){
 const GUEST_ACTS=new Set(['link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
 function hostSendHello(){
   if(!NET.room)return;
-  NET.room.emit('hello',{seed:S.seed,mode:'coop',name:NET.hostName,meta:META.talents||{}}).catch(()=>{});
+  NET.room.emit('hello',{seed:S.seed,mode:'coop',name:NET.hostName,pid:PID,meta:META.talents||{}}).catch(()=>{});
   NET.bSent=0;
 }
 function encBuildings(){
@@ -2249,9 +2263,9 @@ async function startGuest(codeRaw){
   if(S&&S.mode==='solo')save();
   NET.role='guest';NET.room=room;NET.code=code;NET.joined=false;NET.mySeq=0;NET.myCmds=[];NET.sid=Math.random().toString(36).slice(2,10);NET.lastSt=0;NET.hostName='Hôte';NET.guestName=NET.myName||'Toi';NET.bl={};NET.mo={};NET.bi={};
   ME=1;S=null;
-  room.on('hello',m=>{if(m.isMe)return;const d=m.data||{};if(typeof d.seed!=='number')return;NET.hostName=typeof d.name==='string'?d.name.slice(0,24):'Hôte';NET.hostMeta={talents:d.meta||{}};
+  room.on('hello',m=>{if(m.isMe)return;const d=m.data||{};if(typeof d.seed!=='number')return;NET.hostName=typeof d.name==='string'?d.name.slice(0,24):'Hôte';if(typeof d.pid==='string'&&/^[A-Z0-9]{8}$/.test(d.pid))NET.matePid=d.pid;NET.hostMeta={talents:d.meta||{}};
     if(!S||S.seed!==d.seed){S=newState(d.seed,'coop');setupWorld(d.seed,'coop');buildToolbar();banner(`Connecté à la partie de ${NET.hostName} !`,false,4,'blue')}
-    NET.joined=true;$('mpDlg').hidden=true;refreshUI(true)});
+    NET.joined=true;$('mpDlg').hidden=true;refreshUI(true);publishPresence()});
   room.on('bl',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;const key=d.v;NET.bl[key]=NET.bl[key]||[];NET.bl[key][d.i]=d.d;if(NET.bl[key].filter(x=>x!=null).length===d.n){guestApplyBuildings(NET.bl[key].join(''));NET.bl={}}});
   room.on('mo',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;NET.mo.parts=NET.mo.n===d.n&&NET.mo.parts?NET.mo.parts:[];NET.mo.n=d.n;NET.mo.parts[d.i]=d.d;if(NET.mo.parts.filter(x=>x!=null).length===d.n){guestApplyMonsters(NET.mo.parts.join(''));NET.mo.parts=null}});
   room.on('bi',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;NET.bi.parts=NET.bi.n===d.n&&NET.bi.parts?NET.bi.parts:[];NET.bi.n=d.n;NET.bi.parts[d.i]=d.d;if(NET.bi.parts.filter(x=>x!=null).length===d.n){guestApplyBelts(NET.bi.parts.join(''));NET.bi.parts=null}});
@@ -2263,7 +2277,7 @@ async function startGuest(codeRaw){
 }
 function guestPresence(){
   if(NET.role!=='guest'||!NET.room)return;
-  NET.room.presence({role:'guest',sid:NET.sid,name:(NET.myName||'').slice(0,24),meta:META.talents||{},cmds:NET.myCmds.slice(0,60)}).catch(()=>{});
+  NET.room.presence({role:'guest',pid:PID,sid:NET.sid,name:(NET.myName||'').slice(0,24),meta:META.talents||{},cmds:NET.myCmds.slice(0,60)}).catch(()=>{});
 }
 function sendCmd(a){NET.myCmds.push({n:++NET.mySeq,a});if(NET.myCmds.length<=60)guestPresence()}
 function guestPredictPlace(t,x,y,r){
@@ -2347,11 +2361,129 @@ function guestFrame(dt){
 async function leaveCoop(){
   if(NET.room){try{await NET.room.leave()}catch(e){}}
   if(NET.role==='host')save();
-  NET.role='solo';NET.room=null;NET.code=null;NET.guestHere=false;ME=0;
+  NET.role='solo';NET.room=null;NET.code=null;NET.guestHere=false;NET.matePid=null;ME=0;setTimeout(publishPresence,300);
   $('mpDlg').hidden=true;
   if(!loadKey(SAVE_KEY))newGame('solo');
   buildToolbar();refreshUI(true);banner('Retour en solo',false,2);
 }
+
+// ================= AMIS (version site web : via le relais) =================
+const SOC={client:null,bi:-1,status:{},ready:false};
+function myPid(){let v='';try{v=localStorage.getItem('usine-pid')||''}catch(e){}if(!/^[A-Z0-9]{8}$/.test(v)){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';v='';for(let i=0;i<8;i++)v+=a[(Math.random()*a.length)|0];try{localStorage.setItem('usine-pid',v)}catch(e){}}return v}
+const PID=myPid();
+const fmtPid=p=>p.slice(0,4)+'-'+p.slice(4);
+function loadFriends(){try{const f=JSON.parse(localStorage.getItem('usine-friends')||'[]');return Array.isArray(f)?f.filter(x=>x&&/^[A-Z0-9]{8}$/.test(x.pid)):[]}catch(e){return[]}}
+let FRIENDS=loadFriends();
+function saveFriends(){try{localStorage.setItem('usine-friends',JSON.stringify(FRIENDS))}catch(e){}}
+const isFriend=pid=>FRIENDS.some(f=>f.pid===pid);
+const pTopic=pid=>'usine-assiegee/v2/p/'+pid,iTopic=pid=>'usine-assiegee/v2/i/'+pid;
+function myName(){return getPseudo()||NET.myName||'Joueur'}
+async function socialInit(){
+  if(onClaude()||SOC.client)return;
+  try{await loadMqtt()}catch(e){return}
+  for(let i=0;i<BROKERS.length&&!SOC.client;i++){
+    try{SOC.client=await new Promise((res,rej)=>{
+      const cl=window.mqtt.connect(BROKERS[i],{clientId:'uas_'+Math.random().toString(36).slice(2,12),clean:true,connectTimeout:5000,reconnectPeriod:3000,keepalive:30,will:{topic:pTopic(PID),payload:JSON.stringify({name:myName(),st:'off',t:Date.now()}),retain:true,qos:0}});
+      const to=setTimeout(()=>{try{cl.end(true)}catch(e){}rej()},6000);
+      cl.once('connect',()=>{clearTimeout(to);res(cl)});
+    });SOC.bi=i}catch(e){}
+  }
+  if(!SOC.client)return;
+  const cl=SOC.client;
+  cl.on('message',onSocialMsg);
+  const subAll=()=>{cl.subscribe(iTopic(PID),{qos:0});for(const f of FRIENDS)cl.subscribe(pTopic(f.pid),{qos:0});publishPresence()};
+  cl.on('connect',subAll);subAll();
+  SOC.ready=true;
+  if(!$('mpDlg').hidden)renderMp();
+  setInterval(publishPresence,30000);
+  window.addEventListener('beforeunload',()=>{try{cl.publish(pTopic(PID),JSON.stringify({name:myName(),st:'off',t:Date.now()}),{retain:true,qos:0})}catch(e){}});
+}
+function publishPresence(){
+  if(!SOC.client||!SOC.client.connected)return;
+  const st=NET.role==='host'?'host':NET.role==='guest'?'guest':'solo';
+  const pl={name:myName(),st,code:NET.role==='host'&&!NET.guestHere?NET.code:null,t:Date.now()};
+  try{SOC.client.publish(pTopic(PID),JSON.stringify(pl),{retain:true,qos:0})}catch(e){}
+}
+function sendInbox(pid,msg){if(!SOC.client||!SOC.client.connected)return false;msg.from=PID;msg.name=myName();msg.t=Date.now();try{SOC.client.publish(iTopic(pid),JSON.stringify(msg),{qos:0});return true}catch(e){return false}}
+function onSocialMsg(topic,payload){
+  let m;try{m=JSON.parse(payload.toString())}catch(e){return}
+  if(!m||typeof m!=='object')return;
+  if(topic.startsWith('usine-assiegee/v2/p/')){
+    const pid=topic.slice(20);const f=FRIENDS.find(x=>x.pid===pid);if(!f)return;
+    const was=friendState(pid);SOC.status[pid]=m;if(typeof m.name==='string'&&m.name&&m.name!==f.name){f.name=m.name.slice(0,20);saveFriends()}
+    const now=friendState(pid);if(was==='off'&&now!=='off'&&Date.now()-(m.t||0)<60000)toast(`${f.name} est en ligne`,true);
+    if(!$('mpDlg').hidden&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))renderMp();
+    return;
+  }
+  if(topic===iTopic(PID)){
+    if(typeof m.from!=='string'||Date.now()-(m.t||0)>120000)return;
+    const nm=String(m.name||'Un joueur').slice(0,20);
+    if(m.type==='invite'&&typeof m.code==='string'&&/^[A-Z0-9]{5}$/.test(m.code)){
+      if(!isFriend(m.from))return;
+      if(NET.role!=='solo'){toast(`${nm} t'invite, mais tu es déjà dans une partie à deux`);return}
+      showInvite(`${nm} t'invite à jouer !`,`Rejoindre sa partie à deux (code ${m.code}) ?`,()=>startGuest(m.code));
+    }else if(m.type==='friend'){
+      if(isFriend(m.from))return;
+      showInvite(`${nm} t'a ajouté en ami`,`Ajouter ${nm} à ta liste d'amis aussi ?`,()=>addFriend(m.from,nm),'Ajouter');
+    }
+  }
+}
+function friendState(pid){const s=SOC.status[pid];if(!s||s.st==='off'||Date.now()-(s.t||0)>95000)return'off';return s.st}
+function addFriend(pid,name){
+  pid=(pid||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(!/^[A-Z0-9]{8}$/.test(pid))return 'Code ami invalide (8 caractères)';
+  if(pid===PID)return 'C\'est ton propre code !';
+  if(isFriend(pid))return 'Déjà dans tes amis';
+  FRIENDS.push({pid,name:(name||'Ami').slice(0,20),added:Date.now()});saveFriends();
+  if(SOC.client)SOC.client.subscribe(pTopic(pid),{qos:0});
+  sendInbox(pid,{type:'friend'});
+  toast(`${name||'Ami'} ajouté à tes amis`,true);
+  if(!$('mpDlg').hidden)renderMp();
+  return null;
+}
+function removeFriend(pid){FRIENDS=FRIENDS.filter(f=>f.pid!==pid);saveFriends();if(SOC.client)try{SOC.client.unsubscribe(pTopic(pid))}catch(e){}renderMp()}
+let invCb=null;
+function showInvite(title,txt,cb,yes){$('invTitle').textContent=title;$('invTxt').textContent=txt;$('invYes').textContent=yes||'Rejoindre';invCb=cb;$('invDlg').hidden=false;sfx('level')}
+$('invYes').onclick=()=>{$('invDlg').hidden=true;const c=invCb;invCb=null;if(c)c()};
+$('invNo').onclick=()=>{$('invDlg').hidden=true;invCb=null};
+async function inviteFriend(pid){
+  const f=FRIENDS.find(x=>x.pid===pid);if(!f)return;
+  if(NET.role==='guest'){toast('Tu es déjà dans la partie de quelqu\'un');return}
+  if(NET.role==='solo'){await startHost(false);if(NET.role!=='host')return}
+  if(NET.guestHere){toast('Ta partie est déjà complète');return}
+  if(sendInbox(pid,{type:'invite',code:NET.code}))toast(`Invitation envoyée à ${f.name}`,true);else toast('Impossible d\'envoyer l\'invitation (relais indisponible)');
+}
+function friendsHtml(){
+  if(onClaude())return'<h4>Amis</h4><p class="mut" style="font-size:12px">La liste d\'amis fonctionne sur la version site web du jeu (GitHub).</p>';
+  let h=`<h4>Amis</h4><p style="font-size:12.5px">Ton code ami : <span class="fcode">${fmtPid(PID)}</span> <button data-mp="copypid" style="padding:2px 7px;font-size:11px">Copier</button></p>`;
+  if(!SOC.ready)h+='<p class="mut" style="font-size:12px">Connexion au relais pour voir qui est en ligne…</p>';
+  if(!FRIENDS.length)h+='<p class="mut" style="font-size:12px">Aucun ami pour l\'instant. Joue une partie à deux puis clique « Ajouter en ami », ou entre le code ami de quelqu\'un ci-dessous.</p>';
+  else{
+    const order={host:0,solo:1,guest:2,off:3};
+    const list=[...FRIENDS].sort((a,b)=>order[friendState(a.pid)]-order[friendState(b.pid)]);
+    for(const f of list){
+      const st=friendState(f.pid),s=SOC.status[f.pid]||{};
+      const lbl=st==='off'?'Hors ligne':st==='host'?(s.code?'Héberge une partie — place libre':'En partie à deux'):st==='guest'?'En partie à deux':'En ligne';
+      const cls=st==='off'?'':st==='host'&&s.code?'host':st==='solo'?'on':'busy';
+      let btn='';
+      if(st==='host'&&s.code&&NET.role==='solo')btn=`<button class="okb" data-mp="join:${esc(s.code)}">Rejoindre</button>`;
+      else if(st==='solo'&&NET.role!=='guest')btn=`<button class="blue" data-mp="invite:${f.pid}">Inviter</button>`;
+      h+=`<div class="friend"><span class="dotst ${cls}"></span><div class="r"><b>${esc(f.name)}</b><span class="mut" style="font-size:11.5px">${lbl}</span></div>${btn}<button data-mp="rm:${f.pid}" title="Retirer">✕</button></div>`;
+    }
+  }
+  h+=`<div style="display:flex;gap:6px;margin-top:8px"><input id="fAdd" maxlength="9" placeholder="CODE AMI" autocomplete="off" style="font-size:14px"><button id="fAddBtn" style="flex:none">Ajouter</button></div>`;
+  return h;
+}
+$('mpDlg').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-mp]');if(b){const v=b.dataset.mp;
+    if(v==='copypid'){try{await navigator.clipboard.writeText(fmtPid(PID));toast('Code ami copié',true)}catch(err){toast('Ton code : '+fmtPid(PID),true)}}
+    else if(v.startsWith('join:')){startGuest(v.slice(5))}
+    else if(v.startsWith('invite:')){inviteFriend(v.slice(7))}
+    else if(v.startsWith('rm:')){removeFriend(v.slice(3))}
+    else if(v==='addmate'&&NET.matePid){const err=addFriend(NET.matePid,NET.role==='host'?NET.guestName:NET.hostName);if(err)toast(err)}
+    return}
+  if(e.target.id==='fAddBtn'){const err=addFriend($('fAdd').value,'Ami');if(err)toast(err)}
+});
 
 // ================= LOOP =================
 resize();
@@ -2372,7 +2504,7 @@ function frame(nowMs){
     hostNetTick(nowMs);
   }
   draw(nowMs/1000);
-  uiAcc+=dt;if(uiAcc>0.2){uiAcc=0;drawMini();refreshUI();if(!$('mpDlg').hidden&&NET.role!=='solo'&&Math.random()<0.2)renderMp()}
+  uiAcc+=dt;if(uiAcc>0.2){uiAcc=0;drawMini();refreshUI();if(!$('mpDlg').hidden&&NET.role!=='solo'&&Math.random()<0.2&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))renderMp()}
   saveAcc+=dt;if(saveAcc>5){saveAcc=0;save()}
   cloudAcc+=dt;if(cloudAcc>30){cloudAcc=0;cloudPush()}
   requestAnimationFrame(frame);
@@ -2380,7 +2512,8 @@ function frame(nowMs){
 window.addEventListener('beforeunload',save);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){save();cloudPush()}});
 cloudInit();
-window.__game={cam,get S(){return S},get buildings(){return buildings},get robots(){return robots},get monsters(){return monsters},get chests(){return chests},get deposit(){return deposit},get META(){return META},get NET(){return NET},get ME(){return ME},placeB,update,gainXp,startWave,addRobot:(x,y,o=0)=>robots.push(newRobot(x,y,o)),rebirth,total,act,ACT,startHost,startGuest,clearWave:()=>{monsters=[];spawnQ=[]}};
+setTimeout(socialInit,800);
+window.__game={cam,get S(){return S},get buildings(){return buildings},get robots(){return robots},get monsters(){return monsters},get chests(){return chests},get deposit(){return deposit},get META(){return META},get NET(){return NET},get ME(){return ME},placeB,update,gainXp,startWave,addRobot:(x,y,o=0)=>robots.push(newRobot(x,y,o)),rebirth,total,act,ACT,get PID(){return PID},get FRIENDS(){return FRIENDS},SOC,addFriend,inviteFriend,startHost,startGuest,clearWave:()=>{monsters=[];spawnQ=[]}};
 requestAnimationFrame(frame);
 })();
 </script>

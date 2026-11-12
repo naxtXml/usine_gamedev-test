@@ -37,6 +37,10 @@ Bouton **Multijoueur** : l'un crée la partie et donne le code de 5 lettres, l'a
 
 Les deux jeux communiquent par un relais internet gratuit (serveur MQTT public), sans compte. L'hôte garde son onglet ouvert.
 
+### Amis
+
+Chaque joueur a un **code ami**. Pendant une partie à deux, ajoute ton coéquipier en un clic. Ensuite, le menu Multijoueur montre qui est en ligne, permet d'**inviter** un ami (il reçoit une fenêtre « Rejoindre ») ou de **rejoindre** directement sa partie.
+
 ## Sauvegarde
 
 La partie est sauvegardée automatiquement dans le navigateur. Le bouton **Sauvegarde** donne un code à copier pour reprendre ta partie sur un autre appareil.
