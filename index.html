@@ -467,7 +467,7 @@ let S,deposit,grid,buildings,chests,robots,monsters,effects,spawnQ,flow,flowDirt
 let tool=null,rot=0,sel=null,cat='log',tab='base',ME=0,robotSeq=1,monSeq=1;
 const cam={x:W/2,y:H/2,z:1};
 const isRemote=()=>NET.role==='guest'||NET.role==='spec';
-const NET={specs:new Set(),role:'solo',room:null,code:null,guestPeer:null,guestHere:false,guestName:'Coéquipier',hostName:'Hôte',lastSeq:0,sid:null,mySeq:0,myCmds:[],acked:0,lastSt:0,fxOut:[],msgOut:[],bver:1,bSent:0,bAt:0,tickAt:0,hostMeta:{talents:{}},bl:null,status:'',joined:false,metaDirty:true};
+const NET={fxQ:[],off:null,jit:40,specs:new Set(),role:'solo',room:null,code:null,guestPeer:null,guestHere:false,guestName:'Coéquipier',hostName:'Hôte',lastSeq:0,sid:null,mySeq:0,myCmds:[],acked:0,lastSt:0,fxOut:[],msgOut:[],bver:1,bSent:0,bAt:0,tickAt:0,hostMeta:{talents:{}},bl:null,status:'',joined:false,metaDirty:true};
 
 function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function hsh(x,y,k){let n=Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(k,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
@@ -1090,7 +1090,7 @@ function updM(m,dt){
     }
   }else if(dist>0.001){const step=Math.min(dist,t.sp*spd*dt);m.x+=dx/dist*step;m.y+=dy/dist*step}
 }
-function fx(e){effects.push(e);onEffect(e);if(bcRoom()&&NET.fxOut.length<40)NET.fxOut.push(e)}
+function fx(e){effects.push(e);onEffect(e);if(bcRoom()&&NET.fxOut.length<60){e.nt=performance.now();NET.fxOut.push(e)}}
 
 // ================= MAIN UPDATE (solo + hôte) =================
 let goalAcc=0;
@@ -2493,6 +2493,13 @@ function sendChunks(topic,str,extra,room=NET.room){
 }
 function hostNetTick(now){
   const RM=bcRoom();if(!RM)return;
+  if(now-(NET.fastAt||0)>=100){NET.fastAt=now;
+    const ts=Math.round(now);
+    let ms='';for(const m of monsters)ms+=e2(m.id%4096)+e1(MTYPES.indexOf(m.type))+e2(m.x*40)+e2(m.y*40)+e1(m.hp/m.maxhp*63)+e1(((Math.atan2(m.fy,m.fx)/(Math.PI*2))*64+64)%64);
+    const f=NET.fxOut.splice(0,40).map(e=>[Math.round(e.nt||now)].concat(e.k==='boom'?['b',+e.x.toFixed(1),+e.y.toFixed(1),+e.r.toFixed(2),e.col,e.max]:[e.k==='zap'?'z':'s',+e.x1.toFixed(2),+e.y1.toFixed(2),+e.x2.toFixed(2),+e.y2.toFixed(2),e.col,e.w,e.max,e.seed||0]));NET.fxOut.length=0;
+    const n=Math.max(1,Math.ceil(ms.length/3500)),rp=robots.map(r=>[r.id,Math.round(r.x*20),Math.round(r.y*20)]);
+    for(let i=0;i<n;i++){const o={i,n,ts,d:ms.slice(i*3500,(i+1)*3500)};if(i===0){o.rp=rp;if(f.length)o.f=f}RM.emit('mo',o).catch(()=>{})}
+  }
   if(now-NET.tickAt<250)return;NET.tickAt=now;
   // bâtiments : quand ils changent (max 3/s) et toutes les 4 s
   if(NET.bver!==NET.bSent&&now-NET.bAt>330||now-NET.bAt>4000){NET.bSent=NET.bver;NET.bAt=now;sendChunks('bl',encBuildings(),{v:NET.bver},RM)}
@@ -2500,16 +2507,13 @@ function hostNetTick(now){
   const ps=S.players.map((p,o)=>({i:ITEM_ORDER.map(k=>Math.floor(total(k,o))),l:p.level,x:Math.floor(p.xp),h:Math.ceil(p.coreHp),m:Math.ceil(p.coreMax),d:p.dead?1:0,pp:p.prod,pc:p.cons,g:p.goalsDone,cq:p.craftQ.length?[p.craftQ.length,+p.craftQ[0].left.toFixed(1),ITEM_ORDER.indexOf(RECIPES[p.craftQ[0].set][p.craftQ[0].i].out)]:0}));
   let ta='';for(const b of buildings)if(TURRETS.has(b.type)&&b.tgt)ta+=e2(b.x)+e2(b.y)+e1(((b.angle/(Math.PI*2))*64+64)%64)+(b.noAmmo?'1':'0');
   const rb=robots.map(r=>[r.id,Math.round(r.x*10),Math.round(r.y*10),Math.round(r.hp),Math.round(r.maxhp),RSTATES.indexOf(r.state),r.count,r.owner,r.pref,r.tx??-1,r.ty??-1,r.mine?ITEM_ORDER.indexOf(r.mine):-1,r.nochest?1:0,UNIT_KINDS.indexOf(r.kind||'robot'),Math.round((r.charge||0)*100),Math.round(r.ftime||0)]);
-  const fxs=NET.fxOut.splice(0,30).map(e=>e.k==='boom'?['b',+e.x.toFixed(1),+e.y.toFixed(1),+e.r.toFixed(2),e.col,e.max]:[e.k==='zap'?'z':'s',+e.x1.toFixed(2),+e.y1.toFixed(2),+e.x2.toFixed(2),+e.y2.toFixed(2),e.col,e.w,e.max,e.seed||0]);
-  NET.fxOut.length=0;
   const msg=NET.msgOut.splice(0,5);
   const cp=CAPS.map(c=>[Math.round(c.sx*10),Math.round(c.sy*10),Math.round(c.tx*10),Math.round(c.ty*10),+c.t.toFixed(2),+c.dur.toFixed(2),ITEM_ORDER.indexOf(c.it)]);
   const lk=buildings.filter(b=>b.type==='lanceur'&&b.lk).map(b=>[b.x,b.y,b.lk[0],b.lk[1]]);
-  RM.emit('st',{cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ack:NET.lastSeq,ps,ta,rb,fx:fxs,msg,hm:META.talents||{}}).catch(()=>{});
-  let ms='';for(const m of monsters)ms+=e2(m.id%4096)+e1(MTYPES.indexOf(m.type))+e2(m.x*40)+e2(m.y*40)+e1(m.hp/m.maxhp*63)+e1(((Math.atan2(m.fy,m.fx)/(Math.PI*2))*64+64)%64);
-  sendChunks('mo',ms,null,RM);
+  RM.emit('st',{ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ack:NET.lastSeq,ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
+  if(now-(NET.biAt||0)<400)return;NET.biAt=now;
   let bi='';for(const b of buildings)if(BELT.has(b.type)&&b.item)bi+=e2(b.x)+e2(b.y)+e1(ITEM_ORDER.indexOf(b.item))+e1(b.prog*63);
-  sendChunks('bi',bi,null,RM);
+  sendChunks('bi',bi,{ts:Math.round(now)},RM);
 }
 
 // ----- Invité -----
@@ -2524,7 +2528,7 @@ async function startGuest(codeRaw){
   if(NET.transport!=='claude'&&getPseudo())NET.myName=getPseudo();
   if(S&&S.mode==='solo')save();
   specBye();
-  NET.role='guest';NET.room=room;NET.code=code;NET.joined=false;NET.mySeq=0;NET.myCmds=[];NET.sid=Math.random().toString(36).slice(2,10);NET.lastSt=0;NET.hostName='Hôte';NET.guestName=NET.myName||'Toi';NET.bl={};NET.mo={};NET.bi={};
+  NET.role='guest';NET.room=room;NET.code=code;NET.joined=false;NET.mySeq=0;NET.myCmds=[];NET.sid=Math.random().toString(36).slice(2,10);NET.lastSt=0;NET.hostName='Hôte';NET.guestName=NET.myName||'Toi';NET.bl={};NET.mo={};NET.bi={};netReset();
   ME=1;S=null;
   bindRemote(room);
   room.on('full',()=>{mpMsg('Cette partie est déjà complète (2 joueurs).','bad');leaveCoop()});
@@ -2539,9 +2543,14 @@ function bindRemote(room){
     if(!S||S.seed!==d.seed||S.mode!==md){S=newState(d.seed,md);setupWorld(d.seed,md);buildToolbar();banner(NET.role==='spec'?`👁 Tu regardes la partie de ${NET.hostName}`:`Connecté à la partie de ${NET.hostName} !`,false,4,'blue')}
     NET.joined=true;$('mpDlg').hidden=true;refreshUI(true);publishPresence()});
   room.on('bl',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;const key=d.v;NET.bl[key]=NET.bl[key]||[];NET.bl[key][d.i]=d.d;if(NET.bl[key].filter(x=>x!=null).length===d.n){guestApplyBuildings(NET.bl[key].join(''));NET.bl={}}});
-  room.on('mo',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;NET.mo.parts=NET.mo.n===d.n&&NET.mo.parts?NET.mo.parts:[];NET.mo.n=d.n;NET.mo.parts[d.i]=d.d;if(NET.mo.parts.filter(x=>x!=null).length===d.n){guestApplyMonsters(NET.mo.parts.join(''));NET.mo.parts=null}});
+  room.on('mo',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;
+    if(typeof d.ts==='number'){if(NET.mo.ts!==d.ts){NET.mo.ts=d.ts;NET.mo.parts=[];NET.mo.n=d.n;netClock(d.ts)}}
+    else{NET.mo.parts=NET.mo.n===d.n&&NET.mo.parts?NET.mo.parts:[];NET.mo.n=d.n}
+    NET.mo.parts[d.i]=d.d;if(Array.isArray(d.rp))guestApplyRobotPos(d.rp,d.ts);if(Array.isArray(d.f))for(const a of d.f)if(Array.isArray(a))NET.fxQ.push(a);
+    if(NET.mo.parts.filter(x=>x!=null).length===d.n){guestApplyMonsters(NET.mo.parts.join(''),d.ts);NET.mo.parts=[]}});
+  room.on('fx',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||!Array.isArray(d.f))return;if(typeof d.ts==='number')netClock(d.ts);for(const a of d.f)if(Array.isArray(a))NET.fxQ.push(a)});
   room.on('bi',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;NET.bi.parts=NET.bi.n===d.n&&NET.bi.parts?NET.bi.parts:[];NET.bi.n=d.n;NET.bi.parts[d.i]=d.d;if(NET.bi.parts.filter(x=>x!=null).length===d.n){guestApplyBelts(NET.bi.parts.join(''));NET.bi.parts=null}});
-  room.on('st',m=>{if(m.isMe||!S)return;guestApplyState(m.data||{})});
+  room.on('st',m=>{if(m.isMe||!S)return;const d=m.data||{};if(typeof d.ts==='number'){if(d.ts<(NET.stTs||0))return;NET.stTs=d.ts;netClock(d.ts)}guestApplyState(d)});
 }
 function guestPresence(){
   if(NET.role!=='guest'||!NET.room)return;
@@ -2573,21 +2582,52 @@ function guestApplyBuildings(str){
   }
   if(selXY){sel=at(selXY[0],selXY[1])}
 }
-function guestApplyMonsters(str){
+// ---- horloge réseau + interpolation (lissage côté invité) ----
+function netReset(){NET.off=null;NET.jit=40;NET.fxQ=[];NET.stTs=0;NET.mo={};NET.lastRecv=0}
+function netClock(ts){
+  const off=performance.now()-ts;NET.lastRecv=performance.now();
+  if(NET.off==null||off<NET.off){NET.off=off}else{const ex=off-NET.off;NET.jit=NET.jit*0.94+ex*0.06;NET.off+=ex*0.004}
+}
+function netRT(){if(NET.off==null)return null;return performance.now()-NET.off-clamp(110+NET.jit*2.2,140,650)}
+function pushSample(o,ts,x,y){
+  if(ts==null){o.buf=null;o.nx=x;o.ny=y;return}
+  if(!o.buf)o.buf=[];const bf=o.buf;
+  if(bf.length&&bf[bf.length-1][0]>=ts)return;
+  bf.push([ts,x,y]);if(bf.length>12)bf.shift();
+}
+function sampleAt(o,rt,dt){
+  const bf=o.buf;
+  if(!bf||!bf.length||rt==null){const k=Math.min(1,dt*8);o.x+=((o.nx??o.x)-o.x)*k;o.y+=((o.ny??o.y)-o.y)*k;return}
+  let x,y;
+  if(rt<=bf[0][0]){x=bf[0][1];y=bf[0][2]}
+  else{
+    let i=bf.length-1;while(i>0&&bf[i-1][0]>rt)i--;
+    if(rt>=bf[bf.length-1][0]){const a=bf[bf.length-2],b=bf[bf.length-1];
+      if(a&&b[0]>a[0]){const ex=Math.min(rt-b[0],220),vx=(b[1]-a[1])/(b[0]-a[0]),vy=(b[2]-a[2])/(b[0]-a[0]);x=b[1]+vx*ex;y=b[2]+vy*ex}else{x=b[1];y=b[2]}}
+    else{const a=bf[i-1],b=bf[i],f=(rt-a[0])/((b[0]-a[0])||1);x=a[1]+(b[1]-a[1])*f;y=a[2]+(b[2]-a[2])*f}
+  }
+  // petit lissage pour absorber les corrections
+  const d2=(x-o.x)**2+(y-o.y)**2;if(d2>9){o.x=x;o.y=y}else{const k=Math.min(1,dt*20);o.x+=(x-o.x)*k;o.y+=(y-o.y)*k}
+}
+function guestApplyRobotPos(rp,ts){
+  const byId={};for(const r of robots)byId[r.id]=r;
+  for(const a of rp){const r=byId[a[0]];if(r)pushSample(r,ts,a[1]/20,a[2]/20)}
+}
+function guestApplyMonsters(str,ts){
   const old={};for(const m of monsters)old[m.id]=m;const out=[];
   for(let i=0;i+9<=str.length;i+=9){
     const id=d2(str,i),t=MTYPES[d1(str,i+2)];if(!t)continue;const x=d2(str,i+3)/40,y=d2(str,i+5)/40,hpf=d1(str,i+7)/63,a=d1(str,i+8)/64*Math.PI*2;
     let m=old[id];
-    if(!m)m={id,type:t,x,y,tx:x,ty:y,hp:1,maxhp:1,seed:Math.random()*10,flash:0,fx:0,fy:1};
-    if(m.hp>hpf*m.maxhp+0.001&&m.maxhp){m.flash=0.08;const dmg=m.hp-hpf*MT[t].hp;if(dmg>=10&&old[id])spawnNum(x,y-MT[t].r,dmg)}
-    m.tx=x;m.ty=y;m.maxhp=MT[t].hp;m.hp=hpf*m.maxhp;m.fx=Math.cos(a);m.fy=Math.sin(a);m.type=t;
+    if(!m)m={id,type:t,x,y,nx:x,ny:y,hp:1,maxhp:1,seed:Math.random()*10,flash:0,fx:0,fy:1};
+    if(m.hp>hpf*m.maxhp+0.001&&m.maxhp){m.flash=0.08;const dmg=m.hp-hpf*MT[t].hp;if(dmg>=10&&old[id])spawnNum(m.x,m.y-MT[t].r,dmg)}
+    pushSample(m,ts,x,y);m.maxhp=MT[t].hp;m.hp=hpf*m.maxhp;m.afx=Math.cos(a);m.afy=Math.sin(a);m.type=t;
     out.push(m);
   }
   monsters=out;
 }
 function guestApplyBelts(str){
-  for(const b of buildings)if(BELT.has(b.type))b.item=null;
-  for(let i=0;i+6<=str.length;i+=6){const b=at(d2(str,i),d2(str,i+2));const it=ITEM_ORDER[d1(str,i+4)];if(b&&BELT.has(b.type)&&it){b.item=it;b.prog=d1(str,i+5)/63}}
+  const prev=new Map();for(const b of buildings)if(BELT.has(b.type)){if(b.item)prev.set(b,[b.item,b.prog]);b.item=null}
+  for(let i=0;i+6<=str.length;i+=6){const b=at(d2(str,i),d2(str,i+2));const it=ITEM_ORDER[d1(str,i+4)];if(b&&BELT.has(b.type)&&it){let pr=d1(str,i+5)/63;const pv=prev.get(b);if(pv&&pv[0]===it&&Math.abs(pv[1]-pr)<0.45)pr=pv[1];b.item=it;b.prog=pr}}
 }
 function guestApplyState(d){
   NET.lastSt=Date.now();
@@ -2609,21 +2649,29 @@ function guestApplyState(d){
     p.craftQ=Array.isArray(q.cq)?Array.from({length:q.cq[0]},(_,j)=>j===0?{set:'_',left:q.cq[1],out:ITEM_ORDER[q.cq[2]]}:{set:'_',left:0}):[];
   });
   // tourelles
-  if(typeof d.ta==='string'){for(let i=0;i+6<=d.ta.length;i+=6){const b=at(d2(d.ta,i),d2(d.ta,i+2));if(b&&TURRETS.has(b.type)){b.angle=d1(d.ta,i+4)/64*Math.PI*2;b.noAmmo=d.ta[i+5]==='1';if(b.type==='tesla')b.fire=0.2}}}
+  if(typeof d.ta==='string'){for(let i=0;i+6<=d.ta.length;i+=6){const b=at(d2(d.ta,i),d2(d.ta,i+2));if(b&&TURRETS.has(b.type)){b.angT=d1(d.ta,i+4)/64*Math.PI*2;if(b.angle==null)b.angle=b.angT;b.noAmmo=d.ta[i+5]==='1';if(b.type==='tesla')b.fire=0.2}}}
   // robots
-  if(Array.isArray(d.rb)){const old={};for(const r of robots)old[r.id]=r;robots=d.rb.map(a=>{let r=old[a[0]];if(!r){r={isRobot:true,id:a[0],x:a[1]/10,y:a[2]/10,cargo:{}}}r.tx2=a[1]/10;r.ty2=a[2]/10;r.hp=a[3];r.maxhp=a[4];r.state=RSTATES[a[5]]||'seek';r.count=a[6];r.owner=a[7]?1:0;r.pref=a[8];r.tx=a[9]>=0?a[9]:null;r.ty=a[10];r.mine=a[11]>=0?ITEM_ORDER[a[11]]:null;r.nochest=!!a[12];r.kind=UNIT_KINDS[a[13]]||'robot';r.charge=(a[14]||0)/100;r.ftime=a[15]||0;return r});if(sel&&sel.isRobot)sel=robots.find(r=>r.id===sel.id)||null}
+  if(Array.isArray(d.rb)){const old={};for(const r of robots)old[r.id]=r;robots=d.rb.map(a=>{let r=old[a[0]];if(!r){r={isRobot:true,id:a[0],x:a[1]/10,y:a[2]/10,cargo:{}}}if(!r.buf){r.nx=a[1]/10;r.ny=a[2]/10}r.hp=a[3];r.maxhp=a[4];r.state=RSTATES[a[5]]||'seek';r.count=a[6];r.owner=a[7]?1:0;r.pref=a[8];r.gx=a[9]>=0?a[9]:null;r.gy=a[10];r.mine=a[11]>=0?ITEM_ORDER[a[11]]:null;r.nochest=!!a[12];r.kind=UNIT_KINDS[a[13]]||'robot';r.charge=(a[14]||0)/100;r.ftime=a[15]||0;return r});if(sel&&sel.isRobot)sel=robots.find(r=>r.id===sel.id)||null}
   // effets
-  if(Array.isArray(d.fx))for(const a of d.fx){const e=a[0]==='b'?{k:'boom',x:a[1],y:a[2],r:a[3],col:a[4],t:a[5],max:a[5]}:{k:a[0]==='z'?'zap':'shot',x1:a[1],y1:a[2],x2:a[3],y2:a[4],col:a[5],w:a[6],t:a[7],max:a[7],seed:a[8]};effects.push(e);onEffect(e)}
+  if(Array.isArray(d.fx))for(const a of d.fx){if(typeof a[0]==='number')continue;const e=a[0]==='b'?{k:'boom',x:a[1],y:a[2],r:a[3],col:a[4],t:a[5],max:a[5]}:{k:a[0]==='z'?'zap':'shot',x1:a[1],y1:a[2],x2:a[3],y2:a[4],col:a[5],w:a[6],t:a[7],max:a[7],seed:a[8]};effects.push(e);onEffect(e)}
   if(Array.isArray(d.msg))for(const t of d.msg){if(typeof t!=='string')continue;if(NET.role==='spec'&&t[0]!=='!')continue;if(t[0]==='!'){banner(t.slice(1),true,5);if(t.includes('Vague'))sfx('wave')}else if(t[0]==='?')toast(t.slice(1));else banner(t,false,4,'blue')}
   if(d.o&&!S.over){S.over=true;showGameOver()}else if(!d.o)S.over=false;
 }
 function guestFrame(dt){
-  const k=Math.min(1,dt*8);
-  for(const m of monsters){m.x+=(m.tx-m.x)*k;m.y+=(m.ty-m.y)*k;if(m.flash>0)m.flash-=dt}
-  for(const r of robots){if(r.tx2!=null){r.x+=(r.tx2-r.x)*k;r.y+=(r.ty2-r.y)*k}r.spin=(r.spin||0)+dt}
+  const rt=netRT();
+  for(const m of monsters){const px=m.x,py=m.y;sampleAt(m,rt,dt);const vx=m.x-px,vy=m.y-py,v=Math.hypot(vx,vy);
+    if(v>0.002){m.fx=vx/v;m.fy=vy/v}else if(m.afx!=null){m.fx+=(m.afx-m.fx)*Math.min(1,dt*6);m.fy+=(m.afy-m.fy)*Math.min(1,dt*6)}
+    if(m.flash>0)m.flash-=dt}
+  for(const r of robots){const px=r.x,py=r.y;sampleAt(r,rt,dt);const vx=r.x-px,vy=r.y-py,v=Math.hypot(vx,vy);if(v>0.002){r.fx=vx/v;r.fy=vy/v}r.spin=(r.spin||0)+dt;
+    if(r.gx!=null&&(r.state==='seek'||r.state==='mine')){r.tx=r.gx;r.ty=r.gy}else r.tx=null}
+  for(const b of buildings)if(b.angT!=null&&b.angle!=null){let da=((b.angT-b.angle+Math.PI*3)%(Math.PI*2))-Math.PI;b.angle+=da*Math.min(1,dt*12)}
+  if(NET.fxQ&&NET.fxQ.length){const lim=rt==null?Infinity:rt;const keep=[];
+    for(const a of NET.fxQ){if(a[0]>lim&&a[0]-lim<1500){keep.push(a);continue}const q=a.slice(1);const e=q[0]==='b'?{k:'boom',x:q[1],y:q[2],r:q[3],col:q[4],t:q[5],max:q[5]}:{k:q[0]==='z'?'zap':'shot',x1:q[1],y1:q[2],x2:q[3],y2:q[4],col:q[5],w:q[6],t:q[7],max:q[7],seed:q[8]};effects.push(e);onEffect(e)}
+    NET.fxQ=keep}
   for(const b of buildings){if(BELT.has(b.type)&&b.item&&b.prog<1)b.prog=Math.min(1,b.prog+dt*B[b.type].spd*mBelt(b.owner));if(MACHINES.has(b.type)&&b.crafting)b.spin=(b.spin||0)+dt*4;if(DRILLS.has(b.type))b.spin=(b.spin||0)+dt*8*(P(b.owner).pr||1)}
   for(const e of effects)e.t-=dt;effects=effects.filter(e=>e.t>0);
   for(const c of CAPS)c.t=Math.min(c.dur,c.t+dt);
+  for(const r of robots)if(r.kind==='gardien'&&r.state==='fight')r.ftime=Math.max(0,(r.ftime||0)-dt);
   S.waveTimer=Math.max(0,S.waveTimer-dt);
   if(NET.metaDirty){NET.metaDirty=false;guestPresence()}
 }
@@ -2793,6 +2841,18 @@ resize();
 if(!loadKey(SAVE_KEY)||S.mode!=='solo')newGame('solo');else{buildToolbar();banner('Partie reprise',false,2)}
 refreshUI(true);
 let last=performance.now(),saveAcc=0,uiAcc=0,cloudAcc=0;
+// quand l'onglet de l'hôte passe en arrière-plan, requestAnimationFrame s'arrête :
+// un minuteur dans un Worker (peu bridé) continue de faire tourner la partie et l'envoi réseau.
+try{
+  const wk=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),50)'],{type:'text/javascript'})));
+  wk.onmessage=()=>{
+    if(!document.hidden||!S||isRemote()||!bcRoom())return;
+    const nowMs=performance.now();if(nowMs-last<40)return;
+    const dt=Math.min(0.1,(nowMs-last)/1000);last=nowMs;
+    update(dt);hostNetTick(nowMs);
+    saveAcc+=dt;if(saveAcc>5){saveAcc=0;save()}
+  };
+}catch(e){}
 function frame(nowMs){
   const dt=Math.min(0.1,(nowMs-last)/1000);last=nowMs;
   if(S){
