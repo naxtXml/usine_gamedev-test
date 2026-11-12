@@ -39,10 +39,13 @@ button.blue{border-color:#2a5a75;color:#a9e3ff;background:#1a2a35}
 canvas#c{display:block;cursor:crosshair}
 #side{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 #tabs{display:flex;border-bottom:1px solid var(--line);flex:none}
-#tabs button{flex:1;border:0;border-radius:0;background:transparent;padding:9px 2px;font-size:11.5px;white-space:nowrap;color:var(--mut);border-bottom:2px solid transparent}
+#tabs button{flex:1;border:0;border-radius:0;background:transparent;padding:9px 1px;font-size:11px;white-space:nowrap;color:var(--mut);border-bottom:2px solid transparent}
 #tabs button.on{color:var(--txt);border-bottom-color:var(--acc);background:var(--panel2)}
 #tabs button .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pur);margin-left:4px;vertical-align:1px}
 #pane{overflow-y:auto;padding:10px 12px 20px;flex:1}
+.stt{width:100%;border-collapse:collapse;font-size:12px}.stt th{color:var(--mut);font-weight:500;text-align:right;padding:2px 3px}.stt th:first-child{text-align:left}.stt td{text-align:right;padding:2px 3px;border-top:1px solid var(--line)}.stt td:first-child{text-align:left;white-space:nowrap}
+.mst{padding:6px 0;border-top:1px solid var(--line)}.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}.chips .c{font-size:11px;padding:1px 6px;border-radius:9px;background:var(--panel2)}.chips .ok{color:#4cc38a}.chips .in{color:#ffd23f}.chips .out{color:#ff6b6b}.chips .nrj{color:#ffcc33}
+.tal.done{opacity:0.65}
 #pane h3{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin:12px 0 6px}
 #pane h3:first-child{margin-top:0}
 .inv{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px}
@@ -201,7 +204,9 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
     <aside id="side">
       <div id="tabs">
         <button data-tab="base" class="on">Base</button>
-        <button data-tab="prog">Progression</button>
+        <button data-tab="usine">Usine</button>
+        <button data-tab="labo">Labo</button>
+        <button data-tab="prog">Niveaux</button>
         <button data-tab="atelier">Atelier</button>
         <button data-tab="talents">Talents</button>
       </div>
@@ -312,6 +317,8 @@ const B={
   lanceur:{cat:'log',n:'Lanceur de matériaux',cost:{acier:10,moteur:2,circuit:4},hp:400,pw:-8,col:'#b0703a',lvl:10,desc:'Reçoit des objets par tapis et les envoie par les airs, par lots de 5, vers un réceptionneur (le plus proche, ou celui que tu choisis). Distance illimitée.'},
   recepteur:{cat:'log',n:'Réceptionneur',cost:{acier:6,circuit:2},hp:400,col:'#3a7ab0',lvl:10,desc:'Attrape les objets envoyés par tes lanceurs et les ressort côté flèche : vers ton noyau, un tapis ou une machine.'},
   extracteur:{cat:'log',n:'Extracteur',cost:{lingot_fer:8},hp:250,col:'#3f8a68',desc:'Colle-le à ton noyau (ou à un de tes coffres) : il en sort l\'objet que tu choisis, côté flèche, 5 par seconde. Clique dessus pour choisir l\'objet.'},
+  tunnel_entree:{cat:'log',n:'Tunnel (entrée)',cost:{lingot_fer:6,engrenage:2},hp:150,col:'#5b4a78',reach:5,lvl:3,desc:'Les objets y entrent et passent sous terre jusqu\'à une sortie de tunnel posée dans la même direction, jusqu\'à 5 cases devant. Pratique pour croiser deux lignes.'},
+  tunnel_sortie:{cat:'log',n:'Tunnel (sortie)',cost:{lingot_fer:6,engrenage:2},hp:150,col:'#5b4a78',lvl:3,desc:'Ressort les objets d\'une entrée de tunnel située derrière elle (même direction, jusqu\'à 5 cases).'},
   coffre:{cat:'log',n:'Coffre',cost:{lingot_fer:10},hp:300,col:'#8a5d2e',cap:400,desc:'Stocke 400 objets (par tapis ou par robot). Son contenu compte dans ton stock pour construire et pour l\'Atelier.'},
   robot:{cat:'log',unit:true,n:'Robot collecteur',cost:{acier:20,batterie:5,circuit:10},hp:1500,col:'#e0b341',lvl:10,desc:'Très résistant. Va miner seul, fond le minerai sur place et dépose les lingots dans ton coffre le plus proche. Max 5 par joueur.'},
   foreuse:{cat:'prod',n:'Foreuse',cost:{lingot_fer:8},hp:200,pw:-2,col:'#c77d32',spd:1,desc:'Sur un gisement solide (fer, quartz, or, diamant). Sort le minerai côté flèche.'},
@@ -359,7 +366,7 @@ const TYPES=Object.keys(B);
 const CATS=[['log','Logistique'],['prod','Production'],['nrj','Énergie'],['def','Défense'],['trap','Pièges']];
 const kind=t=>B[t].base||t;
 const BELT=new Set(['tapis','tapis_rapide','tapis_express']);
-const ROTATABLE=new Set(['extracteur','recepteur','tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
+const ROTATABLE=new Set(['tunnel_entree','tunnel_sortie','extracteur','recepteur','tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
 const MACHINES=new Set(['fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','forge','centrifugeuse']);
 const DRILLS=new Set(['foreuse','foreuse_avancee','foreuse_laser','pompe']);
 const TURRETS=new Set(['canon_prisme','mitrailleuse','mitrailleuse_lourde','laser','plasma','tesla','lance_flammes','railgun']);
@@ -423,6 +430,27 @@ const TALENTS=[
   {id:'robots',n:'Robots optimisés',d:'+25 % de vitesse et de capacité des robots',max:4,cost:25},
   {id:'noyau',n:'Noyau fortifié',d:'+20 % de PV du noyau, +50 % de dégâts de son canon',max:5,cost:20},
 ];
+// ----- Recherche (par joueur, liée à la partie) -----
+const RESEARCH=[
+  {id:'p1',br:'prod',n:'Lubrifiants industriels',d:'+10 % de vitesse des machines et foreuses',fx:{mach:0.1},cost:{lingot_fer:100,engrenage:20},t:60,lvl:3},
+  {id:'p2',br:'prod',n:'Forets renforcés',d:'+15 % de chance d\'extraire 1 minerai bonus',fx:{drill:0.15},cost:{acier:60,engrenage:40},t:90,lvl:8,req:['p1']},
+  {id:'p3',br:'prod',n:'Automatisation',d:'+15 % de vitesse des machines et foreuses',fx:{mach:0.15},cost:{circuit:60,moteur:10},t:150,lvl:15,req:['p2']},
+  {id:'p4',br:'prod',n:'Usine quantique',d:'+25 % de vitesse des machines et foreuses',fx:{mach:0.25},cost:{plaque_titane:40,uranium_enrichi:10},t:240,lvl:30,req:['p3']},
+  {id:'l1',br:'log',n:'Courroies huilées',d:'+15 % de vitesse des tapis',fx:{belt:0.15},cost:{lingot_fer:80},t:45,lvl:2},
+  {id:'l2',br:'log',n:'Robots efficaces',d:'+25 % de vitesse et capacité des robots',fx:{rob:0.25},cost:{acier:40,batterie:10},t:90,lvl:10,req:['l1']},
+  {id:'l3',br:'log',n:'Tapis magnétiques',d:'+25 % de vitesse des tapis',fx:{belt:0.25},cost:{moteur:10,fil_cuivre:40},t:150,lvl:20,req:['l2']},
+  {id:'d1',br:'def',n:'Balistique',d:'+10 % de dégâts des tourelles',fx:{arm:0.1},cost:{munitions:200,acier:20},t:60,lvl:4},
+  {id:'d5',br:'def',n:'Économie de munitions',d:'30 % des tirs ne consomment pas de munition',fx:{ammo:0.3},cost:{munitions:500,circuit:10},t:90,lvl:8,req:['d1']},
+  {id:'d2',br:'def',n:'Optiques de visée',d:'+15 % de portée des tourelles',fx:{range:0.15},cost:{lentille:10,circuit:20},t:90,lvl:12,req:['d1']},
+  {id:'d3',br:'def',n:'Blindage composite',d:'+25 % de PV des bâtiments',fx:{hp:0.25},cost:{acier:100,alliage:10},t:120,lvl:15,req:['d1']},
+  {id:'d4',br:'def',n:'Munitions perforantes',d:'+20 % de dégâts des tourelles',fx:{arm:0.2},cost:{alliage:20,plaque_titane:10},t:180,lvl:22,req:['d2']},
+  {id:'e1',br:'nrj',n:'Cellules photovoltaïques',d:'+15 % d\'énergie produite',fx:{pw:0.15},cost:{silicium:60},t:60,lvl:3},
+  {id:'e3',br:'nrj',n:'Analyse des monstres',d:'+20 % d\'XP gagnée',fx:{xp:0.2},cost:{circuit:20,lentille:5},t:90,lvl:10,req:['e1']},
+  {id:'e2',br:'nrj',n:'Réseau intelligent',d:'+25 % d\'énergie produite',fx:{pw:0.25},cost:{circuit:30,batterie:15},t:120,lvl:12,req:['e1']},
+];
+const RBR=[['prod','⚙ Production'],['log','🚚 Logistique'],['def','🛡 Défense'],['nrj','⚡ Énergie & savoir']];
+function rsOf(o){const p=S&&S.players&&S.players[o];if(!p)return null;if(!p.rs)p.rs={done:[],cur:null};return p.rs}
+function rsv(k,o=0){const r=rsOf(o);if(!r||!r.done.length)return 0;let v=0;for(const id of r.done){const t=RESEARCH.find(x=>x.id===id);if(t&&t.fx[k])v+=t.fx[k]}return v}
 const GOALS=[
   ['Poser une foreuse sur un gisement de fer (brun)',o=>buildings.some(b=>b.owner===o&&kind(b.type)==='foreuse')],
   ['Livrer 20 lingots de fer au noyau (foreuse → fonderie → tapis → noyau)',(o,p)=>(p.made.lingot_fer||0)>=20],
@@ -459,7 +487,7 @@ function saveMeta(){META.savedAt=Date.now();try{localStorage.setItem(META_KEY,JS
 let guestMeta={talents:{}};
 const metaOf=o=>(o===ME&&NET.role!=='spec'?META:o===0?(isRemote()?NET.hostMeta:META):guestMeta)||{talents:{}};
 const tl=(id,o=0)=>{const m=metaOf(o);const v=(m.talents||{})[id]|0;const t=TALENTS.find(x=>x.id===id);return clamp(v,0,t?t.max:0)};
-const mMach=o=>1+0.1*tl('machines',o),mArm=o=>1+0.1*tl('armes',o),mHp=o=>1+0.15*tl('blindage',o),mPw=o=>1+0.1*tl('energie',o),mBelt=o=>1+0.15*tl('tapis',o),mXp=o=>1+0.15*tl('xp',o),mRob=o=>1+0.25*tl('robots',o);
+const mMach=o=>1+0.1*tl('machines',o)+rsv('mach',o),mArm=o=>1+0.1*tl('armes',o)+rsv('arm',o),mHp=o=>1+0.15*tl('blindage',o)+rsv('hp',o),mPw=o=>1+0.1*tl('energie',o)+rsv('pw',o),mBelt=o=>1+0.15*tl('tapis',o)+rsv('belt',o),mXp=o=>1+0.15*tl('xp',o)+rsv('xp',o),mRob=o=>1+0.25*tl('robots',o)+rsv('rob',o),mRange=o=>1+rsv('range',o);
 const maxHp=b=>B[b.type].hp*mHp(b.owner||0);
 
 // ================= STATE =================
@@ -554,6 +582,8 @@ function initB(b){
   else if(t==='fusionneur'){b.buf=[null,null,null,null];b.next=0;b.pushCd=0}
   else if(t==='repartiteur'){b.item=null;b.next=0;b.pushCd=0}
   else if(t==='extracteur'){b.filter=b.filter||null;b.pushCd=0}
+  else if(t==='tunnel_entree'){b.item=null;b.prog=0}
+  else if(t==='tunnel_sortie'){b.q=[];b.pushCd=0}
   else if(t==='coffre'){b.store=b.store||{};b.used=Object.values(b.store).reduce((a,v)=>a+v,0)}
   else if(t==='lanceur'||t==='recepteur'){b.store=b.store||{};b.count=Object.values(b.store).reduce((a,v)=>a+v,0);b.cd=0;b.pushCd=0;b.incoming=0;b.lk=b.lk||null}
 }
@@ -638,6 +668,15 @@ const ACT={
     notify(t,`${playerName(o)} a réanimé ton noyau !`);notify(o,`Noyau de ${playerName(t)} réanimé`);
     return null;
   },
+  research(o,id){
+    const t=RESEARCH.find(x=>x.id===id);if(!t)return null;const r=rsOf(o);
+    if(r.done.includes(id))return 'Déjà recherché';if(r.cur)return 'Une recherche est déjà en cours';
+    if(P(o).level<t.lvl)return `Niveau ${t.lvl} requis`;
+    if((t.req||[]).some(q=>!r.done.includes(q)))return 'Termine d\'abord la recherche précédente';
+    if(!canAfford(t.cost,o))return 'Ressources insuffisantes';
+    pay(t.cost,o);r.cur={id,left:t.t};return null;
+  },
+  rcancel(o){const r=rsOf(o);if(!r||!r.cur)return null;const t=RESEARCH.find(x=>x.id===r.cur.id);if(t)refund(t.cost,o);r.cur=null;return null},
   craft(o,set,i,n){
     const r=RECIPES[set]&&RECIPES[set][i];if(!r||!recUnlocked(r,o))return null;const p=P(o);
     for(let k=0;k<Math.min(n|0,5);k++){if(p.craftQ.length>=30||!canAfford(r.in,o))break;pay(r.in,o);p.craftQ.push({set,i,left:r.t*2})}
@@ -664,7 +703,8 @@ function accepts(t,item,fx,fy){
   if(t.type==='noyau')return !P(t.owner).dead;
   const side=dirOf(fx-t.x,fy-t.y);
   if(ROTATABLE.has(t.type)&&side===t.rot)return false;
-  if(BELT.has(t.type))return !t.item;
+  if(BELT.has(t.type)||t.type==='tunnel_entree')return !t.item;
+  if(t.type==='tunnel_sortie')return false;
   if(t.type==='fusionneur')return side>=0&&!t.buf[side];
   if(t.type==='repartiteur')return side===(t.rot+2)%4&&!t.item;
   if(t.type==='coffre')return t.used<B.coffre.cap;
@@ -682,15 +722,16 @@ function accepts(t,item,fx,fy){
   return false;
 }
 function give(t,item,fx,fy){
-  if(t.type==='noyau'){const p=P(t.owner);addInv(t.owner,item,1);p.made[item]=(p.made[item]||0)+1;return}
-  if(BELT.has(t.type)){t.item=item;t.prog=0;return}
+  if(t.type==='noyau'){const p=P(t.owner);addInv(t.owner,item,1);p.made[item]=(p.made[item]||0)+1;stat(t.owner,'n',item);return}
+  if(BELT.has(t.type)||t.type==='tunnel_entree'){t.item=item;t.prog=0;return}
   if(t.type==='fusionneur'){t.buf[dirOf(fx-t.x,fy-t.y)]=item;return}
   if(t.type==='repartiteur'){t.item=item;return}
   if(t.type==='lanceur'){t.store[item]=(t.store[item]||0)+1;t.count++;return}
-  if(t.type==='coffre'){t.store[item]=(t.store[item]||0)+1;t.used++;const p=P(t.owner);p.made[item]=(p.made[item]||0)+1;return}
+  if(t.type==='coffre'){t.store[item]=(t.store[item]||0)+1;t.used++;const p=P(t.owner);p.made[item]=(p.made[item]||0)+1;stat(t.owner,'n',item);return}
   if(GENS.has(t.type)){t.fuel++;return}
   t.inb[item]=(t.inb[item]||0)+1;
 }
+function tunnelExit(b){const [dx,dy]=DIRS[b.rot];for(let k=1;k<=B.tunnel_entree.reach;k++){const c=at(b.x+dx*k,b.y+dy*k);if(c&&c.type==='tunnel_sortie'&&c.rot===b.rot&&c.owner===b.owner)return[c,k]}return null}
 function tryPush(b,item,dir=b.rot){
   const [dx,dy]=DIRS[dir];const t=at(b.x+dx,b.y+dy);
   if(t&&t!==b&&accepts(t,item,b.x,b.y)){give(t,item,b.x,b.y);return true}
@@ -700,6 +741,15 @@ function updB(b,dt){
   const d=B[b.type],t=b.type,o=b.owner,pr=P(o).pr;
   if(BELT.has(t)){
     if(b.item){if(b.prog<1)b.prog=Math.min(1,b.prog+dt*d.spd*mBelt(o));if(b.prog>=1&&tryPush(b,b.item)){b.item=null;b.prog=0}}
+    return;
+  }
+  if(t==='tunnel_entree'){
+    if(b.item){if(b.prog<1)b.prog=Math.min(1,b.prog+dt*5*mBelt(o));if(b.prog>=1){const ex=tunnelExit(b);if(ex&&ex[0].q.length<4){ex[0].q.push({it:b.item,t:ex[1]*0.1});b.item=null;b.prog=0}}}
+    return;
+  }
+  if(t==='tunnel_sortie'){
+    for(const q of b.q)q.t-=dt;b.pushCd-=dt;
+    if(b.q.length&&b.q[0].t<=0&&b.pushCd<=0&&tryPush(b,b.q[0].it)){b.q.shift();b.pushCd=0.08}
     return;
   }
   if(t==='fusionneur'){
@@ -715,7 +765,7 @@ function updB(b,dt){
   if(DRILLS.has(t)){
     const item=deposit[b.y][b.x];if(!item)return;
     const rate=DEP[item].rate/(d.spd*mMach(o));
-    if(b.out<4){b.timer+=dt*pr;b.spin+=dt*8*pr*d.spd;if(b.timer>=rate){b.timer-=rate;b.out+=1+(Math.random()<0.2*tl('forage',o)?1:0)}}
+    if(b.out<4){b.timer+=dt*pr;b.spin+=dt*8*pr*d.spd;if(b.timer>=rate){b.timer-=rate;const nn=1+(Math.random()<0.2*tl('forage',o)+rsv('drill',o)?1:0);b.out+=nn;stat(o,'p',item,nn)}}
     b.pushCd-=dt;
     if(b.out>0&&b.pushCd<=0&&tryPush(b,item)){b.out--;b.pushCd=0.12}
     return;
@@ -725,12 +775,12 @@ function updB(b,dt){
       const r=curRecipe(b);
       if(r&&recUnlocked(r,o)&&(b.out===0||b.outItem===r.out)&&b.out+r.n<=10){
         let ok=true;for(const k in r.in)if((b.inb[k]||0)<r.in[k]){ok=false;break}
-        if(ok){for(const k in r.in)b.inb[k]-=r.in[k];b.crafting=r;b.prog=0}
+        if(ok){for(const k in r.in){b.inb[k]-=r.in[k];stat(o,'c',k,r.in[k])}b.crafting=r;b.prog=0}
       }
     }
     if(b.crafting){
       b.prog+=dt*pr*d.spd*mMach(o);b.spin+=dt*4*pr*d.spd;
-      if(b.prog>=b.crafting.t){b.out+=b.crafting.n;b.outItem=b.crafting.out;b.crafting=null;b.prog=0}
+      if(b.prog>=b.crafting.t){b.out+=b.crafting.n;b.outItem=b.crafting.out;stat(o,'p',b.crafting.out,b.crafting.n);b.crafting=null;b.prog=0}
     }
     b.pushCd-=dt;
     if(b.out>0&&b.pushCd<=0&&tryPush(b,b.outItem)){b.out--;b.pushCd=0.1;if(b.out===0)b.outItem=null}
@@ -780,10 +830,10 @@ function updB(b,dt){
     const c=cores[o],p=P(o);if(c&&!p.dead&&p.coreHp<p.coreMax&&(c.x+1.5-b.x-0.5)**2+(c.y+1.5-b.y-0.5)**2<=(d.range+1.5)**2){p.coreHp=Math.min(p.coreMax,p.coreHp+amt*2);b.healing=true}
     return;
   }
-  if(GENS.has(t)){if(b.burn<=0&&b.fuel>0){b.fuel--;b.burn=d.fuelT}if(b.burn>0)b.burn-=dt;return}
+  if(GENS.has(t)){if(b.burn<=0&&b.fuel>0){b.fuel--;b.burn=d.fuelT;stat(o,'c',d.fuel||'petrole')}if(b.burn>0)b.burn-=dt;return}
   if(TURRETS.has(t)){
     b.cd-=dt*(d.pw?pr:1);if(b.fire>0)b.fire-=dt;
-    let best=null,bd=d.range*d.range;const cx=b.x+0.5,cy=b.y+0.5;
+    const rng=d.range*mRange(o);let best=null,bd=rng*rng;const cx=b.x+0.5,cy=b.y+0.5;
     for(const m of monsters){if(m.hp<=0)continue;const dd=(m.x-cx)**2+(m.y-cy)**2;if(dd<bd){bd=dd;best=m}}
     b.tgt=!!best;
     if(!best||b.cd>0)return;
@@ -791,7 +841,7 @@ function updB(b,dt){
     const dmg=d.dmg*mArm(o);
     if(d.ammo){
       if(total('munitions',o)<1){b.noAmmo=true;return}
-      take('munitions',1,o);b.noAmmo=false;hurt(best,dmg);
+      if(Math.random()>=rsv('ammo',o)){take('munitions',1,o);stat(o,'c','munitions')}b.noAmmo=false;hurt(best,dmg);
       fx({k:'shot',x1:cx+Math.cos(b.angle)*0.45,y1:cy+Math.sin(b.angle)*0.45,x2:best.x,y2:best.y,col:t==='mitrailleuse'?'#ffe08a':'#ffb347',w:t==='mitrailleuse'?0.05:0.08,t:0.06,max:0.06});
     }else if(t==='laser'){
       hurt(best,dmg);fx({k:'shot',x1:cx+Math.cos(b.angle)*0.5,y1:cy+Math.sin(b.angle)*0.5,x2:best.x,y2:best.y,col:'#5ff3ff',w:0.12,t:0.18,max:0.18});
@@ -801,16 +851,16 @@ function updB(b,dt){
       fx({k:'shot',x1:cx,y1:cy,x2:tx,y2:ty,col:'#e6a6ff',w:0.2,t:0.15,max:0.15});
       fx({k:'boom',x:tx,y:ty,r:d.splash,col:'230,140,255',t:0.4,max:0.4});
     }else if(t==='canon_prisme'){
-      const hitL=[best];for(const m of monsters){if(hitL.length>=d.split)break;if(m!==best&&m.hp>0&&(m.x-cx)**2+(m.y-cy)**2<=d.range*d.range)hitL.push(m)}
+      const hitL=[best];for(const m of monsters){if(hitL.length>=d.split)break;if(m!==best&&m.hp>0&&(m.x-cx)**2+(m.y-cy)**2<=rng*rng)hitL.push(m)}
       for(const m of hitL){hurt(m,dmg);fx({k:'shot',x1:cx,y1:cy,x2:m.x,y2:m.y,col:'#e6d2ff',w:0.14,t:0.25,max:0.25})}
     }else if(t==='lance_flammes'){
-      const ang=b.angle,cosC=Math.cos(d.cone),R2=d.range*d.range;
+      const ang=b.angle,cosC=Math.cos(d.cone),R2=rng*rng;
       for(const m of monsters){if(m.hp<=0)continue;const dx=m.x-cx,dy=m.y-cy,dd=dx*dx+dy*dy;if(dd>R2)continue;const l=Math.sqrt(dd)||1;if((dx*Math.cos(ang)+dy*Math.sin(ang))/l>=cosC)hurt(m,dmg,4)}
-      fx({k:'shot',x1:cx+Math.cos(ang)*0.4,y1:cy+Math.sin(ang)*0.4,x2:cx+Math.cos(ang)*d.range*0.85,y2:cy+Math.sin(ang)*d.range*0.85,col:'#ff7a2e',w:0.3,t:0.12,max:0.12});
+      fx({k:'shot',x1:cx+Math.cos(ang)*0.4,y1:cy+Math.sin(ang)*0.4,x2:cx+Math.cos(ang)*rng*0.85,y2:cy+Math.sin(ang)*rng*0.85,col:'#ff7a2e',w:0.3,t:0.12,max:0.12});
     }else if(t==='railgun'){
       const ux=Math.cos(b.angle),uy=Math.sin(b.angle);
-      for(const m of monsters){if(m.hp<=0)continue;const dx=m.x-cx,dy=m.y-cy,along=dx*ux+dy*uy;if(along<0||along>d.range)continue;if(Math.abs(dx*uy-dy*ux)<=0.5+MT[m.type].r)hurt(m,dmg)}
-      fx({k:'shot',x1:cx+ux*0.5,y1:cy+uy*0.5,x2:cx+ux*d.range,y2:cy+uy*d.range,col:'#9fd6ff',w:0.22,t:0.35,max:0.35});
+      for(const m of monsters){if(m.hp<=0)continue;const dx=m.x-cx,dy=m.y-cy,along=dx*ux+dy*uy;if(along<0||along>rng)continue;if(Math.abs(dx*uy-dy*ux)<=0.5+MT[m.type].r)hurt(m,dmg)}
+      fx({k:'shot',x1:cx+ux*0.5,y1:cy+uy*0.5,x2:cx+ux*rng,y2:cy+uy*rng,col:'#9fd6ff',w:0.22,t:0.35,max:0.35});
     }else if(t==='tesla'){
       const hit=new Set();let cur=best,px=cx,py=cy;
       for(let i=0;i<d.chain&&cur;i++){
@@ -874,7 +924,7 @@ function updDrone(r,dt){
   }else if(r.state==='mine'){
     if(!deposit[r.ty]||deposit[r.ty][r.tx]!==r.mine||grid[r.ty][r.tx]){r.state='seek';r.tx=null;return}
     r.timer+=dt*3*mRob(o)*mMach(o);
-    if(r.timer>=1.2){r.timer-=1.2;const it=SMELT[r.mine];r.cargo[it]=(r.cargo[it]||0)+1;r.count++;if(Math.random()<0.15)fx({k:'boom',x:r.x,y:r.y+0.2,r:0.25,col:'120,220,255',t:0.25,max:0.25})}
+    if(r.timer>=1.2){r.timer-=1.2;const it=SMELT[r.mine];r.cargo[it]=(r.cargo[it]||0)+1;r.count++;stat(r.owner,'p',it);if(Math.random()<0.15)fx({k:'boom',x:r.x,y:r.y+0.2,r:0.25,col:'120,220,255',t:0.25,max:0.25})}
   }else r.state='seek';
 }
 function updGardien(r,dt){
@@ -911,7 +961,7 @@ function updR(r,dt){
     if(moveTo(r,r.tx+0.5,r.ty+0.5,dt)){r.state='mine';r.timer=0}
   }else if(r.state==='mine'){
     r.timer+=dt*mRob(o)*mMach(o);
-    if(r.timer>=1.2){r.timer-=1.2;const it=SMELT[r.mine];r.cargo[it]=(r.cargo[it]||0)+1;r.count++;
+    if(r.timer>=1.2){r.timer-=1.2;const it=SMELT[r.mine];r.cargo[it]=(r.cargo[it]||0)+1;r.count++;stat(r.owner,'p',it);
       if(Math.random()<0.25)fx({k:'boom',x:r.x,y:r.y+0.2,r:0.25,col:'255,200,120',t:0.25,max:0.25});
       if(r.count>=cap){r.state='deliver';r.tx=null}}
   }else if(r.state==='deliver'){
@@ -1010,6 +1060,38 @@ function spawnMonster(q,px,py){
   monsters.push({id:monSeq++,type:q.type,wMul:q.wMul||q.hpMul,slow:0,x,y,hp,maxhp:hp,dmg:t.dmg*q.dmgMul,cd:0,ox:(Math.random()-0.5)*0.4,oy:(Math.random()-0.5)*0.4,fx:0,fy:1,seed:Math.random()*10,flash:0,spawnT:6,hpMul:q.hpMul,dmgMul:q.dmgMul});
 }
 let SHIELDS=[0,0],CAPS=[];
+// ----- Statistiques de production (fenêtre glissante de 60 s, non sauvegardées) -----
+const STATS=[newStat(),newStat()];
+function newStat(){return{cur:{p:{},c:{},n:{}},hist:[],acc:0}}
+function stat(o,k,item,n=1){const s2=STATS[o];if(!s2||!item)return;const m=s2.cur[k];m[item]=(m[item]||0)+n}
+function statTick(dt){for(const s2 of STATS){s2.acc+=dt;if(s2.acc>=10){s2.acc=0;s2.hist.push(s2.cur);if(s2.hist.length>6)s2.hist.shift();s2.cur={p:{},c:{},n:{}}}}}
+function perMin(o){
+  const s2=STATS[o],out={p:{},c:{},n:{}};if(!s2)return out;
+  const span=s2.hist.length*10+s2.acc;if(span<1)return out;const f=60/span;
+  for(const bk of [...s2.hist,s2.cur])for(const k of['p','c','n'])for(const it in bk[k])out[k][it]=(out[k][it]||0)+bk[k][it]*f;
+  return out;
+}
+function machState(b){
+  const d=B[b.type],pr=P(b.owner).pr;
+  if(DRILLS.has(b.type)){if(!deposit[b.y][b.x])return['input'];if(b.out>=4)return['out'];if(pr<0.5)return['nrj'];return['ok']}
+  if(MACHINES.has(b.type)){
+    if(b.crafting)return pr<0.5?['nrj']:['ok'];
+    const r=curRecipe(b);
+    if(b.out>0&&(b.pushCd<-0.6||(r&&b.out+r.n>10)))return['out'];
+    if(!r)return['input',null];
+    const miss=Object.keys(r.in).filter(k=>(b.inb[k]||0)<r.in[k]);
+    return['input',miss];
+  }
+  if(GENS.has(b.type))return b.burn>0?['ok']:['input',[d.fuel||'petrole']];
+  return null;
+}
+function prodSummary(o){
+  const res={};
+  for(const b of buildings){if(b.owner!==o)continue;const st=machState(b);if(!st)continue;
+    const r=res[b.type]=res[b.type]||{n:0,ok:0,input:0,out:0,nrj:0,miss:{}};r.n++;r[st[0]]++;
+    if(st[0]==='input'&&st[1])for(const k of st[1])r.miss[k]=(r.miss[k]||0)+1}
+  return res;
+}
 function detonate(b){
   const d=B[b.type],R=d.radius,dm=d.blast*mArm(b.owner);
   for(const m of monsters)if(m.hp>0&&(m.x-b.x-0.5)**2+(m.y-b.y-0.5)**2<=R*R)hurt(m,dm,20);
@@ -1108,6 +1190,8 @@ function update(dt){
   for(let i=0;i<buildings.length;i++)updB(buildings[i],dt);
   for(const r of robots)updR(r,dt);
   updCaps(dt);
+  statTick(dt);
+  for(let o=0;o<S.players.length;o++){const r=rsOf(o);if(r&&r.cur){r.cur.left-=dt;if(r.cur.left<=0){const t=RESEARCH.find(x=>x.id===r.cur.id);if(t&&!r.done.includes(t.id))r.done.push(t.id);r.cur=null;if(t){notify(o,`🔬 Recherche terminée : ${t.n} (${t.d})`);if(o===ME)sfx('level')}applyTalentsLive()}}}
   for(let o=0;o<S.players.length;o++){const p=P(o);if(p.craftQ.length){const q=p.craftQ[0];q.left-=dt*mMach(o);if(q.left<=0){const r=RECIPES[q.set][q.i];addInv(o,r.out,r.n);p.made[r.out]=(p.made[r.out]||0)+r.n;p.craftQ.shift()}}}
   flowTimer-=dt;if(flowDirty&&flowTimer<=0){computeFlow();flowDirty=false;flowTimer=0.3}
   S.waveTimer-=dt;
@@ -1316,6 +1400,17 @@ function drawB(c,b,x,y,s,now){
   if(k==='noyau'){c.fillStyle='rgba(0,0,0,0.3)';rr(c,x+s*0.3,y+s*0.4,s*2.9,s*2.9,s*0.4);c.fill()}
   else if(k!=='tapis'){c.fillStyle='rgba(0,0,0,0.28)';rr(c,x+s*0.13,y+s*0.17,s*0.88,s*0.88,s*0.16);c.fill()}
   switch(k){
+    case 'tunnel_entree':case 'tunnel_sortie':{
+      const out=k==='tunnel_sortie';
+      c.fillStyle=shade(d.col,-0.3);rr(c,x+s*0.08,y+s*0.08,s*0.84,s*0.84,s*0.16);c.fill();c.strokeStyle=d.col;c.lineWidth=Math.max(1,s*0.05);c.stroke();
+      c.save();c.translate(cx,cy);c.rotate(b.rot*Math.PI/2);
+      const g2=c.createLinearGradient(out?-s*0.3:s*0.3,0,out?s*0.3:-s*0.3,0);g2.addColorStop(0,'#05060a');g2.addColorStop(1,'#2c2440');
+      c.fillStyle=g2;c.beginPath();c.ellipse(out?-s*0.08:s*0.08,0,s*0.26,s*0.3,0,0,7);c.fill();
+      c.fillStyle='#8a7cb0';c.fillRect(-s*0.36,-s*0.36,s*0.72,s*0.07);c.fillRect(-s*0.36,s*0.29,s*0.72,s*0.07);
+      c.restore();
+      arrow(c,cx,cy,s,b.rot,out?'#c9b8ff':'#ffd23f');
+      if(b.item)drawItem(c,b.item,cx,cy,s*0.3);
+      break;}
     case 'extracteur':{
       body(c,x,y,s,d.col);
       c.fillStyle='#16261e';c.beginPath();c.arc(cx,cy,s*0.2,0,7);c.fill();
@@ -1636,6 +1731,9 @@ function draw(now){
   for(const b of buildings)if(!BELT.has(b.type)&&vis(b))drawB(ctx,b,ox+b.x*T,oy+b.y*T,T,now);
   for(const c of cores)drawB(ctx,c,ox+c.x*T,oy+c.y*T,T,now);
   for(const b of buildings){const mh=maxHp(b);if(b.hp<mh-0.5&&vis(b)){ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(ox+b.x*T+T*0.1,oy+b.y*T+T*0.02,T*0.8,T*0.07);ctx.fillStyle='#f2a33a';ctx.fillRect(ox+b.x*T+T*0.1,oy+b.y*T+T*0.02,T*0.8*b.hp/mh,T*0.07)}}
+  // tunnels : liaison entrée → sortie
+  for(const b of buildings)if(b.type==='tunnel_entree'&&vis(b)){const ex=tunnelExit(b);const [dx,dy]=DIRS[b.rot];ctx.strokeStyle=ex?'rgba(201,184,255,0.45)':'rgba(255,90,90,0.55)';ctx.setLineDash([3,4]);ctx.lineWidth=Math.max(1,T*0.05);ctx.beginPath();ctx.moveTo(ox+(b.x+0.5+dx*0.4)*T,oy+(b.y+0.5+dy*0.4)*T);const L=ex?ex[1]-0.4:1.2;ctx.lineTo(ox+(b.x+0.5+dx*L)*T,oy+(b.y+0.5+dy*L)*T);ctx.stroke();ctx.setLineDash([])}
+  if(SHOWWARN&&now>0)for(const b of buildings){if(!vis(b)||(b.owner!==ME&&NET.role!=='spec'))continue;let bad=false;if(isRemote())bad=b.warn;else{const st=machState(b);bad=st&&st[0]!=='ok'}if(!bad)continue;const X=ox+(b.x+0.8)*T,Y=oy+(b.y+0.2)*T,R=Math.max(5,T*0.2);ctx.fillStyle=Math.sin(now*5)>0?'#ff5a5a':'#ffd23f';ctx.beginPath();ctx.arc(X,Y,R,0,7);ctx.fill();ctx.fillStyle='#111';ctx.font=`900 ${R*1.5}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',X,Y+1);ctx.textBaseline='alphabetic'}
   for(const r of robots)drawRobot(ctx,r,ox+r.x*T,oy+r.y*T,T,now);
   for(const m of monsters)drawM(ctx,m,ox+m.x*T,oy+m.y*T,T,now);
   for(const e of effects){
@@ -1711,19 +1809,78 @@ function draw(now){
       if(!ok){ctx.fillStyle='rgba(229,72,77,0.35)';ctx.fillRect(hx,hy,T*gz,T*gz)}
       ctx.strokeStyle=ok?'rgba(255,255,255,0.8)':'#e5484d';ctx.lineWidth=1.5;ctx.strokeRect(hx+0.5,hy+0.5,T*gz-1,T*gz-1);
       if(TURRETS.has(tool)||tool==='reparateur'||tool==='cryo')rangeCircle(tool,hx+T/2,hy+T/2,T);
+      if(tool==='tunnel_entree'||tool==='tunnel_sortie'){const [dx,dy]=DIRS[rot],sg=tool==='tunnel_entree'?1:-1;ctx.fillStyle='rgba(201,184,255,0.12)';for(let k2=1;k2<=5;k2++){const X=mouse.tx+dx*k2*sg,Y=mouse.ty+dy*k2*sg;ctx.fillRect(ox+X*T,oy+Y*T,T,T)}}
     }else{
       ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=1;ctx.strokeRect(hx+0.5,hy+0.5,T-1,T-1);
       const hb=at(mouse.tx,mouse.ty);if(hb&&TURRETS.has(hb.type)&&hb!==sel)rangeCircle(hb.type,hx+T/2,hy+T/2,T);
     }
   }
+  drawBlueprint(ox,oy,T,now);
   const boss=monsters.find(m=>MT[m.type].boss);
   if(boss){const bw=Math.min(460,cw*0.6),bx=(cw-bw)/2,by=ch-46;
     ctx.fillStyle='rgba(15,10,22,0.85)';rr(ctx,bx-10,by-20,bw+20,40,8);ctx.fill();ctx.strokeStyle='#7d3cc0';ctx.lineWidth=1;ctx.stroke();
     ctx.fillStyle='#e4d4ff';ctx.font='600 12px system-ui';ctx.textAlign='center';ctx.fillText(`${MT[boss.type].n.toUpperCase()} — ${Math.ceil(boss.hp)} / ${Math.ceil(boss.maxhp)}`,cw/2,by-6);
     ctx.fillStyle='#2a1a3a';ctx.fillRect(bx,by,bw,9);ctx.fillStyle='#b05cff';ctx.fillRect(bx,by,bw*Math.max(0,boss.hp/boss.maxhp),9);}
 }
+// ----- Plans (copier / coller une zone) -----
+const BP={mode:null,start:null,end:null,clip:null};
+function loadPlans(){try{return JSON.parse(localStorage.getItem('usine-plans')||'[]')}catch(e){return[]}}
+function savePlans(pl){try{localStorage.setItem('usine-plans',JSON.stringify(pl))}catch(e){toast('Impossible d\'enregistrer le plan')}}
+function startSelect(){if(NET.role==='spec')return;setTool(null);sel=null;BP.mode='select';BP.start=null;toast('Glisse sur une zone de ton usine pour la copier (Échap pour annuler)',true)}
+function startPaste(){if(!BP.clip)return;setTool(null);sel=null;BP.mode='paste';toast(`Plan prêt (${BP.clip.items.length} bâtiments) : clique pour le poser · R tourner · Échap arrêter`,true)}
+function finishSelect(){
+  const [a,b2]=[BP.start,BP.end];BP.start=null;
+  const x0=Math.min(a[0],b2[0]),x1=Math.max(a[0],b2[0]),y0=Math.min(a[1],b2[1]),y1=Math.max(a[1],b2[1]);
+  const items=[];
+  for(const b of buildings){if(b.owner!==ME||b.type==='noyau'||B[b.type].unit)continue;if(b.x<x0||b.x>x1||b.y<y0||b.y>y1)continue;
+    const it={t:b.type,dx:b.x-x0,dy:b.y-y0,r:b.rot||0};if(MACHINES.has(b.type)&&b.recipe)it.rc=b.recipe;if(b.type==='extracteur'&&b.filter)it.fl=b.filter;items.push(it)}
+  if(!items.length){toast('Aucun de tes bâtiments dans cette zone');BP.mode='select';return}
+  BP.clip={w:x1-x0+1,h:y1-y0+1,items,name:'Plan '+new Date().toLocaleTimeString().slice(0,5)};
+  startPaste();renderPane(true);
+}
+function rotateClip(){
+  const c=BP.clip;if(!c)return;
+  for(const it of c.items){const nx=c.h-bsz(it.t)-it.dy,ny=it.dx;it.dx=nx;it.dy=ny;if(ROTATABLE.has(it.t))it.r=(it.r+1)%4}
+  [c.w,c.h]=[c.h,c.w];
+}
+function clipCost(){const tot={};for(const it of BP.clip.items)for(const k in B[it.t].cost)tot[k]=(tot[k]||0)+B[it.t].cost[k];return tot}
+function pastePlan(x0,y0){
+  const c=BP.clip;if(!c)return;
+  const order=[...c.items].sort((a,b)=>(BELT.has(a.t)?1:0)-(BELT.has(b.t)?1:0));
+  let ok=0,fail=0;
+  for(const it of order){const x=x0+it.dx,y=y0+it.dy;
+    const ex=at(x,y);if(ex&&ex.type===it.t&&ex.owner===ME){continue}
+    if(NET.role!=='guest'){const err=canPlace(it.t,x,y,ME);if(err&&!(BELT.has(it.t)&&ex&&BELT.has(ex.type)&&ex.owner===ME)){fail++;continue}}
+    const err=act('place',it.t,x,y,it.r);if(err){fail++;continue}ok++;
+    if(NET.role==='guest')guestPredictPlace(it.t,x,y,it.r);
+    if(it.rc)act('recipe',x,y,it.rc);if(it.fl)act('filter',x,y,it.fl);
+  }
+  if(ok)sfx('build');
+  toast(fail?`${ok} bâtiments posés, ${fail} impossibles (ressources, case occupée ou zone)`:`${ok} bâtiments posés`,!fail);
+  refreshUI(true);
+}
+function drawBlueprint(ox,oy,T,now){
+  if(BP.mode==='select'){
+    const a=BP.start||[mouse.tx,mouse.ty],b2=BP.start?BP.end:[mouse.tx,mouse.ty];if(!b2)return;
+    const x0=Math.min(a[0],b2[0]),x1=Math.max(a[0],b2[0]),y0=Math.min(a[1],b2[1]),y1=Math.max(a[1],b2[1]);
+    ctx.fillStyle='rgba(79,195,247,0.12)';ctx.fillRect(ox+x0*T,oy+y0*T,(x1-x0+1)*T,(y1-y0+1)*T);
+    ctx.strokeStyle='#4fc3f7';ctx.setLineDash([6,4]);ctx.lineWidth=2;ctx.strokeRect(ox+x0*T+1,oy+y0*T+1,(x1-x0+1)*T-2,(y1-y0+1)*T-2);ctx.setLineDash([]);
+    if(BP.start){ctx.fillStyle='#e8f6ff';ctx.font='600 12px system-ui';ctx.textAlign='left';ctx.fillText(`${x1-x0+1}×${y1-y0+1}`,ox+x0*T+4,oy+y0*T-5)}
+  }else if(BP.mode==='paste'&&BP.clip&&mouse.inside){
+    const c=BP.clip,X0=mouse.tx,Y0=mouse.ty;
+    ctx.globalAlpha=0.55;
+    for(const it of c.items){const x=X0+it.dx,y=Y0+it.dy;const g={type:it.t,x,y,rot:it.r,owner:ME,hp:1};initB(g);g.angle=it.r*Math.PI/2;drawB(ctx,g,ox+x*T,oy+y*T,T,0)}
+    ctx.globalAlpha=1;
+    for(const it of c.items){const x=X0+it.dx,y=Y0+it.dy;const ex=at(x,y);if(ex&&ex.type===it.t)continue;const err=canPlace(it.t,x,y,ME);if(err&&!(BELT.has(it.t)&&ex&&BELT.has(ex.type))){ctx.fillStyle='rgba(229,72,77,0.35)';const z=bsz(it.t);ctx.fillRect(ox+x*T,oy+y*T,T*z,T*z)}}
+    ctx.strokeStyle='#4fc3f7';ctx.setLineDash([6,4]);ctx.lineWidth=1.5;ctx.strokeRect(ox+X0*T,oy+Y0*T,c.w*T,c.h*T);ctx.setLineDash([]);
+    const cost=clipCost(),miss=Object.keys(cost).filter(k=>total(k)<cost[k]);
+    const txt=`${c.items.length} bâtiments · `+Object.keys(cost).map(k=>`${cost[k]} ${ITEMS[k].n}`).join(', ');
+    ctx.font='600 12px system-ui';ctx.textAlign='left';const tw=Math.min(ctx.measureText(txt).width,520);
+    ctx.fillStyle='rgba(10,14,20,0.85)';ctx.fillRect(ox+X0*T,oy+(Y0+c.h)*T+4,tw+12,20);ctx.fillStyle=miss.length?'#ff8a8a':'#cfeaff';ctx.fillText(txt,ox+X0*T+6,oy+(Y0+c.h)*T+18,520);
+  }
+}
 function newRobotGhost(k='robot'){return{isRobot:true,kind:k,owner:ME,x:0,y:0,hp:1,maxhp:1,state:'seek',count:0,charge:1}}
-function rangeCircle(type,x,y,T){if(!B[type].range)return;ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.setLineDash([5,5]);ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(x,y,B[type].range*T,0,7);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fill()}
+function rangeCircle(type,x,y,T){if(!B[type].range)return;ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.setLineDash([5,5]);ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(x,y,B[type].range*(TURRETS.has(type)?mRange(ME):1)*T,0,7);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fill()}
 
 // ================= UI =================
 const $=id=>document.getElementById(id);
@@ -1761,7 +1918,7 @@ function buildToolbar(){
   });
   setTool(tool);
 }
-function setTool(t){if(NET.role==='spec')t=null;tool=t;for(const k in toolEls)toolEls[k].el.classList.toggle('sel',k===t);if(t)sel=null}
+function setTool(t){if(NET.role==='spec')t=null;tool=t;if(t)BP.mode=null;for(const k in toolEls)toolEls[k].el.classList.toggle('sel',k===t);if(t)sel=null}
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));renderPane(true)});
 
 function ownerLine(o){return coop()?`<p><span class="sw" style="background:${PCOL[o]}"></span> ${o===ME?'À toi':'À '+esc(playerName(o))}</p>`:''}
@@ -1811,6 +1968,8 @@ function bInfo(b,isSel){
     if(b.crafting)h+='<p class="okc">En production</p>';else if(b.out>=8)h+='<p class="bad">Sortie bloquée</p>';
   }
   if(b.type==='fusionneur'||b.type==='repartiteur')h+=`<p class="mut">${d.desc}</p>`;
+  if(b.type==='tunnel_entree'){const ex=tunnelExit(b);h+=ex?`<p class="okc">Relié à une sortie à ${ex[1]} case${ex[1]>1?'s':''}</p>`:'<p class="bad">Aucune sortie : pose une « Tunnel (sortie) » dans la même direction, jusqu\'à 5 cases devant</p>'}
+  if(b.type==='tunnel_sortie'){let ok=false;const [dx,dy]=DIRS[b.rot];for(let k2=1;k2<=5;k2++){const c2=at(b.x-dx*k2,b.y-dy*k2);if(c2&&c2.type==='tunnel_entree'&&c2.rot===b.rot&&c2.owner===b.owner){ok=true;break}}h+=ok?'<p class="okc">Reliée à une entrée</p>':'<p class="bad">Aucune entrée derrière elle (même direction, 5 cases max)</p>'}
   if(b.type==='extracteur'){
     const src=[0,1,2,3].filter(i=>i!==b.rot).map(i=>at(b.x+DIRS[i][0],b.y+DIRS[i][1])).find(q=>q&&(q.type==='noyau'||q.type==='coffre')&&q.owner===b.owner);
     h+=src?`<p class="okc">Branché sur ${src.type==='noyau'?'ton noyau':'un coffre'}</p>`:'<p class="bad">Colle-le à ton noyau ou à un de tes coffres</p>';
@@ -1839,6 +1998,7 @@ function paneBase(){
     <div><kbd>Clic</kbd> poser · <b>glisser</b> pour une ligne de tapis/murs</div>
     <div><kbd>Clic droit</kbd> démolir (remboursé)${coop()?' · sur le noyau du coéquipier : donner':''}</div>
     <div><kbd>R</kbd> tourner · <kbd>1</kbd>…<kbd>9</kbd> bâtiment · <kbd>Tab</kbd> catégorie</div>
+    <div><kbd>B</kbd> copier une zone (plan) · <kbd>V</kbd> recoller le dernier plan</div>
     <div><kbd>Z Q S D</kbd> / flèches / glisser : vue · <kbd>Molette</kbd> zoom · mini-carte cliquable</div>
     <div>${coop()?'':'<kbd>Espace</kbd> pause · '}<kbd>Échap</kbd> annuler</div></div>`;
   return h;
@@ -1859,6 +2019,48 @@ function paneProg(){
   for(const lv of TIERS){const ok=p.level>=lv;h+=`<div class="tier${ok?'':' locked'}"><h4><span>Niveau ${lv}</span><span class="${ok?'okc':'mut'}">${ok?'débloqué':'🔒'}</span></h4><ul>${(lv===1?['🏗 Bâtiments de base','🏗 Fusionneur, répartiteur, coffre']:tierContent(lv)).map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
   const can=p.level>=MAXLVL&&!coop();
   h+=`<h3>Renaissance</h3><div class="card"><p>Au niveau ${MAXLVL} (le maximum), tu peux renaître : <b>tu perds tout</b> (carte, bâtiments, stock, niveau) mais tu gagnes <b class="pur">200 points de talent</b> pour améliorer définitivement ton usine.</p><div class="btnrow"><button class="prim" data-act="rebirth" ${can?'':'disabled'}>${rbArm&&Date.now()-rbArm<4000?'Clique encore pour confirmer':'Renaître (+200 pts)'}</button></div>${coop()?'<p class="mut">Uniquement en partie solo.</p>':can?'':`<p class="mut">Disponible au niveau ${MAXLVL}.</p>`}</div>`;
+  return h;
+}
+let SHOWWARN=false;
+const fmtN=v=>v>=100?Math.round(v):v>=10?v.toFixed(0):v.toFixed(1);
+function paneUsine(){
+  const spec=NET.role==='spec',o=spec?0:ME;
+  let pm,sm;
+  if(isRemote()){const d=NET.spIn&&NET.spIn[o];pm=d||{p:{},c:{},n:{}};sm=d?d.s:{}}else{pm=perMin(o);sm=prodSummary(o)}
+  let h=`<h3>Production par minute</h3><p class="mut" style="font-size:12px">Moyenne sur la dernière minute${coop()?(spec?'':' (tes bâtiments)'):''}.</p>`;
+  const items=ITEM_ORDER.filter(k=>(pm.p[k]||0)+(pm.c[k]||0)+(pm.n[k]||0)>=0.5);
+  if(!items.length)h+='<p class="mut">Rien pour l\'instant : construis des foreuses et des machines.</p>';
+  else{h+='<table class="stt"><tr><th></th><th>Produit</th><th>Consommé</th><th>Au stock</th></tr>';
+    for(const k of items){const pr=pm.p[k]||0,co=pm.c[k]||0,nn=pm.n[k]||0,bal=pr-co;h+=`<tr><td>${sw(k)}${ITEMS[k].n}</td><td class="okc">${pr?fmtN(pr):'–'}</td><td class="${co>pr+0.5&&co?'bad':'mut'}">${co?fmtN(co):'–'}</td><td>${nn?fmtN(nn):'–'}</td></tr>`}
+    h+='</table><p class="mut" style="font-size:11.5px">En rouge : tu consommes plus que tu ne produis.</p>'}
+  h+='<h3>État des machines</h3>';
+  const ts=Object.keys(sm||{});
+  if(!ts.length)h+='<p class="mut">Aucune machine.</p>';
+  else{
+    for(const t of ts){const r=sm[t];const miss=Object.keys(r.miss||{}).map(k=>`${sw(k)}${ITEMS[k]?ITEMS[k].n:k}`).join(', ');
+      h+=`<div class="mst"><b>${B[t].n}</b> <span class="mut">×${r.n}</span><div class="chips">${r.ok?`<span class="c ok">✓ ${r.ok} en marche</span>`:''}${r.input?`<span class="c in">⏸ ${r.input} manquent d'entrée</span>`:''}${r.out?`<span class="c out">⛔ ${r.out} sortie bloquée</span>`:''}${r.nrj?`<span class="c nrj">⚡ ${r.nrj} sans énergie</span>`:''}</div>${miss&&r.input?`<div class="mut" style="font-size:11.5px">Il manque : ${miss}</div>`:''}</div>`}
+    h+=`<div class="btnrow"><button class="${SHOWWARN?'prim':''}" data-act="showwarn">${SHOWWARN?'Masquer':'Montrer'} les machines à problème sur la carte</button></div>`;
+  }
+  if(!spec){
+    h+=`<h3>Plans (copier / coller)</h3><p class="mut" style="font-size:12px">Touche <kbd>B</kbd> ou bouton ci-dessous : glisse sur une zone de ton usine pour la copier, puis clique pour la coller ailleurs (<kbd>R</kbd> pour tourner, <kbd>Échap</kbd> pour arrêter).</p>
+      <div class="btnrow"><button class="blue" data-act="bpsel">📋 Copier une zone</button>${BP.clip?'<button data-act="bppaste">Coller le dernier plan</button><button data-act="bpsave">Enregistrer ce plan</button>':''}</div>`;
+    const pl=loadPlans();
+    if(pl.length)h+=pl.map((q,i)=>`<div class="giverow"><span class="r">📐 ${esc(q.name)} <span class="mut">(${q.items.length} bât., ${q.w}×${q.h})</span></span><button data-bpuse="${i}">Utiliser</button><button data-bpdel="${i}" class="danger">✕</button></div>`).join('');
+  }
+  return h;
+}
+function paneLabo(){
+  const p=P(ME),r=rsOf(ME)||{done:[],cur:null},spec=NET.role==='spec';
+  let h=`<h3>Recherche</h3><p class="mut" style="font-size:12px">Dépense des ressources pour des bonus durables dans cette partie. Une recherche à la fois.</p>`;
+  if(r.cur){const t=RESEARCH.find(x=>x.id===r.cur.id);if(t)h+=`<div class="card"><b>⏳ ${t.n}</b><p class="mut">${t.d}</p><div class="bar xp"><i style="width:${Math.max(0,Math.min(100,(1-r.cur.left/t.t)*100))}%"></i></div><p class="mut">Encore ${fmtTime(r.cur.left)}</p>${spec?'':'<div class="btnrow"><button data-act="rcancel">Annuler (remboursé)</button></div>'}</div>`}
+  for(const [br,label] of RBR){
+    h+=`<h3>${label}</h3>`;
+    for(const t of RESEARCH.filter(x=>x.br===br)){
+      const done=r.done.includes(t.id),cur=r.cur&&r.cur.id===t.id,reqOk=(t.req||[]).every(q=>r.done.includes(q)),lvlOk=p.level>=t.lvl;
+      const why=!lvlOk?`niveau ${t.lvl}`:!reqOk?`après « ${RESEARCH.find(x=>x.id===t.req[0]).n} »`:'';
+      h+=`<div class="tal${done?' done':''}"><div class="r"><b>${done?'✓ ':''}${t.n}</b><div class="mut">${t.d} · ${fmtTime(t.t)}</div>${why&&!done?`<div class="mut" style="font-size:11.5px">🔒 Débloqué ${why.startsWith('niveau')?'au '+why:why}</div>`:''}${done?'':costHtml(t.cost)}</div>${done?'<span class="okc">Fait</span>':cur?'<span class="pur">En cours</span>':spec?'':`<button class="prim" data-rs="${t.id}" ${!why&&!r.cur&&canAfford(t.cost)?'':'disabled'}>${why?'🔒':'Rechercher'}</button>`}</div>`;
+    }
+  }
   return h;
 }
 function paneAtelier(){
@@ -1890,7 +2092,7 @@ function paneTalents(){
 let lastPane='',rbArm=0;
 function renderPane(force){
   if(!S)return;
-  const h=tab==='base'?paneBase():tab==='prog'?paneProg():tab==='atelier'?paneAtelier():paneTalents();
+  const h=tab==='base'?paneBase():tab==='usine'?paneUsine():tab==='labo'?paneLabo():tab==='prog'?paneProg():tab==='atelier'?paneAtelier():paneTalents();
   if(h!==lastPane||force){$('pane').innerHTML=h;lastPane=h}
 }
 $('pane').addEventListener('pointerdown',e=>{
@@ -1902,6 +2104,10 @@ $('pane').addEventListener('pointerdown',e=>{
   if(pf&&sel&&sel.isRobot){act('rpref',sel.id,pf.dataset.pref);if(NET.role==='guest')sel.pref=pf.dataset.pref;renderPane(true);return}
   const cr=e.target.closest('[data-craft]');
   if(cr&&!cr.disabled){const [set,i,n]=cr.dataset.craft.split(':');if(P(ME).craftQ.length>=30){toast('File pleine');return}act('craft',set,+i,+n);renderPane(true);return}
+  const rsb=e.target.closest('[data-rs]');
+  if(rsb&&!rsb.disabled){const err=act('research',rsb.dataset.rs);if(err)toast(err);else if(NET.role==='guest'){const t=RESEARCH.find(x=>x.id===rsb.dataset.rs);const r=rsOf(ME);r.cur={id:t.id,left:t.t};pay(t.cost,ME)}else sfx('build');renderPane(true);return}
+  const bu=e.target.closest('[data-bpuse]');if(bu){const q=loadPlans()[+bu.dataset.bpuse];if(q){BP.clip=JSON.parse(JSON.stringify(q));startPaste()}return}
+  const bd=e.target.closest('[data-bpdel]');if(bd){const pl=loadPlans();pl.splice(+bd.dataset.bpdel,1);savePlans(pl);renderPane(true);return}
   const tb=e.target.closest('[data-tal]');
   if(tb&&!tb.disabled){const t=TALENTS.find(x=>x.id===tb.dataset.tal);if(META.points>=t.cost&&(META.talents[t.id]||0)<t.max){META.points-=t.cost;META.talents[t.id]=(META.talents[t.id]||0)+1;saveMeta();applyTalentsLive()}renderPane(true);return}
   const a=e.target.closest('[data-act]');
@@ -1910,6 +2116,11 @@ $('pane').addEventListener('pointerdown',e=>{
   if(k==='rot'&&sel&&ROTATABLE.has(sel.type)){act('rotate',sel.x,sel.y,-1);if(NET.role==='guest')sel.rot=(sel.rot+1)%4}
   if(k==='del'&&sel){if(sel.isRobot)act('rdel',sel.id);else act('demolish',sel.x,sel.y);sel=null}
   if(k==='give')openGive();
+  if(k==='showwarn')SHOWWARN=!SHOWWARN;
+  if(k==='rcancel')act('rcancel');
+  if(k==='bpsel')startSelect();
+  if(k==='bppaste'&&BP.clip)startPaste();
+  if(k==='bpsave'&&BP.clip){const nm=prompt('Nom du plan :',BP.clip.name||'Mon plan');if(nm!==null){const pl=loadPlans();pl.unshift(Object.assign({},BP.clip,{name:nm.slice(0,30)||'Plan'}));savePlans(pl.slice(0,12));toast('Plan enregistré',true)}}
   if(k==='link'&&sel&&sel.type==='lanceur'){linkFrom=sel;toast('Clique sur un de tes réceptionneurs (Échap pour annuler)',true)}
   if(k==='revive'){const err=act('revive');if(err)toast(err)}
   if(k==='talreset'){for(const t of TALENTS){META.points+=(META.talents[t.id]||0)*t.cost}META.talents={};saveMeta();applyTalentsLive()}
@@ -1976,8 +2187,9 @@ function refreshUI(force){
   const canRevive=coop()&&!p.dead&&P(other(ME)).dead&&monsters.length===0&&(isRemote()||spawnQ.length===0);
   $('bRevive').style.display=canRevive&&!spec?'':'none';
   for(const t in toolEls)toolEls[t].el.classList.toggle('poor',unlocked(t)&&!canAfford(B[t].cost));
+  const lb=document.querySelector('#tabs [data-tab=labo]');{const r=rsOf(ME);const avail=r&&!r.cur&&RESEARCH.some(t=>!r.done.includes(t.id)&&p.level>=t.lvl&&(t.req||[]).every(q=>r.done.includes(q))&&canAfford(t.cost));lb.innerHTML='Labo'+(r&&r.cur?' ⏳':avail?'<span class="dot"></span>':'')}
   const tb=document.querySelector('#tabs [data-tab=talents]');tb.innerHTML='Talents'+(META.points>=15?'<span class="dot"></span>':'');
-  const pg=document.querySelector('#tabs [data-tab=prog]');pg.innerHTML='Progression'+(p.level>=MAXLVL&&!coop()?'<span class="dot"></span>':'');
+  const pg=document.querySelector('#tabs [data-tab=prog]');pg.innerHTML='Niveaux'+(p.level>=MAXLVL&&!coop()?'<span class="dot"></span>':'');
   // étiquette droite
   let tag='';
   if(spec)tag=`👁 Tu regardes la partie de ${NET.hostName}`;
@@ -2024,6 +2236,11 @@ canvas.addEventListener('mousedown',e=>{
     else toast('Ce n\'est pas un de tes réceptionneurs');
     linkFrom=null;refreshUI(true);return;
   }
+  if(BP.mode){
+    if(e.button===2){BP.mode=null;BP.start=null;return}
+    if(e.button===0&&BP.mode==='select'){BP.start=[mouse.tx,mouse.ty];BP.end=[mouse.tx,mouse.ty];return}
+    if(e.button===0&&BP.mode==='paste'){pastePlan(mouse.tx,mouse.ty);return}
+  }
   if(e.button===0){
     if(tool){mouse.left=true;mouse.lastTx=mouse.tx;mouse.lastTy=mouse.ty;tryPlace(mouse.tx,mouse.ty,null)}
     else mouse.pan={x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y,moved:false};
@@ -2036,6 +2253,7 @@ window.addEventListener('mousemove',e=>{
   if(!S)return;
   if(mouse.pan){const dx=e.clientX-mouse.pan.x,dy=e.clientY-mouse.pan.y;if(Math.abs(dx)+Math.abs(dy)>4)mouse.pan.moved=true;if(mouse.pan.moved){const T=TS*cam.z;cam.x=clamp(mouse.pan.cx-dx/T,0,W);cam.y=clamp(mouse.pan.cy-dy/T,0,H)}}
   updMouse(e);
+  if(BP.mode==='select'&&BP.start)BP.end=[clamp(mouse.tx,0,W-1),clamp(mouse.ty,0,H-1)];
   if((mouse.left&&tool&&!B[tool].unit)||mouse.right){
     let lx=mouse.lastTx,ly=mouse.lastTy,guard=0;
     while((lx!==mouse.tx||ly!==mouse.ty)&&guard++<200){
@@ -2050,6 +2268,7 @@ window.addEventListener('mousemove',e=>{
 });
 window.addEventListener('mouseup',e=>{
   if(!S)return;
+  if(BP.mode==='select'&&BP.start&&e.button===0){finishSelect();return}
   if(e.button===0&&mouse.pan&&!mouse.pan.moved&&mouse.inside){sel=robotAtMouse()||at(mouse.tx,mouse.ty)||null;if(tab!=='base'&&sel){tab='base';document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.tab==='base'))}refreshUI(true)}
   if(e.button===0||e.button===1)mouse.pan=null;
   if(e.button===0)mouse.left=false;
@@ -2071,12 +2290,15 @@ window.addEventListener('keydown',e=>{
   const i=DIGITS.indexOf(e.code);
   if(i>=0){const list=TYPES.filter(t=>B[t].cat===cat);const t=list[i];if(t){if(!unlocked(t))toast(`${B[t].n} : débloqué au niveau ${B[t].lvl}`);else setTool(tool===t?null:t)}e.preventDefault();return}
   if(e.code==='Tab'){e.preventDefault();const ix=CATS.findIndex(c=>c[0]===cat);cat=CATS[(ix+(e.shiftKey?CATS.length-1:1))%CATS.length][0];setTool(null);buildToolbar();return}
+  if(e.code==='KeyB'){if(BP.mode==='select'){BP.mode=null;BP.start=null}else startSelect();return}
+  if(e.code==='KeyV'&&BP.clip){startPaste();return}
+  if(e.code==='KeyR'&&BP.mode==='paste'){rotateClip();return}
   if(e.code==='KeyR'){
     if(tool)rot=(rot+(e.shiftKey?3:1))%4;
     else{const b=mouse.inside?at(mouse.tx,mouse.ty):sel;if(b&&ROTATABLE.has(b.type)&&b.owner===ME){const nr=(b.rot+(e.shiftKey?3:1))%4;act('rotate',b.x,b.y,nr);if(NET.role==='guest')b.rot=nr}}
     return;
   }
-  if(e.code==='Escape'){setTool(null);sel=null;linkFrom=null;return}
+  if(e.code==='Escape'){if(BP.mode){BP.mode=null;BP.start=null;return}setTool(null);sel=null;linkFrom=null;return}
   if(e.code==='Space'){togglePause();e.preventDefault();return}
   if(e.code==='Delete'&&sel&&!sel.isRobot&&sel.type!=='noyau'&&sel.owner===ME){act('demolish',sel.x,sel.y);sel=null;return}
   keys[e.code]=true;
@@ -2496,7 +2718,7 @@ function onGuestPresence(p){
     for(const c of cmds){NET.lastSeq=c.n;const a=Array.isArray(c.a)?c.a:[];if(!GUEST_ACTS.has(a[0]))continue;try{const err=ACT[a[0]](1,...a.slice(1));if(err&&a[0]!=='place')NET.msgOut.push('?'+err)}catch(e){}}
   }
 }
-const GUEST_ACTS=new Set(['filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
+const GUEST_ACTS=new Set(['research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
 function bcRoom(){
   if(NET.role==='host'&&NET.room&&(NET.guestHere||NET.specs.size))return NET.room;
   if(NET.role==='solo'&&SPEC.room&&SPEC.specs.size)return SPEC.room;
@@ -2517,7 +2739,8 @@ function encBuildings(){
   let s='';
   for(const b of buildings){
     let ex=0;
-    if(MACHINES.has(b.type))ex=(b.recipe||0)+(b.crafting?16:0);
+    if(MACHINES.has(b.type)){ex=(b.recipe||0)+(b.crafting?16:0);const st=machState(b);if(st&&st[0]!=='ok')ex+=32}
+    else if(DRILLS.has(b.type)){const st=machState(b);ex=st&&st[0]!=='ok'?32:0}
     else if(b.type==='cryo')ex=b.active?1:0;
     else if(b.type==='extracteur')ex=b.filter?ITEM_ORDER.indexOf(b.filter)+1:0;
     else if(b.type==='lanceur')ex=Math.round((b.count||0)/20*63);
@@ -2546,13 +2769,14 @@ function hostNetTick(now){
   // bâtiments : quand ils changent (max 3/s) et toutes les 4 s
   if(NET.bver!==NET.bSent&&now-NET.bAt>330||now-NET.bAt>4000){NET.bSent=NET.bver;NET.bAt=now;sendChunks('bl',encBuildings(),{v:NET.bver},RM)}
   // état
-  const ps=S.players.map((p,o)=>({i:ITEM_ORDER.map(k=>Math.floor(total(k,o))),l:p.level,x:Math.floor(p.xp),h:Math.ceil(p.coreHp),m:Math.ceil(p.coreMax),d:p.dead?1:0,pp:p.prod,pc:p.cons,g:p.goalsDone,cq:p.craftQ.length?[p.craftQ.length,+p.craftQ[0].left.toFixed(1),ITEM_ORDER.indexOf(RECIPES[p.craftQ[0].set][p.craftQ[0].i].out)]:0}));
+  const ps=S.players.map((p,o)=>({i:ITEM_ORDER.map(k=>Math.floor(total(k,o))),l:p.level,x:Math.floor(p.xp),h:Math.ceil(p.coreHp),m:Math.ceil(p.coreMax),d:p.dead?1:0,pp:p.prod,pc:p.cons,g:p.goalsDone,cq:p.craftQ.length?[p.craftQ.length,+p.craftQ[0].left.toFixed(1),ITEM_ORDER.indexOf(RECIPES[p.craftQ[0].set][p.craftQ[0].i].out)]:0,rs:p.rs?[p.rs.done,p.rs.cur?p.rs.cur.id:0,p.rs.cur?Math.ceil(p.rs.cur.left):0]:0}));
+  if(now-(NET.spAt||0)>2000){NET.spAt=now;NET.spOut=S.players.map((p,o)=>{const pm=perMin(o),rd=x=>{const r={};for(const k in x)if(x[k]>=0.5)r[k]=Math.round(x[k]);return r};return{p:rd(pm.p),c:rd(pm.c),n:rd(pm.n),s:prodSummary(o)}})}else NET.spOut=null;
   let ta='';for(const b of buildings)if(TURRETS.has(b.type)&&b.tgt)ta+=e2(b.x)+e2(b.y)+e1(((b.angle/(Math.PI*2))*64+64)%64)+(b.noAmmo?'1':'0');
   const rb=robots.map(r=>[r.id,Math.round(r.x*10),Math.round(r.y*10),Math.round(r.hp),Math.round(r.maxhp),RSTATES.indexOf(r.state),r.count,r.owner,r.pref,r.tx??-1,r.ty??-1,r.mine?ITEM_ORDER.indexOf(r.mine):-1,r.nochest?1:0,UNIT_KINDS.indexOf(r.kind||'robot'),Math.round((r.charge||0)*100),Math.round(r.ftime||0)]);
   const msg=NET.msgOut.splice(0,5);
   const cp=CAPS.map(c=>[Math.round(c.sx*10),Math.round(c.sy*10),Math.round(c.tx*10),Math.round(c.ty*10),+c.t.toFixed(2),+c.dur.toFixed(2),ITEM_ORDER.indexOf(c.it)]);
   const lk=buildings.filter(b=>b.type==='lanceur'&&b.lk).map(b=>[b.x,b.y,b.lk[0],b.lk[1]]);
-  RM.emit('st',{ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ack:NET.lastSeq,ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
+  RM.emit('st',{sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ack:NET.lastSeq,ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
   if(now-(NET.biAt||0)<400)return;NET.biAt=now;
   let bi='';for(const b of buildings)if(BELT.has(b.type)&&b.item)bi+=e2(b.x)+e2(b.y)+e1(ITEM_ORDER.indexOf(b.item))+e1(b.prog*63);
   sendChunks('bi',bi,{ts:Math.round(now)},RM);
@@ -2617,6 +2841,7 @@ function guestApplyBuildings(str){
     if(t==='cryo')b.active=!!ex;
     if(t==='extracteur')b.filter=ex>0?ITEM_ORDER[ex-1]||null:null;
     if(t==='lanceur')b.count=ex/63*20;if(t==='recepteur')b.count=ex/63*40;
+    b.warn=!!(ex&32);
     if(MACHINES.has(t)){b.recipe=ex&15;b.crafting=ex&16?{t:1}:null;b.prog=0.5}else if(GENS.has(t))b.burn=ex?1:0;else if(t==='coffre')b.used=ex/63*B.coffre.cap;else if(t==='reparateur')b.healing=!!ex;
     if(DRILLS.has(t))b.spin=0;
     const k=x+','+y;if(keepItems[k]&&BELT.has(t)){b.item=keepItems[k][0];b.prog=keepItems[k][1]}
@@ -2688,8 +2913,10 @@ function guestApplyState(d){
     p.xp=q.x|0;p.coreHp=+q.h||0;p.coreMax=+q.m||3000;
     const wasDead=p.dead;p.dead=!!q.d;if(!wasDead&&p.dead)fx({k:'boom',x:cores[o].x+1.5,y:cores[o].y+1.5,r:3,col:'255,120,60',t:1.2,max:1.2});
     p.prod=q.pp|0;p.cons=q.pc|0;p.pr=p.cons>0?Math.min(1,p.prod/p.cons):1;p.goalsDone=Array.isArray(q.g)?q.g:[];
+    if(Array.isArray(q.rs)){p.rs={done:Array.isArray(q.rs[0])?q.rs[0]:[],cur:q.rs[1]?{id:q.rs[1],left:q.rs[2]|0}:null}}
     p.craftQ=Array.isArray(q.cq)?Array.from({length:q.cq[0]},(_,j)=>j===0?{set:'_',left:q.cq[1],out:ITEM_ORDER[q.cq[2]]}:{set:'_',left:0}):[];
   });
+  if(Array.isArray(d.sp))NET.spIn=d.sp;
   // tourelles
   if(typeof d.ta==='string'){for(let i=0;i+6<=d.ta.length;i+=6){const b=at(d2(d.ta,i),d2(d.ta,i+2));if(b&&TURRETS.has(b.type)){b.angT=d1(d.ta,i+4)/64*Math.PI*2;if(b.angle==null)b.angle=b.angT;b.noAmmo=d.ta[i+5]==='1';if(b.type==='tesla')b.fire=0.2}}}
   // robots

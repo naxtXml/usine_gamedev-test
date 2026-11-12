@@ -14,6 +14,10 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 - Niveau maximum : **50**. Une fois au max, **renais** pour gagner 200 points de talent permanents.
 - La nuit tombe à l'approche de chaque attaque : tes bâtiments éclairent la carte.
 - Monstres volants (dès la vague 4) qui survolent les murs, stations de réparation, mini-carte et effets sonores.
+- **Plans** (touche B) : copie une zone de ton usine et recolle-la ailleurs (R pour tourner). Enregistre tes plans favoris dans l'onglet Usine.
+- **Tunnels** : une entrée et une sortie jusqu'à 5 cases plus loin, pour faire passer un tapis sous un autre.
+- **Onglet Usine** : production et consommation par minute, état de chaque type de machine (en marche, manque d'entrée, sortie bloquée, sans énergie) et repérage des machines à problème sur la carte.
+- **Labo (recherche)** : dépense des ressources pour des bonus dans ta partie (vitesse des machines, tapis, dégâts, portée, énergie, XP…).
 - **Extracteur** : colle-le à ton noyau (ou à un coffre) pour en ressortir l'objet de ton choix sur un tapis.
 - **Lanceurs de matériaux** (niv 10) : construis des bases avancées n'importe où, elles envoient leurs ressources par les airs vers un réceptionneur à côté de ton noyau.
 - **7 zones** à débloquer avec les niveaux : Plaines, Désert (niv 8, cuivre), Marais (niv 15, cobalt), Toundra (niv 22, titane), Volcan (niv 30, uranium), Cristaux (niv 38, cristal du vide), Abysses (niv 45, mithril).
@@ -34,6 +38,7 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 | Déplacer la vue | Z Q S D, flèches, ou glisser |
 | Zoom | Molette |
 | Pause | Espace |
+| Copier une zone (plan) / recoller | B / V |
 
 ## Multijoueur à deux
 
