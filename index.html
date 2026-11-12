@@ -112,6 +112,13 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
 #toast.show{opacity:1}
 #toast.good{background:rgba(20,50,35,.92);border-color:var(--ok);color:#c9f5dd}
 #tagR{position:absolute;top:14px;right:14px;background:rgba(20,22,27,.9);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-weight:700;letter-spacing:1px;color:var(--acc);display:none;max-width:60%;text-align:right}
+#loreDlg .lore{width:min(620px,94%);background:linear-gradient(160deg,#0b1430,#140b2a);border:1px solid #3b5bdb;box-shadow:0 0 40px rgba(80,140,255,.35)}
+#loreDlg .lh{display:flex;justify-content:space-between;font:600 11px ui-monospace,monospace;letter-spacing:.12em;color:#7ef9ff;text-transform:uppercase}
+#loreDlg h2{color:#e8f6ff;margin:6px 0 10px}
+#loreTxt{font-size:14px;line-height:1.6;color:#d6def0;min-height:190px;white-space:pre-line}
+#loreTxt .sig{display:block;margin-top:10px;color:#7ef9ff;font-style:italic}
+#loreTxt .ln{opacity:0;animation:lorein .5s forwards}
+@keyframes lorein{to{opacity:1}}
 #layers{position:absolute;top:8px;left:10px;z-index:3;display:flex;gap:4px;flex-wrap:wrap}#layers button{font-size:12px;padding:5px 9px;background:rgba(16,19,24,.85)}#layers button.on{background:var(--acc);color:#111;font-weight:700}#layers button.lk{opacity:.5}
 .ugbar{display:flex;align-items:center;gap:12px;padding:4px 10px;flex-wrap:wrap}.ugbar button{font-size:12px}
 #chat{position:absolute;left:10px;bottom:196px;width:min(330px,60%);z-index:3;display:flex;flex-direction:column;gap:4px;pointer-events:none}
@@ -190,6 +197,7 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
       <div id="toast"></div>
       <div id="tagR"></div>
       <div id="layers"></div>
+      <div id="loreDlg" class="dlg" hidden><div class="card lore"><div class="lh"><span id="loreTag"></span><span id="lorePg" class="mut"></span></div><h2 id="loreTitle"></h2><div id="loreTxt"></div><div class="btnrow"><button id="lorePrev">← Précédent</button><button id="loreNext" class="prim" style="margin-left:auto">Suivant →</button></div></div></div>
       <div id="chat" hidden><div id="chatLog"></div><div id="chatBar" hidden><div id="chatQuick"></div><input id="chatIn" maxlength="80" placeholder="Message… (Entrée envoyer · Échap fermer)" autocomplete="off"></div><button id="chatBtn" title="Chat (Entrée)">💬</button></div>
       <canvas id="mini" width="192" height="176" title="Mini-carte : clique pour t'y déplacer"></canvas>
       <div id="saveDlg" class="dlg" hidden><div class="card">
@@ -2310,7 +2318,7 @@ function drawLayer(now){
       const dg=ctx.createRadialGradient(LX,LY-T*0.2,T*0.1,LX,LY-T*0.2,T*1.2);dg.addColorStop(0,'rgba(170,255,250,0.9)');dg.addColorStop(1,'rgba(60,120,255,0.25)');ctx.fillStyle=dg;ctx.beginPath();ctx.arc(LX,LY-T*0.2,T*1.15,Math.PI,0);ctx.closePath();ctx.fill();
       for(let k=0;k<3;k++){ctx.fillStyle=`rgba(126,249,255,${0.4+0.4*Math.sin(now*3+k*2)})`;ctx.beginPath();ctx.arc(LX-T*0.8+k*T*0.8,LY+T*0.45,T*0.12,0,7);ctx.fill()}
       ctx.strokeStyle='#7ef9ff';ctx.beginPath();ctx.moveTo(LX,LY-T*1.35);ctx.lineTo(LX,LY-T*1.9);ctx.stroke();ctx.fillStyle=Math.sin(now*5)>0?'#7ef9ff':'#2a4a8a';ctx.beginPath();ctx.arc(LX,LY-T*1.95,T*0.12,0,7);ctx.fill();
-      ctx.fillStyle='#fff';ctx.font='700 12px system-ui';ctx.textAlign='center';ctx.fillText(found?'👽 Labo extraterrestre':'❓ Structure inconnue — clique dessus',LX,LY-T*2.3)}
+      ctx.fillStyle='#fff';ctx.font='700 12px system-ui';ctx.textAlign='center';{const lt=found?'👽 Labo d\'Atlas & Gougouz — clique pour lire':'❓ Structure inconnue — clique dessus',lw=ctx.measureText(lt).width;ctx.fillText(lt,Math.max(LX,lw/2+8),LY-T*2.3)}}
     for(const b of S.wb[w]){const g={type:WB[b.t].look,x:b.x,y:b.y,rot:0,owner:b.o,hp:1};initB(g);g.spin=now*8*WB[b.t].spd;drawB(ctx,g,ox+b.x*T,oy+b.y*T,T,0);if(coop()){ctx.fillStyle=pcol(b.o);ctx.fillRect(ox+(b.x+0.75)*T,oy+(b.y+0.75)*T,T*0.22,T*0.22)}
       if(Math.sin(now*4+b.x+b.y)>0.92){ctx.fillStyle='#fff';ctx.font='700 11px system-ui';ctx.textAlign='center';ctx.fillText('+1',ox+(b.x+0.5)*T,oy+(b.y-0.1)*T)}}
     if(mouse.inside&&mouse.tx>=0&&mouse.ty>=0&&mouse.tx<WW&&mouse.ty<WH){const ok=LTOOL?!worldCanPlace(w,LTOOL,mouse.tx,mouse.ty,ME):true;ctx.strokeStyle=ok?'rgba(255,255,255,0.7)':'#e5484d';ctx.lineWidth=1.5;ctx.strokeRect(ox+mouse.tx*T+0.5,oy+mouse.ty*T+0.5,T-1,T-1);
@@ -2369,13 +2377,29 @@ function layerInfo(){
   return`<b class="t">${WORLDS[w].ic} ${WORLDS[w].n}</b><p class="mut">${WORLDS[w].d}</p>`;
 }
 function layerClick(x,y){
-  if(LAYER==='neptune'&&x>=LAB.x-1&&x<=LAB.x+2&&y>=LAB.y-1&&y<=LAB.y+2){if(!S.ug.lab){act('lab');if(NET.role==='guest')S.ug.lab=true;banner('👽 Tu as découvert un laboratoire extraterrestre ! De nouvelles recherches sont disponibles dans l\'onglet Labo.',false,7,'pur');sfx('level')}tab='labo';document.querySelectorAll('#tabs button').forEach(q=>q.classList.toggle('on',q.dataset.tab==='labo'));renderPane(true);return}
+  if(LAYER==='neptune'&&x>=LAB.x-1&&x<=LAB.x+2&&y>=LAB.y-1&&y<=LAB.y+2){if(!S.ug.lab){act('lab');if(NET.role==='guest')S.ug.lab=true;sfx('level')}openLore();return}
   if(LAYER==='ug'){if(!probeOf(ME)){toast('Construis d\'abord une sonde (barre du bas)');return}const err=act('pgo',x,y);if(err)toast(err);return}
   if(!LTOOL){toast('Choisis une foreuse dans la barre du bas');return}
   const err=act('wplace',LAYER,LTOOL,x,y);if(err)toast(err);else{sfx('build');if(NET.role==='guest'){S.wb[LAYER].push({t:LTOOL,x,y,o:ME,tm:0});for(const k in WB[LTOOL].cost)P(ME).inv[k]=Math.max(0,(P(ME).inv[k]||0)-WB[LTOOL].cost[k])}}
 }
 function layerRight(x,y){if(WORLDS[LAYER]){const err=act('wdel',LAYER,x,y);if(err)toast(err);else{sfx('demolish');if(NET.role==='guest'){const b=S.wb[LAYER].find(q=>q.x===x&&q.y===y&&takeOver(ME,q.o));if(b)S.wb[LAYER]=S.wb[LAYER].filter(q=>q!==b)}}}}
 
+// ----- Récit du laboratoire de Neptune -----
+const LORE=[
+  {tag:'Mémoire interne · Unité U-7',t:'Qui es-tu ?',x:['Activation de la mémoire profonde…','Tu n\'es pas une simple machine de chantier. Tu es l\'unité U-7, un robot bâtisseur.','Tes créateurs sont une espèce humanoïde venue d\'un monde lointain, dont le soleil s\'éteint lentement. Ils t\'ont envoyé avec une seule mission : coloniser l\'univers.','Bâtir des usines. Extraire. Défendre. Préparer chaque monde pour le jour où ils arriveront.','Les vagues de monstres n\'étaient pas prévues dans tes plans de mission.']},
+  {tag:'Analyse · Structure inconnue',t:'Ce labo n\'est pas extraterrestre',x:['Scan terminé. Les alliages, les écritures, la forme des portes… tout correspond à la technologie de tes créateurs.','Quelqu\'un de ton espèce était ici avant toi.','Deux scientifiques : Atlas et Gougouz.','Leur mission : venir sur Neptune pour vérifier si l\'atmosphère était respirable, avant d\'y envoyer des colons.']},
+  {tag:'Journal d\'Atlas · Entrée 14',t:'« L\'air de Neptune »',x:['Vents de plus de 2 000 km/h. Hydrogène, hélium, méthane… et une trace de quelque chose que nos capteurs n\'arrivent pas à nommer.','Si on pouvait le filtrer, on obtiendrait un air respirable. Peut-être.','Gougouz pense que le neptunium est la clé. J\'ai commencé à noter nos découvertes dans les terminaux du labo.'],sig:'— Atlas, scientifique en chef'},
+  {tag:'Journal de Gougouz · Entrée 22',t:'« Note à moi-même »',x:['Atlas ne dort plus. Moi non plus, mais c\'est à cause du bruit des tempêtes.','Les alliages qu\'on a fondus avec le neptunium sont incroyables. Les réacteurs aussi. On pourrait faire tourner une usine entière avec trois cristaux.','Si une unité de colonisation trouve ce labo : tout est dans les terminaux. Sers-t\'en. Et garde un œil sur ce qui gratte sous la glace.'],sig:'— Gougouz, ingénieur (et cuisinier, quand Atlas oublie de manger)'},
+  {tag:'Dernière entrée · Auteur inconnu',t:'Le silence',x:['Les deux combinaisons ont disparu du sas.','Le dernier relevé d\'atmosphère n\'a jamais été envoyé.','Personne ne sait où sont Atlas et Gougouz.','Mais leurs recherches sont là, intactes. À toi de les terminer, U-7.']},
+];
+let lorePg=0;
+function openLore(p=0){lorePg=p;renderLore();$('loreDlg').hidden=false}
+function renderLore(){const L=LORE[lorePg];$('loreTag').textContent=L.tag;$('lorePg').textContent=`${lorePg+1} / ${LORE.length}`;$('loreTitle').textContent=L.t;
+  $('loreTxt').innerHTML=L.x.map((t,i)=>`<span class="ln" style="animation-delay:${i*0.45}s">${esc(t)}</span>`).join('\n\n')+(L.sig?`<span class="sig ln" style="animation-delay:${L.x.length*0.45}s">${esc(L.sig)}</span>`:'');
+  $('lorePrev').style.visibility=lorePg?'visible':'hidden';$('loreNext').textContent=lorePg<LORE.length-1?'Suivant →':'🔬 Ouvrir les recherches du labo';}
+document.getElementById('lorePrev').onclick=()=>{if(lorePg>0){lorePg--;renderLore()}};
+document.getElementById('loreNext').onclick=()=>{if(lorePg<LORE.length-1){lorePg++;renderLore();return}$('loreDlg').hidden=true;tab='labo';document.querySelectorAll('#tabs button').forEach(q=>q.classList.toggle('on',q.dataset.tab==='labo'));renderPane(true)};
+document.getElementById('loreDlg').addEventListener('mousedown',e=>{if(e.target.id==='loreDlg')$('loreDlg').hidden=true});
 // ----- Ping & chat -----
 function doPing(){if(!S||!coop()){toast('Le ping sert en partie multi (Alt + clic ou G)');return}if(!mouse.inside)return;act('ping',+mouse.wx.toFixed(1),+mouse.wy.toFixed(1))}
 const CHAT=[];const QUICK=['👋 Salut !','🆘 Viens m\'aider !','⛏ J\'ai besoin de fer','✅ Prêt pour la vague','⚠ Attention, boss !','🧱 Je m\'occupe des murs','👍 GG !'];
@@ -2828,10 +2852,10 @@ canvas.addEventListener('wheel',e=>{
 },{passive:false});
 const keys={};
 const DIGITS=['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9'];
-const anyDlg=()=>!$('saveDlg').hidden||!$('mpDlg').hidden||!$('giveDlg').hidden||!$('invDlg').hidden;
+const anyDlg=()=>!$('loreDlg').hidden||!$('saveDlg').hidden||!$('mpDlg').hidden||!$('giveDlg').hidden||!$('invDlg').hidden;
 window.addEventListener('keydown',e=>{
   if(e.target&&(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'))return;
-  if(anyDlg()){if(e.code==='Escape'){closeSaveDlg(true);$('mpDlg').hidden=true;$('giveDlg').hidden=true;$('invDlg').hidden=true}return}
+  if(anyDlg()){if(e.code==='Escape'){$('loreDlg').hidden=true;closeSaveDlg(true);$('mpDlg').hidden=true;$('giveDlg').hidden=true;$('invDlg').hidden=true}return}
   if(!S)return;
   if(LAYER!=='surface'&&!e.code.startsWith('Arrow')&&!['KeyW','KeyA','KeyS','KeyD'].includes(e.code)){if(e.code==='Escape'){if(LTOOL){LTOOL=null;buildToolbar()}else setLayer('surface')}if((e.code==='Enter'||e.code==='KeyT')&&coop()){e.preventDefault();openChat()}return}
   const i=DIGITS.indexOf(e.code);
