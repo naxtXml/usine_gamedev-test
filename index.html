@@ -2004,7 +2004,7 @@ async function getRoom(){
   ROOM={join:(name,role)=>mqttJoin(name,role),pickBroker:()=>mqttPick()};NET.transport='relay';return ROOM;
 }
 // ----- Transport par relais (hors claude.ai) : serveur MQTT public, via WebSocket -----
-const BROKERS=window.__BROKERS||['wss://broker.emqx.io:8084/mqtt','wss://broker.hivemq.com:8884/mqtt','wss://test.mosquitto.org:8081/mqtt'];
+const BROKERS=window.__BROKERS||['wss://broker.emqx.io:8084/mqtt','wss://mqtt.eclipseprojects.io:443/mqtt','wss://broker.hivemq.com:8884/mqtt','wss://test.mosquitto.org:8081/mqtt'];
 const MQ={client:null,bi:-1};
 let MQTTLIB=null;
 function loadMqtt(){
@@ -2016,8 +2016,8 @@ function loadMqtt(){
 }
 function mqttConnectTo(bi){
   return new Promise((res,rej)=>{
-    const cl=window.mqtt.connect(BROKERS[bi],{clientId:'ua_'+Math.random().toString(36).slice(2,12),clean:true,connectTimeout:7000,reconnectPeriod:2000,keepalive:25});
-    const to=setTimeout(()=>{try{cl.end(true)}catch(e){}rej({code:'broker'})},8000);
+    const cl=window.mqtt.connect(BROKERS[bi],{clientId:'ua_'+Math.random().toString(36).slice(2,12),clean:true,connectTimeout:5000,reconnectPeriod:2000,keepalive:25});
+    const to=setTimeout(()=>{try{cl.end(true)}catch(e){}rej({code:'broker'})},6000);
     cl.once('connect',()=>{clearTimeout(to);MQ.client=cl;MQ.bi=bi;res(cl)});
   });
 }
@@ -2141,7 +2141,7 @@ function renderMp(){
   }else{
     const here=NET.role==='host'?NET.guestHere:Date.now()-NET.lastSt<5000;
     c.innerHTML=`<h2>Partie à deux</h2>
-      <p>Code de la partie :</p><div class="code">${NET.code}</div>
+      <p>Code de la partie :</p><div class="code">${NET.code}</div>${NET.transport==='relay'&&MQ.bi>=0?`<p class="mut" style="font-size:11.5px;margin-top:6px">Relais : ${esc(BROKERS[MQ.bi].replace(/^wss:\/\//,'').replace(/\/mqtt$/,''))}</p>`:''}
       <p style="margin-top:10px">${NET.role==='host'?(here?`<span class="okc">✓ ${esc(NET.guestName)} est connecté</span>`:'<span class="mut">En attente de ton coéquipier… donne-lui ce code.</span>'):(here?`<span class="okc">✓ Connecté à la partie de ${esc(NET.hostName)}</span>`:'<span class="mut">Connexion à l\'hôte…</span>')}</p>
       <div id="mpMsg" class="msg"></div>
       <div class="btnrow"><button class="danger" id="mpLeave">Quitter la partie à deux</button><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
