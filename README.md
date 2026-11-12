@@ -14,6 +14,7 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 - Au niveau 20, **renais** pour gagner des points de talent permanents.
 - La nuit tombe à l'approche de chaque attaque : tes bâtiments éclairent la carte.
 - Monstres volants (dès la vague 4) qui survolent les murs, stations de réparation, mini-carte et effets sonores.
+- **Extracteur** : colle-le à ton noyau (ou à un coffre) pour en ressortir l'objet de ton choix sur un tapis.
 - **Lanceurs de matériaux** (niv 10) : construis des bases avancées n'importe où, elles envoient leurs ressources par les airs vers un réceptionneur à côté de ton noyau.
 - **5 zones** à débloquer avec les niveaux : Plaines, Désert (niv 8, cuivre), Marais (niv 15, cobalt), Toundra (niv 22, titane), Volcan (niv 30, uranium).
 - Nouvelles machines (forge, centrifugeuse, éolienne, réacteur à fusion, foreuse laser, tapis express) et défenses (lance-flammes, tourelle cryo, canon électromagnétique, mur en titane, bouclier).

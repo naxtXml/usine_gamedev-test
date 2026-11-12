@@ -299,6 +299,7 @@ const B={
   repartiteur:{cat:'log',n:'Répartiteur',cost:{lingot_fer:5},hp:150,col:'#5a6170',desc:'1 entrée (arrière) → 3 sorties (avant + côtés), distribuées chacune leur tour.'},
   lanceur:{cat:'log',n:'Lanceur de matériaux',cost:{acier:10,moteur:2,circuit:4},hp:400,pw:-8,col:'#b0703a',lvl:10,desc:'Reçoit des objets par tapis et les envoie par les airs, par lots de 5, vers un réceptionneur (le plus proche, ou celui que tu choisis). Distance illimitée.'},
   recepteur:{cat:'log',n:'Réceptionneur',cost:{acier:6,circuit:2},hp:400,col:'#3a7ab0',lvl:10,desc:'Attrape les objets envoyés par tes lanceurs et les ressort côté flèche : vers ton noyau, un tapis ou une machine.'},
+  extracteur:{cat:'log',n:'Extracteur',cost:{lingot_fer:8},hp:250,col:'#3f8a68',desc:'Colle-le à ton noyau (ou à un de tes coffres) : il en sort l\'objet que tu choisis, côté flèche, 5 par seconde. Clique dessus pour choisir l\'objet.'},
   coffre:{cat:'log',n:'Coffre',cost:{lingot_fer:10},hp:300,col:'#8a5d2e',cap:400,desc:'Stocke 400 objets (par tapis ou par robot). Son contenu compte dans ton stock pour construire et pour l\'Atelier.'},
   robot:{cat:'log',unit:true,n:'Robot collecteur',cost:{acier:20,batterie:5,circuit:10},hp:1500,col:'#e0b341',lvl:10,desc:'Très résistant. Va miner seul, fond le minerai sur place et dépose les lingots dans ton coffre le plus proche. Max 5 par joueur.'},
   foreuse:{cat:'prod',n:'Foreuse',cost:{lingot_fer:8},hp:200,pw:-2,col:'#c77d32',spd:1,desc:'Sur un gisement solide (fer, quartz, or, diamant). Sort le minerai côté flèche.'},
@@ -337,7 +338,7 @@ const TYPES=Object.keys(B);
 const CATS=[['log','Logistique'],['prod','Production'],['nrj','Énergie'],['def','Défense']];
 const kind=t=>B[t].base||t;
 const BELT=new Set(['tapis','tapis_rapide','tapis_express']);
-const ROTATABLE=new Set(['recepteur','tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
+const ROTATABLE=new Set(['extracteur','recepteur','tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
 const MACHINES=new Set(['fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','forge','centrifugeuse']);
 const DRILLS=new Set(['foreuse','foreuse_avancee','foreuse_laser','pompe']);
 const TURRETS=new Set(['mitrailleuse','mitrailleuse_lourde','laser','plasma','tesla','lance_flammes','railgun']);
@@ -511,6 +512,7 @@ function initB(b){
   else if(TURRETS.has(t)){b.cd=0;b.angle=-Math.PI/2;b.noAmmo=false;b.fire=0}
   else if(t==='fusionneur'){b.buf=[null,null,null,null];b.next=0;b.pushCd=0}
   else if(t==='repartiteur'){b.item=null;b.next=0;b.pushCd=0}
+  else if(t==='extracteur'){b.filter=b.filter||null;b.pushCd=0}
   else if(t==='coffre'){b.store=b.store||{};b.used=Object.values(b.store).reduce((a,v)=>a+v,0)}
   else if(t==='lanceur'||t==='recepteur'){b.store=b.store||{};b.count=Object.values(b.store).reduce((a,v)=>a+v,0);b.cd=0;b.pushCd=0;b.incoming=0;b.lk=b.lk||null}
 }
@@ -580,6 +582,7 @@ const ACT={
     notify(to,`${playerName(o)} t'a donné ${n} ${ITEMS[item].n}`);
     return null;
   },
+  filter(o,x,y,item){const b=at(x,y);if(!b||b.type!=='extracteur'||b.owner!==o)return null;b.filter=item&&ITEMS[item]?item:null;NET.bver++;return null},
   link(o,lx,ly,rx,ry){const l=at(lx,ly),r=at(rx,ry);if(!l||!r||l.type!=='lanceur'||r.type!=='recepteur'||l.owner!==o||r.owner!==o)return 'Choisis un de tes réceptionneurs';l.lk=[rx,ry];NET.bver++;return null},
   vote(o,on){if(!coop())return null;S.votes[o]=!!on;return null},
   revive(o){
@@ -687,6 +690,17 @@ function updB(b,dt){
     }
     b.pushCd-=dt;
     if(b.out>0&&b.pushCd<=0&&tryPush(b,b.outItem)){b.out--;b.pushCd=0.1;if(b.out===0)b.outItem=null}
+    return;
+  }
+  if(t==='extracteur'){
+    b.pushCd-=dt;b.active=false;
+    if(!b.filter||b.pushCd>0)return;
+    const k=b.filter;
+    for(let dI=0;dI<4;dI++){
+      if(dI===b.rot)continue;const [dx,dy]=DIRS[dI],src=at(b.x+dx,b.y+dy);if(!src)continue;
+      if(src.type==='noyau'&&src.owner===o&&!P(o).dead&&(P(o).inv[k]||0)>=1){if(tryPush(b,k)){P(o).inv[k]-=1;b.pushCd=0.2;b.active=true}return}
+      if(src.type==='coffre'&&src.owner===o&&(src.store[k]||0)>=1){if(tryPush(b,k)){src.store[k]-=1;src.used-=1;b.pushCd=0.2;b.active=true}return}
+    }
     return;
   }
   if(t==='lanceur'){
@@ -1156,6 +1170,12 @@ function drawB(c,b,x,y,s,now){
   if(k==='noyau'){c.fillStyle='rgba(0,0,0,0.3)';rr(c,x+s*0.3,y+s*0.4,s*2.9,s*2.9,s*0.4);c.fill()}
   else if(k!=='tapis'){c.fillStyle='rgba(0,0,0,0.28)';rr(c,x+s*0.13,y+s*0.17,s*0.88,s*0.88,s*0.16);c.fill()}
   switch(k){
+    case 'extracteur':{
+      body(c,x,y,s,d.col);
+      c.fillStyle='#16261e';c.beginPath();c.arc(cx,cy,s*0.2,0,7);c.fill();
+      if(b.filter){drawItem(c,b.filter,cx,cy,s*0.24)}else{c.strokeStyle='rgba(255,255,255,0.4)';c.lineWidth=Math.max(1,s*0.04);c.beginPath();c.arc(cx,cy,s*0.12,0,7);c.stroke()}
+      for(let i=0;i<4;i++){if(i===b.rot)continue;arrow(c,cx,cy,s,(i+2)%4,b.active&&now>0&&Math.sin(now*12)>0?'#9be7c0':'rgba(255,255,255,0.35)',false)}
+      arrow(c,cx,cy,s,b.rot,'#ffd23f');break;}
     case 'lanceur':{
       body(c,x,y,s,d.col);
       c.fillStyle='#2a2e36';c.beginPath();c.arc(cx,cy,s*0.26,0,7);c.fill();
@@ -1576,6 +1596,12 @@ function bInfo(b,isSel){
     if(b.crafting)h+='<p class="okc">En production</p>';else if(b.out>=8)h+='<p class="bad">Sortie bloquée</p>';
   }
   if(b.type==='fusionneur'||b.type==='repartiteur')h+=`<p class="mut">${d.desc}</p>`;
+  if(b.type==='extracteur'){
+    const src=[0,1,2,3].filter(i=>i!==b.rot).map(i=>at(b.x+DIRS[i][0],b.y+DIRS[i][1])).find(q=>q&&(q.type==='noyau'||q.type==='coffre')&&q.owner===b.owner);
+    h+=src?`<p class="okc">Branché sur ${src.type==='noyau'?'ton noyau':'un coffre'}</p>`:'<p class="bad">Colle-le à ton noyau ou à un de tes coffres</p>';
+    h+=`<p>Objet extrait : ${b.filter?sw(b.filter)+' <b>'+ITEMS[b.filter].n+'</b>':'<span class="mut">aucun</span>'}</p>`;
+    if(isSel&&mine){const ks=ITEM_ORDER.filter(k=>k===b.filter||Math.floor(total(k))>0);h+='<p class="mut">Choisis l\'objet à sortir :</p><div class="btnrow">'+ks.map(k=>`<button class="${k===b.filter?'prim':''}" data-flt="${k}" title="${ITEMS[k].n}">${sw(k)} ${ITEMS[k].n}</button>`).join('')+(b.filter?'<button data-flt="">Aucun</button>':'')+'</div>'}
+  }
   if(b.type==='lanceur'){const tg=b.lk?at(b.lk[0],b.lk[1]):null;h+=`<p>Chargement : ${Math.round(b.count||0)} / 20</p>`+(tg&&tg.type==='recepteur'?`<p class="okc">Cible : réceptionneur à ${Math.round(Math.hypot(tg.x-b.x,tg.y-b.y))} cases</p>`:'<p class="bad">Aucun réceptionneur : pose-en un près de ton noyau</p>');if(isSel&&mine)h+=`<div class="btnrow"><button class="blue" data-act="link">${linkFrom===b?'Clique un réceptionneur sur la carte…':'Changer de cible'}</button></div>`}
   if(b.type==='recepteur')h+=`<p>Stock : ${Math.round(b.count||0)} / 40</p><p class="mut">Oriente la flèche vers ton noyau, un tapis ou une machine (touche R).</p>`;
   if(b.type==='coffre'){if(guest)h+=`<p>Rempli : ${Math.round((b.used||0))} / ${d.cap}</p>`;else{const ks=Object.keys(b.store).filter(k=>b.store[k]>0);h+=`<p>Rempli : ${b.used} / ${d.cap}</p><div class="inv">${ks.map(k=>`<div class="it">${sw(k)}<span>${ITEMS[k].n}</span><span class="n">${b.store[k]}</span></div>`).join('')||'<span class="mut">Vide</span>'}</div>`}}
@@ -1654,6 +1680,8 @@ function renderPane(force){
 $('pane').addEventListener('pointerdown',e=>{
   const rec=e.target.closest('[data-rec]');
   if(rec&&!rec.disabled&&sel&&(B[sel.type]?.rs==='assembleur'||B[sel.type]?.rs==='forge')){const i=+rec.dataset.rec;act('recipe',sel.x,sel.y,i);if(NET.role==='guest')sel.recipe=i;renderPane(true);return}
+  const fl=e.target.closest('[data-flt]');
+  if(fl&&sel&&sel.type==='extracteur'){const v=fl.dataset.flt||null;act('filter',sel.x,sel.y,v);if(NET.role==='guest')sel.filter=v;renderPane(true);return}
   const pf=e.target.closest('[data-pref]');
   if(pf&&sel&&sel.isRobot){act('rpref',sel.id,pf.dataset.pref);if(NET.role==='guest')sel.pref=pf.dataset.pref;renderPane(true);return}
   const cr=e.target.closest('[data-craft]');
@@ -1876,7 +1904,7 @@ miniCv.addEventListener('contextmenu',e=>e.preventDefault());
 
 // ================= SAVE / LOAD =================
 function snapshot(){
-  return {v:3,mapV:MAP_V,savedAt:Date.now(),S,gm:guestMeta,b:buildings.map(b=>({t:b.type,x:b.x,y:b.y,r:b.rot,h:b.hp,o:b.owner,rc:b.recipe||0,st:b.store,lk:b.lk})),rb:robots.map(r=>({x:r.x,y:r.y,h:r.hp,c:r.cargo,n:r.count,p:r.pref,o:r.owner})),m:monsters.map(m=>({t:m.type,x:m.x,y:m.y,h:m.hp,mh:m.maxhp,d:m.dmg,hm:m.hpMul,dm:m.dmgMul})),q:spawnQ};
+  return {v:3,mapV:MAP_V,savedAt:Date.now(),S,gm:guestMeta,b:buildings.map(b=>({t:b.type,x:b.x,y:b.y,r:b.rot,h:b.hp,o:b.owner,rc:b.recipe||0,st:b.store,lk:b.lk,fl:b.filter})),rb:robots.map(r=>({x:r.x,y:r.y,h:r.hp,c:r.cargo,n:r.count,p:r.pref,o:r.owner})),m:monsters.map(m=>({t:m.type,x:m.x,y:m.y,h:m.hp,mh:m.maxhp,d:m.dmg,hm:m.hpMul,dm:m.dmgMul})),q:spawnQ};
 }
 let localSavedAt=0;
 function save(){
@@ -1898,7 +1926,7 @@ function applySave(d){
   S=Object.assign(newState(s.seed,s.mode),s);S.paused=false;
   for(const p of S.players){p.craftQ=p.craftQ||[];p.goalsDone=p.goalsDone||[];p.made=p.made||{}}
   if(d.gm)guestMeta=d.gm;
-  for(const o of d.b){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}if(o.lk)b.lk=o.lk}
+  for(const o of d.b){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}if(o.lk)b.lk=o.lk;if(o.fl&&ITEMS[o.fl])b.filter=o.fl}
   robots=(d.rb||[]).map(o=>{const r=newRobot(o.x,o.y,o.o||0);r.hp=o.h;r.cargo=o.c||{};r.count=o.n||0;r.pref=o.p||'auto';return r});
   monsters=(d.m||[]).map(o=>({id:monSeq++,type:o.t,x:o.x,y:o.y,hp:o.h,maxhp:o.mh,dmg:o.d,cd:0,ox:(Math.random()-0.5)*0.4,oy:(Math.random()-0.5)*0.4,fx:0,fy:1,seed:Math.random()*10,flash:0,spawnT:6,hpMul:o.hm||1,dmgMul:o.dm||1}));
   spawnQ=d.q||[];
@@ -2204,7 +2232,7 @@ function onGuestPresence(p){
     for(const c of cmds){NET.lastSeq=c.n;const a=Array.isArray(c.a)?c.a:[];if(!GUEST_ACTS.has(a[0]))continue;try{const err=ACT[a[0]](1,...a.slice(1));if(err&&a[0]!=='place')NET.msgOut.push('?'+err)}catch(e){}}
   }
 }
-const GUEST_ACTS=new Set(['link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
+const GUEST_ACTS=new Set(['filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
 function hostSendHello(){
   if(!NET.room)return;
   NET.room.emit('hello',{seed:S.seed,mode:'coop',name:NET.hostName,pid:PID,meta:META.talents||{}}).catch(()=>{});
@@ -2216,6 +2244,7 @@ function encBuildings(){
     let ex=0;
     if(MACHINES.has(b.type))ex=(b.recipe||0)+(b.crafting?16:0);
     else if(b.type==='cryo')ex=b.active?1:0;
+    else if(b.type==='extracteur')ex=b.filter?ITEM_ORDER.indexOf(b.filter)+1:0;
     else if(b.type==='lanceur')ex=Math.round((b.count||0)/20*63);
     else if(b.type==='recepteur')ex=Math.round((b.count||0)/40*63);
     else if(GENS.has(b.type))ex=b.burn>0?1:0;
@@ -2296,6 +2325,7 @@ function guestApplyBuildings(str){
     const t=TYPES[d1(str,i)];if(!t)continue;const x=d2(str,i+1),y=d2(str,i+3);if(x<0||y<0||x>=W||y>=H||grid[y][x])continue;
     const b={type:t,x,y,rot:d1(str,i+5)&3,owner:d1(str,i+6)?1:0,hp:0};initB(b);b.hp=d1(str,i+7)/63*maxHp(b);const ex=d1(str,i+8);
     if(t==='cryo')b.active=!!ex;
+    if(t==='extracteur')b.filter=ex>0?ITEM_ORDER[ex-1]||null:null;
     if(t==='lanceur')b.count=ex/63*20;if(t==='recepteur')b.count=ex/63*40;
     if(MACHINES.has(t)){b.recipe=ex&15;b.crafting=ex&16?{t:1}:null;b.prog=0.5}else if(GENS.has(t))b.burn=ex?1:0;else if(t==='coffre')b.used=ex/63*B.coffre.cap;else if(t==='reparateur')b.healing=!!ex;
     if(DRILLS.has(t))b.spin=0;
