@@ -2001,7 +2001,65 @@ const onClaude=()=>!!(window.claude&&typeof window.claude.use==='function');
 async function getRoom(){
   if(ROOM)return ROOM;
   if(onClaude()){try{const r=await claude.use('room');if(r){ROOM=r;NET.transport='claude';return r}}catch(e){}}
-  ROOM={join:(name,role)=>peerJoin(name,role)};NET.transport='peer';return ROOM;
+  ROOM={join:(name,role)=>mqttJoin(name,role),pickBroker:()=>mqttPick()};NET.transport='relay';return ROOM;
+}
+// ----- Transport par relais (hors claude.ai) : serveur MQTT public, via WebSocket -----
+const BROKERS=window.__BROKERS||['wss://broker.emqx.io:8084/mqtt','wss://broker.hivemq.com:8884/mqtt','wss://test.mosquitto.org:8081/mqtt'];
+const MQ={client:null,bi:-1};
+let MQTTLIB=null;
+function loadMqtt(){
+  if(window.mqtt)return Promise.resolve(window.mqtt);
+  if(MQTTLIB)return MQTTLIB;
+  const srcs=[window.__MQTT_SRC,'https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js','https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js'].filter(Boolean);
+  MQTTLIB=new Promise((res,rej)=>{let i=0;const next=()=>{if(i>=srcs.length){MQTTLIB=null;rej({code:'load'});return}const sc=document.createElement('script');sc.src=srcs[i++];sc.onload=()=>window.mqtt?res(window.mqtt):next();sc.onerror=next;document.head.appendChild(sc)};next()});
+  return MQTTLIB;
+}
+function mqttConnectTo(bi){
+  return new Promise((res,rej)=>{
+    const cl=window.mqtt.connect(BROKERS[bi],{clientId:'ua_'+Math.random().toString(36).slice(2,12),clean:true,connectTimeout:7000,reconnectPeriod:2000,keepalive:25});
+    const to=setTimeout(()=>{try{cl.end(true)}catch(e){}rej({code:'broker'})},8000);
+    cl.once('connect',()=>{clearTimeout(to);MQ.client=cl;MQ.bi=bi;res(cl)});
+  });
+}
+async function mqttPick(){
+  await loadMqtt();
+  if(MQ.client&&MQ.client.connected)return MQ.bi;
+  for(let i=0;i<BROKERS.length;i++){try{await mqttConnectTo(i);return i}catch(e){}}
+  throw {code:'broker'};
+}
+async function mqttJoin(name,role){
+  await loadMqtt();
+  const code=name.slice(3).toUpperCase(),bi=clamp((parseInt(code[4],10)||1)-1,0,BROKERS.length-1);
+  let cl=MQ.client&&MQ.bi===bi&&MQ.client.connected?MQ.client:null;
+  if(!cl){if(MQ.client){try{MQ.client.end(true)}catch(e){}MQ.client=null}cl=await mqttConnectTo(bi)}
+  const base='usine-assiegee/v2/'+name+'/',inT=base+(role==='host'?'g':'h'),outT=base+(role==='host'?'h':'g');
+  const myId=Math.random().toString(36).slice(2,10),handlers={},peerHandlers=[],peers={};let mypres={},guestId=null,alive=true;
+  const send=o=>{if(!alive)return;o.f=myId;try{cl.publish(outT,JSON.stringify(o),{qos:0})}catch(e){}};
+  const fireTopic=(topic,data,from)=>{(handlers[topic]||[]).forEach(f=>{try{f({topic,data,peer:from,isMe:false,sameTab:false,by:null,kind:'viewer',guest:false})}catch(e){console.error(e)}})};
+  const firePeers=(j,u,l)=>{const list=Object.values(peers);peerHandlers.forEach(f=>{try{f({peers:list,joined:j,updated:u,left:l})}catch(e){console.error(e)}})};
+  const onMsg=(topic,payload)=>{
+    if(topic!==inT)return;let m;try{m=JSON.parse(payload.toString())}catch(e){return}
+    if(!m||typeof m!=='object'||m.f===myId)return;
+    if(m.to&&m.to!==myId)return;
+    if(role==='host'&&m.t==='pr'){if(guestId&&m.f!==guestId&&peers[guestId]){send({t:'ev',topic:'full',data:{},to:m.f});return}guestId=m.f}
+    if(m.t==='ev'&&typeof m.topic==='string')fireTopic(m.topic,m.data,m.f);
+    else if(m.t==='pr'&&m.presence&&typeof m.presence==='object'){const isNew=!peers[m.f];peers[m.f]={peer:m.f,by:null,isMe:false,sameTab:false,kind:'viewer',guest:false,presence:m.presence,updatedAt:Date.now(),last:Date.now()};firePeers(isNew?[peers[m.f]]:[],isNew?[]:[peers[m.f]],[])}
+    else if(m.t==='hb'&&peers[m.f])peers[m.f].last=Date.now();
+  };
+  cl.on('message',onMsg);
+  await new Promise((res,rej)=>cl.subscribe(inT,{qos:0},err=>err?rej({code:'subscribe'}):res()));
+  cl.on('connect',()=>{if(alive)cl.subscribe(inT,{qos:0})});
+  const hb=setInterval(()=>{
+    if(Object.keys(mypres).length)send({t:'pr',presence:mypres});else send({t:'hb'});
+    const now=Date.now();for(const id in peers)if(now-peers[id].last>15000){const pp=peers[id];delete peers[id];if(id===guestId)guestId=null;firePeers([],[],[pp])}
+  },2500);
+  return {name,
+    emit:async(topic,data)=>send({t:'ev',topic,data}),
+    on:(topic,f)=>{(handlers[topic]=handlers[topic]||[]).push(f);return()=>{handlers[topic]=handlers[topic].filter(x=>x!==f)}},
+    presence:async pt=>{for(const k in pt){if(pt[k]===null)delete mypres[k];else mypres[k]=pt[k]}send({t:'pr',presence:mypres})},
+    onPeers:f=>{peerHandlers.push(f);return()=>{}},
+    peers:()=>Object.values(peers),connected:()=>cl.connected,
+    leave:async()=>{alive=false;clearInterval(hb);cl.removeListener('message',onMsg);try{cl.unsubscribe(inT)}catch(e){}}};
 }
 // ----- Transport pair-à-pair (hors claude.ai) : PeerJS / WebRTC -----
 let PEERLIB=null;
@@ -2071,7 +2129,7 @@ function renderMp(){
       <div class="btnrow"><button class="blue" id="mpHost">Créer une nouvelle partie à deux</button>${hasCoop?'<button id="mpResume">Reprendre la partie à deux sauvegardée</button>':''}</div>
       <h4>Rejoindre</h4>
       <div style="display:flex;gap:6px"><input id="mpCode" maxlength="5" placeholder="CODE" autocomplete="off"><button class="okb" id="mpJoin" style="flex:none">Rejoindre</button></div>
-      <p class="mut" style="font-size:12px;margin-top:8px">${onClaude()?'Ton ami doit être connecté à claude.ai et avoir accès à ce jeu : invite-le par e-mail depuis le bouton Partager (un simple lien public ne suffit pas pour le multijoueur).':'Envoie le lien du jeu et le code à ton ami : vos deux navigateurs se connectent directement, sans compte. Sur certains réseaux très verrouillés (entreprise, école), la connexion peut échouer.'}</p>
+      <p class="mut" style="font-size:12px;margin-top:8px">${onClaude()?'Ton ami doit être connecté à claude.ai et avoir accès à ce jeu : invite-le par e-mail depuis le bouton Partager (un simple lien public ne suffit pas pour le multijoueur).':'Envoie le lien du jeu et le code à ton ami : vos deux jeux communiquent par un relais internet gratuit, sans compte. L\'hôte garde son onglet ouvert et visible.'}</p>
       <div id="mpMsg" class="msg"></div>
       <div class="btnrow"><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
     if($('mpName'))$('mpName').addEventListener('change',e=>setPseudo(e.target.value));
@@ -2098,8 +2156,9 @@ async function startHost(resume){
   mpMsg('Connexion…');
   const R=await getRoom().catch(()=>null);
   if(!R){mpMsg('Le multijoueur n\'est pas disponible ici : ouvre le jeu sur claude.ai en étant connecté.','bad');return}
-  let code,room,lastErr;
-  for(let k=0;k<3&&!room;k++){code=randCode();try{room=await R.join('ua-'+code.toLowerCase(),'host')}catch(e){lastErr=e;if(!(e&&e.code==='unavailable-id'))break}}
+  let code,room,lastErr,bsuf='';
+  if(R.pickBroker){try{bsuf=String((await R.pickBroker())+1)}catch(e){mpMsg(e&&e.code==='load'?'Impossible de charger le module multijoueur (connexion internet ?).':'Impossible de joindre le serveur de relais. Vérifie ta connexion internet.','bad');return}}
+  for(let k=0;k<3&&!room;k++){code=bsuf?randCode().slice(0,4)+bsuf:randCode();try{room=await R.join('ua-'+code.toLowerCase(),'host')}catch(e){lastErr=e;if(!(e&&e.code==='unavailable-id'))break}}
   if(!room){mpMsg(lastErr&&lastErr.code==='load'?'Impossible de charger le module multijoueur (connexion internet ?).':'Impossible de créer la partie ('+(lastErr&&lastErr.code||'erreur')+').','bad');return}
   try{await room.emit('ping',{})}catch(e){if(e&&e.code==='not_permitted'){mpMsg('Seul le propriétaire du jeu (ou un éditeur) peut héberger. Demande à ton ami de créer la partie, ou rejoins-la avec son code.','bad');room.leave();return}}
   if(S&&S.mode==='solo')save();
@@ -2185,7 +2244,7 @@ async function startGuest(codeRaw){
   const R=await getRoom().catch(()=>null);
   if(!R){mpMsg('Le multijoueur n\'est pas disponible ici : ouvre le jeu sur claude.ai en étant connecté.','bad');return}
   let room;
-  try{room=await R.join('ua-'+code.toLowerCase(),'guest')}catch(e){const c=e&&e.code;mpMsg(c==='peer-unavailable'?'Aucune partie trouvée avec ce code. Vérifie le code et que ton ami a bien créé la partie (onglet ouvert).':c==='load'?'Impossible de charger le module multijoueur (connexion internet ?).':'Impossible de rejoindre ('+(c||'erreur')+')'+(onClaude()?'. Vérifie que ton ami t\'a invité par e-mail.':'.'),'bad');return}
+  try{room=await R.join('ua-'+code.toLowerCase(),'guest')}catch(e){const c=e&&e.code;mpMsg(c==='peer-unavailable'?'Aucune partie trouvée avec ce code. Vérifie le code et que ton ami a bien créé la partie (onglet ouvert).':c==='broker'?'Impossible de joindre le serveur de relais. Vérifie ta connexion internet.':c==='load'?'Impossible de charger le module multijoueur (connexion internet ?).':'Impossible de rejoindre ('+(c||'erreur')+')'+(onClaude()?'. Vérifie que ton ami t\'a invité par e-mail.':'.'),'bad');return}
   if(NET.transport!=='claude'&&getPseudo())NET.myName=getPseudo();
   if(S&&S.mode==='solo')save();
   NET.role='guest';NET.room=room;NET.code=code;NET.joined=false;NET.mySeq=0;NET.myCmds=[];NET.sid=Math.random().toString(36).slice(2,10);NET.lastSt=0;NET.hostName='Hôte';NET.guestName=NET.myName||'Toi';NET.bl={};NET.mo={};NET.bi={};

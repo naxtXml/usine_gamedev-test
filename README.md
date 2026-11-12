@@ -35,7 +35,7 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 
 Bouton **Multijoueur** : l'un crée la partie et donne le code de 5 lettres, l'autre le saisit. Chacun a son noyau et son stock, vous pouvez vous donner des matériaux (clic droit sur le noyau de l'autre), réanimer le noyau tombé du coéquipier une fois la vague éliminée, et lancer la vague plus tôt si vous êtes prêts tous les deux. Vagues toutes les 15 minutes.
 
-La connexion se fait directement entre les deux navigateurs (WebRTC via PeerJS), sans compte. Sur certains réseaux très verrouillés, elle peut échouer.
+Les deux jeux communiquent par un relais internet gratuit (serveur MQTT public), sans compte. L'hôte garde son onglet ouvert.
 
 ## Sauvegarde
 
@@ -43,4 +43,4 @@ La partie est sauvegardée automatiquement dans le navigateur. Le bouton **Sauve
 
 ## Technique
 
-Un seul fichier `index.html` (HTML, CSS et JavaScript). Seule dépendance : [PeerJS](https://peerjs.com/), chargée à la demande pour le multijoueur.
+Un seul fichier `index.html` (HTML, CSS et JavaScript). Seule dépendance : [MQTT.js](https://github.com/mqttjs/MQTT.js), chargée à la demande pour le multijoueur.
