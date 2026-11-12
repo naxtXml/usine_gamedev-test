@@ -3216,7 +3216,11 @@ function renderMp(){
     $('mpLeave').onclick=leaveCoop;
   }else{
     const here=NET.role==='host'?NET.guestHere:Date.now()-NET.lastSt<5000;
-    const plist=coop()?S.players.map((q,o)=>`<div style="display:flex;align-items:center;gap:6px;font-size:13px"><span class="sw" style="background:${pcol(o)}"></span>${esc(playerName(o))}${o===ME?' <span class="mut">(toi)</span>':''}<span class="mut" style="margin-left:auto">${o===0?'hôte':q.on?'connecté':'place libre'}</span></div>`).join(''):'';
+    const gBy=o=>[...NET.guests.entries()].find(([pe,g])=>g.slot===o);
+    const plist=coop()?S.players.map((q,o)=>{const ge=NET.role==='host'&&o>0?gBy(o):null;
+      const mv=ge&&S.players.length>1?`<div class="btnrow" style="margin:2px 0 6px 22px;gap:4px">${S.players.map((q2,t)=>t>0&&t!==o?`<button data-mv="${ge[0]}|${t}" style="font-size:11px;padding:3px 7px" title="Donner à ${esc(ge[1].name)} la place n°${t+1} (bâtiments, stock, niveau…)">→ place de ${esc(playerName(t))}${q2.on?' (échange)':''}</button>`:'').join('')}</div>`:'';
+      const owned=o>0&&!q.on&&(q.level>1||buildings.some(b=>b.owner===o));
+      return`<div style="display:flex;align-items:center;gap:6px;font-size:13px"><span class="sw" style="background:${pcol(o)}"></span>${esc(playerName(o))}${o===ME?' <span class="mut">(toi)</span>':''}<span class="mut" style="margin-left:auto">${o===0?'hôte':q.on?'connecté':owned?`absent · niv ${q.level}`:'place libre'}</span></div>${mv}`}).join(''):'';
     c.innerHTML=`<h2>Partie multi${coop()?' · '+S.players.length+' joueurs':''}</h2>
       <p>Code de la partie :</p><div class="code">${NET.code}</div>${NET.transport==='relay'&&MQ.bi>=0?`<p class="mut" style="font-size:11.5px;margin-top:6px">Relais : ${esc(BROKERS[MQ.bi].replace(/^wss:\/\//,'').replace(/\/mqtt$/,''))}</p>`:''}
       <p style="margin-top:10px">${NET.role==='host'?(here?`<span class="okc">✓ ${esc(NET.guestName)} est connecté</span>`:'<span class="mut">En attente de ton coéquipier… donne-lui ce code.</span>'):(here?`<span class="okc">✓ Connecté à la partie de ${esc(NET.hostName)}</span>`:'<span class="mut">Connexion à l\'hôte…</span>')}</p>
@@ -3229,6 +3233,7 @@ function renderMp(){
     if($('mpExp'))$('mpExp').onclick=()=>{save();coopExportUI(snapshot())};
   }
   $('mpClose').onclick=()=>{$('mpDlg').hidden=true};
+  c.querySelectorAll('[data-mv]').forEach(bt=>bt.onclick=()=>{const [pe,t]=bt.dataset.mv.split('|');hostMoveGuest(pe,+t)});
 }
 $('bMp').onclick=openMp;
 $('mpDlg').addEventListener('mousedown',e=>{if(e.target.id==='mpDlg')$('mpDlg').hidden=true});
@@ -3294,7 +3299,7 @@ function onGuestPresence(p){
   if(!g||g.sid!==pr.sid){
     const slot=g?g.slot:pickSlot(pr.pid);
     if(slot<0){NET.room.emit('full',{sid:pr.sid}).catch(()=>{});return}
-    g={slot,sid:pr.sid,lastSeq:0,name:'Joueur '+(slot+1)};NET.guests.set(p.peer,g);
+    g={slot,sid:pr.sid,lastSeq:0,name:'Joueur '+(slot+1),pid:validPid(pr.pid)?pr.pid:null};NET.guests.set(p.peer,g);
     if(typeof pr.name==='string'&&pr.name)g.name=pr.name.slice(0,24);
     if(USER&&p.by)USER.profiles([p.by]).then(ps=>{const n=ps[p.by]&&ps[p.by].name;if(n){g.name=n;NET.names[g.slot]=n;refreshUI(true)}}).catch(()=>{});
     NET.names[slot]=g.name;NET.guestName=g.name;S.players[slot].on=true;if(validPid(pr.pid))S.players[slot].pid=pr.pid;
@@ -3311,6 +3316,21 @@ function onGuestPresence(p){
     const cmds=pr.cmds.filter(c=>c&&typeof c.n==='number'&&c.n>g.lastSeq).sort((a,b)=>a.n-b.n);
     for(const c of cmds){g.lastSeq=c.n;const a=Array.isArray(c.a)?c.a:[];if(!GUEST_ACTS.has(a[0]))continue;try{const err=ACT[a[0]](g.slot,...a.slice(1));if(err&&a[0]!=='place')NET.msgOut.push('?'+g.slot+'|'+err)}catch(e){}}
   }
+}
+// L'hôte place un joueur connecté sur une autre place (récupérer sa partie après un changement de PC, etc.)
+function hostMoveGuest(peer,t){
+  if(NET.role!=='host'||!coop())return;const g=NET.guests.get(peer);if(!g||t<1||t>=NP()||t===g.slot)return;
+  const from=g.slot,other=[...NET.guests.values()].find(q=>q.slot===t);
+  const nmT=NET.names[t];
+  g.slot=t;S.players[t].on=true;if(S.players[t].level>1||buildings.some(b=>b.owner===t))S.players[t].fresh=false;if(g.pid)S.players[t].pid=g.pid;NET.names[t]=g.name;
+  if(other){other.slot=from;S.players[from].on=true;if(other.pid)S.players[from].pid=other.pid;NET.names[from]=other.name}
+  else{S.players[from].on=false;if(S.players[from].pid===g.pid)S.players[from].pid=null;NET.names[from]=nmT&&nmT!==g.name?nmT:'Joueur '+(from+1)}
+  if(NET.metas[from]||NET.metas[t]){const a=NET.metas[from];NET.metas[from]=NET.metas[t];NET.metas[t]=a}
+  {const a=NET.cosAll[from];NET.cosAll[from]=NET.cosAll[t];NET.cosAll[t]=a}
+  S.votes=S.players.map(()=>false);NET.tickAt=0;
+  banner(`${g.name} prend la place n°${t+1}${other?` (échange avec ${other.name})`:''}`,false,4,'blue');
+  NET.msgOut.push('@'+t+'|'+`L'hôte t'a placé sur la place n°${t+1} : tu récupères ses bâtiments, son stock et son niveau.`);
+  renderMp();refreshUI(true);
 }
 function sanCos(c){const o={};if(typeof c.col==='string'&&/^#[0-9a-fA-F]{6}$/.test(c.col))o.col=c.col;if(typeof c.skin==='string'&&c.skin.length<16)o.skin=c.skin;return o}
 const PINGT={},CHATT={};
