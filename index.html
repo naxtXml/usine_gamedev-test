@@ -414,7 +414,7 @@ const B={
 };
 B.compacteur={cat:'prod',rs:'compacteur',n:'Compacteur liturique',cost:{plaque_titane:20,alliage:10,moteur:6,circuit:15},hp:900,pw:-25,col:'#6a7a96',spd:1,lvl:52,desc:'Compacte les nouveaux minerais : 4 palladium, 4 iridium ou 4 orichalque → 1 bloc compacté. Choisit la recette tout seul selon ce qui entre.'};
 B.synthetiseur={cat:'prod',rs:'synthetiseur',n:'Synthétiseur 2000',cost:{palladium_compacte:40,iridium_compacte:30,orichalque_compacte:20,module_quantique:10,pile_fusion:25,plaque_titane:150,circuit:200,prisme:30},hp:4000,pw:-120,col:'#c23dff',spd:1,lvl:68,desc:'La machine ultime. Synthétise la glace cosmique (10 glace + 2 matière exotique → 5 glace synthétisée) et assemble le cœur du canon Garik. Clique dessus pour choisir la recette.'};
-B.canon_garik={cat:'def',size:2,n:'Canon Garik',cost:{kit_garik:1},hp:20000,pw:-200,range:16,rate:1.5,dmg:4000,col:'#ff3df5',lvl:70,desc:'L\'arme absolue (2×2). Un rayon qui transperce tout sur 16 cases et explose au bout. Se construit avec un cœur du canon Garik, fabriqué au Synthétiseur 2000 (500 glace synthétisée, 100 piles à fusion, 35 modules quantiques et 1 Jeton du Titan, lâché par le boss de la vague 60).'};
+B.canon_garik={cat:'def',size:2,n:'Canon Garik',cost:{kit_garik:1},hp:20000,pw:-200,range:16,rate:1.5,dmg:25000,col:'#ff3df5',lvl:70,desc:'L\'arme absolue (2×2). Un rayon de 25 000 dégâts qui transperce tout sur 16 cases, ignore l\'armure et explose au bout. Pulvérise n\'importe quel boss d\'un seul tir… jusqu\'à la vague 60 : au-delà, les boss ★ lui résistent de plus en plus. Se construit avec un cœur du canon Garik, fabriqué au Synthétiseur 2000 (500 glace synthétisée, 100 piles à fusion, 35 modules quantiques et 1 Jeton du Titan, lâché par le boss de la vague 60).'};
 B.pont_entree={cat:'log',n:'Pont (entrée)',cost:{acier:4,engrenage:2},hp:400,col:'#8a6a4a',reach:10,lvl:15,desc:'Pont roulant amélioré : envoie les objets par-dessus TOUT (tapis, bâtiments, eau, lave) jusqu\'à une sortie de pont dans la même direction, jusqu\'à 10 cases. 2× plus rapide qu\'un tunnel, et peut se poser sur l\'eau.'};
 B.pont_sortie={cat:'log',n:'Pont (sortie)',cost:{acier:4,engrenage:2},hp:400,col:'#8a6a4a',lvl:15,desc:'Sortie d\'un pont roulant (même direction que l\'entrée, 10 cases max). Peut se poser sur l\'eau.'};
 B.rampe={cat:'log',size:3,n:'Rampe de lancement',cost:{plaque_titane:200,alliage:100,moteur:50,circuit:150,pile_fusion:20,module_quantique:5},hp:8000,col:'#9aa4b2',lvl:55,desc:'Grand bâtiment 3×3. Clique dessus puis « Lancer la fusée » (100 hélium-3 + 10 piles à fusion) pour atteindre Neptune et son nouveau minerai, le neptunium.'};
@@ -1131,8 +1131,10 @@ function updB(b,dt){
       fx({k:'boom',x:tx,y:ty,r:d.splash,col:'230,140,255',t:0.4,max:0.4});
     }else if(t==='canon_garik'){
       const ux=Math.cos(b.angle),uy=Math.sin(b.angle);
-      for(const m of monsters){if(m.hp<=0)continue;const dx=m.x-cx,dy=m.y-cy,along=dx*ux+dy*uy;if(along<0||along>rng)continue;if(Math.abs(dx*uy-dy*ux)<=0.9+MT[m.type].r)hurt(m,dmg,60)}
-      const ex=cx+ux*Math.min(rng,Math.sqrt(bd)),ey=cy+uy*Math.min(rng,Math.sqrt(bd));for(const m of monsters)if(m.hp>0&&(m.x-ex)**2+(m.y-ey)**2<=2.5*2.5)hurt(m,dmg*0.5,60);
+      // les boss d'avant la vague 60 sont pulvérisés d'un tir ; à partir de la vague 60 : 8 % de leurs PV par tir, puis de moins en moins (3 % minimum)
+      const gk=(m,d2)=>{const mt=MT[m.type];if(mt.boss){const tr=m.tier||bossTier(S.wave);if(tr>0)hurt(m,Math.min(d2,m.maxhp*Math.max(0.03,0.08-0.01*(tr-1))),999);else hurt(m,m.hp+1,999)}else hurt(m,d2,999)};
+      for(const m of monsters){if(m.hp<=0)continue;const dx=m.x-cx,dy=m.y-cy,along=dx*ux+dy*uy;if(along<0||along>rng)continue;if(Math.abs(dx*uy-dy*ux)<=0.9+MT[m.type].r)gk(m,dmg)}
+      const ex=cx+ux*Math.min(rng,Math.sqrt(bd)),ey=cy+uy*Math.min(rng,Math.sqrt(bd));for(const m of monsters)if(m.hp>0&&(m.x-ex)**2+(m.y-ey)**2<=3*3)gk(m,dmg*0.6);
       fx({k:'shot',x1:cx+ux*1.1,y1:cy+uy*1.1,x2:cx+ux*rng,y2:cy+uy*rng,col:'#ff3df5',w:0.55,t:0.4,max:0.4});fx({k:'shot',x1:cx+ux*1.1,y1:cy+uy*1.1,x2:cx+ux*rng,y2:cy+uy*rng,col:'#ffffff',w:0.18,t:0.4,max:0.4});fx({k:'boom',x:ex,y:ey,r:2.5,col:'255,61,245',t:0.6,max:0.6});b.fire=0.4;
     }else if(t==='canon_prisme'){
       const hitL=[best];for(const m of monsters){if(hitL.length>=d.split)break;if(m!==best&&m.hp>0&&(m.x-cx)**2+(m.y-cy)**2<=rng*rng)hitL.push(m)}
@@ -1314,6 +1316,8 @@ function levelUpFx(l){
   buildToolbar();
 }
 const MAX_WAVE=220,MAX_ALIVE=320;
+// À partir de la vague 60, chaque boss monte d'un cran (★) tous les 10 vagues
+const bossTier=n=>n>=60?Math.floor((n-50)/10):0;
 function startWave(){
   S.wave++;S.waveTimer=S.interval;S.warned=0;S.votes=Array(NP()).fill(false);
   const n=S.wave,cm=coop()?1+0.5*(NP()-1):1,raw=(6+n*4+n*n*0.5)*cm,count=Math.round(Math.min(raw,MAX_WAVE*cm));
@@ -1328,7 +1332,10 @@ function startWave(){
     spawnQ.push({t:i*0.6/cm+Math.random()*0.4,type,edge:edges[i%edges.length],hpMul,dmgMul});
   }
   let txt;
-  if(n%10===0){const bt=BOSS_CYCLE[(n/10-1)%BOSS_CYCLE.length];spawnQ.push({t:8,type:bt,edge:edges[0],hpMul:Math.pow(1+n/10,2.2)*(coop()?1.5:1),wMul:hpMul,dmgMul:1+0.1*(n/10-1)});txt=`☠ Vague ${n} — BOSS : ${MT[bt].n} arrive avec ${count} monstres !`}
+  if(n%10===0){const bt=BOSS_CYCLE[(n/10-1)%BOSS_CYCLE.length],tier=bossTier(n);
+    spawnQ.push({t:8,type:bt,edge:edges[0],hpMul:Math.pow(1+n/10,2.2)*(coop()?1+0.5*(NP()-1):1)*Math.pow(1.45,tier),wMul:hpMul,dmgMul:(1+0.1*(n/10-1))*(1+0.25*tier),tier});
+    if(tier>0)for(let k=0;k<Math.min(6,tier*2);k++)spawnQ.push({t:8.5+k*0.3,type:'colosse',edge:edges[0],hpMul:hpMul*(2+tier),wMul:hpMul,dmgMul:dmgMul*1.5,elite:true});
+    txt=tier>0?`☠ Vague ${n} — BOSS ${'★'.repeat(Math.min(tier,5))} : ${MT[bt].n} (plus résistant, enragé, escorté) et ${count} monstres !`:`☠ Vague ${n} — BOSS : ${MT[bt].n} arrive avec ${count} monstres !`}
   else txt=`⚠ Vague ${n} : ${count} monstres arrivent !`;
   sfx('wave');
   for(let o=0;o<S.players.length;o++){if(o===ME)banner(txt,true,5);else if(NET.role==='host')NET.msgOut.push('!'+txt)}
@@ -1345,7 +1352,7 @@ function spawnMonster(q,px,py){
     }
   }
   const hp=t.hp*q.hpMul;
-  monsters.push({id:monSeq++,type:q.type,wMul:q.wMul||q.hpMul,slow:0,x,y,hp,maxhp:hp,dmg:t.dmg*q.dmgMul,cd:0,ox:(Math.random()-0.5)*0.4,oy:(Math.random()-0.5)*0.4,fx:0,fy:1,seed:Math.random()*10,flash:0,spawnT:6,hpMul:q.hpMul,dmgMul:q.dmgMul});
+  monsters.push({id:monSeq++,type:q.type,wMul:q.wMul||q.hpMul,slow:0,x,y,hp,maxhp:hp,dmg:t.dmg*q.dmgMul,cd:0,ox:(Math.random()-0.5)*0.4,oy:(Math.random()-0.5)*0.4,fx:0,fy:1,seed:Math.random()*10,flash:0,spawnT:6,hpMul:q.hpMul,dmgMul:q.dmgMul,tier:q.tier||0,elite:!!q.elite});
 }
 let SHIELDS=[0,0],CAPS=[],LAVAT=0;
 // ----- Statistiques de production (fenêtre glissante de 60 s, non sauvegardées) -----
@@ -1416,7 +1423,8 @@ function explode(m){
 function updM(m,dt){
   const t=MT[m.type];
   m.cd-=dt;if(m.flash>0)m.flash-=dt;
-  const spd=m.slow>0?0.5:1;if(m.slow>0)m.slow-=dt;
+  let spd=m.slow>0?0.5:1;if(m.slow>0)m.slow-=dt;
+  if(t.boss&&m.tier>0){m.hp=Math.min(m.maxhp,m.hp+m.maxhp*Math.min(0.03,0.005*m.tier)*dt);if(!m.enr&&m.hp<m.maxhp*0.4){m.enr=true;fx({k:'boom',x:m.x,y:m.y,r:3,col:'255,40,40',t:1,max:1});if(NET.role!=='spec')for(let o2=0;o2<NP();o2++)notify(o2,`😡 ${MT[m.type].n} entre en rage !`)}if(m.enr){spd*=1.6;m.spawnT-=dt}}
   if(t.heal){for(const o of monsters){if(o!==m&&o.hp>0&&o.hp<o.maxhp&&(o.x-m.x)**2+(o.y-m.y)**2<4)o.hp=Math.min(o.maxhp,o.hp+t.heal*(m.wMul||m.hpMul||1)*dt)}}
   if(t.boss){m.spawnT-=dt;if(m.spawnT<=0&&monsters.length>=MAX_ALIVE*0.8){m.spawnT=2}else if(m.spawnT<=0){
     const q={hpMul:m.wMul||1,dmgMul:m.dmgMul};
@@ -2181,7 +2189,7 @@ function draw(now){
   const boss=monsters.find(m=>MT[m.type].boss);
   if(boss){const bw=Math.min(460,cw*0.6),bx=(cw-bw)/2,by=ch-46;
     ctx.fillStyle='rgba(15,10,22,0.85)';rr(ctx,bx-10,by-20,bw+20,40,8);ctx.fill();ctx.strokeStyle='#7d3cc0';ctx.lineWidth=1;ctx.stroke();
-    ctx.fillStyle='#e4d4ff';ctx.font='600 12px system-ui';ctx.textAlign='center';ctx.fillText(`${MT[boss.type].n.toUpperCase()} — ${Math.ceil(boss.hp)} / ${Math.ceil(boss.maxhp)}`,cw/2,by-6);
+    ctx.fillStyle='#e4d4ff';ctx.font='600 12px system-ui';ctx.textAlign='center';{const tr=boss.tier||bossTier(S.wave);ctx.fillText(`${MT[boss.type].n.toUpperCase()}${tr>0?' '+'★'.repeat(Math.min(tr,5))+(boss.enr?' · ENRAGÉ':''):''} — ${Math.ceil(boss.hp)} / ${Math.ceil(boss.maxhp)}`,cw/2,by-6)}
     ctx.fillStyle='#2a1a3a';ctx.fillRect(bx,by,bw,9);ctx.fillStyle='#b05cff';ctx.fillRect(bx,by,bw*Math.max(0,boss.hp/boss.maxhp),9);}
 }
 // ----- Plans (copier / coller une zone) -----
