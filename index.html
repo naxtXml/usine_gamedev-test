@@ -1541,7 +1541,65 @@ const e2=v=>{v=clamp(Math.round(v)|0,0,4095);return A64[v>>6]+A64[v&63]};
 const d1=(s,i)=>A64.indexOf(s[i]);
 const d2=(s,i)=>(A64.indexOf(s[i])<<6)|A64.indexOf(s[i+1]);
 let ROOM=null;
-async function getRoom(){if(ROOM)return ROOM;if(!window.claude||typeof window.claude.use!=='function')return null;ROOM=await claude.use('room');return ROOM}
+const onClaude=()=>!!(window.claude&&typeof window.claude.use==='function');
+async function getRoom(){
+  if(ROOM)return ROOM;
+  if(onClaude()){try{const r=await claude.use('room');if(r){ROOM=r;NET.transport='claude';return r}}catch(e){}}
+  ROOM={join:(name,role)=>peerJoin(name,role)};NET.transport='peer';return ROOM;
+}
+// ----- Transport pair-à-pair (hors claude.ai) : PeerJS / WebRTC -----
+let PEERLIB=null;
+function loadPeerJS(){
+  if(window.Peer)return Promise.resolve(window.Peer);
+  if(PEERLIB)return PEERLIB;
+  const srcs=[window.__PEER_SRC,'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js','https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js'].filter(Boolean);
+  PEERLIB=new Promise((res,rej)=>{let i=0;const next=()=>{if(i>=srcs.length){PEERLIB=null;rej({code:'load'});return}const sc=document.createElement('script');sc.src=srcs[i++];sc.onload=()=>window.Peer?res(window.Peer):next();sc.onerror=next;document.head.appendChild(sc)};next()});
+  return PEERLIB;
+}
+async function peerJoin(name,role){
+  const Peer=await loadPeerJS();
+  const cfg=Object.assign({debug:0},window.__PEER_CFG||{});
+  const id='usine-assiegee-'+name;
+  const handlers={},peerHandlers=[],peers={};let conns=[],mypres={},peer;
+  const fireTopic=(topic,data,from)=>{(handlers[topic]||[]).forEach(f=>{try{f({topic,data,peer:from,isMe:false,sameTab:false,by:null,kind:'viewer',guest:false})}catch(e){console.error(e)}})};
+  const firePeers=(j,u,l)=>{const list=Object.values(peers);peerHandlers.forEach(f=>{try{f({peers:list,joined:j,updated:u,left:l})}catch(e){console.error(e)}})};
+  const wire=conn=>{
+    conn.on('data',m=>{
+      if(!m||typeof m!=='object')return;
+      if(m.t==='ev'&&typeof m.topic==='string')fireTopic(m.topic,m.data,conn.peer);
+      else if(m.t==='pr'&&m.presence&&typeof m.presence==='object'){const isNew=!peers[conn.peer];peers[conn.peer]={peer:conn.peer,by:null,isMe:false,sameTab:false,kind:'viewer',guest:false,presence:m.presence,updatedAt:Date.now()};firePeers(isNew?[peers[conn.peer]]:[],isNew?[]:[peers[conn.peer]],[])}
+    });
+    conn.on('close',()=>{conns=conns.filter(c=>c!==conn);const pp=peers[conn.peer];if(pp){delete peers[conn.peer];firePeers([],[],[pp])}});
+    conn.on('error',()=>{});
+  };
+  const sendAll=msg=>{for(const c of conns)if(c.open){try{c.send(msg)}catch(e){}}};
+  await new Promise((res,rej)=>{
+    peer=role==='host'?new Peer(id,cfg):new Peer(cfg);
+    const to=setTimeout(()=>rej({code:'timeout'}),12000);
+    peer.on('open',()=>{clearTimeout(to);res()});
+    peer.on('error',e=>{clearTimeout(to);rej({code:(e&&e.type)||'error'})});
+  });
+  if(role==='host'){
+    peer.on('connection',conn=>{
+      if(conns.some(c=>c.open)){conn.on('open',()=>{try{conn.send({t:'ev',topic:'full',data:{}})}catch(e){}setTimeout(()=>conn.close(),800)});return}
+      conns.push(conn);wire(conn);conn.on('open',()=>{try{conn.send({t:'pr',presence:mypres})}catch(e){}});
+    });
+  }else{
+    const conn=peer.connect(id,{reliable:true,serialization:'json'});
+    await new Promise((res,rej)=>{const to=setTimeout(()=>rej({code:'peer-unavailable'}),15000);conn.on('open',()=>{clearTimeout(to);res()});peer.on('error',e=>{clearTimeout(to);rej({code:(e&&e.type)||'error'})})});
+    conns.push(conn);wire(conn);
+  }
+  peer.on('disconnected',()=>{try{if(!peer.destroyed)peer.reconnect()}catch(e){}});
+  return {name,
+    emit:async(topic,data)=>{sendAll({t:'ev',topic,data})},
+    on:(topic,f)=>{(handlers[topic]=handlers[topic]||[]).push(f);return()=>{handlers[topic]=handlers[topic].filter(x=>x!==f)}},
+    presence:async pt=>{for(const k in pt){if(pt[k]===null)delete mypres[k];else mypres[k]=pt[k]}sendAll({t:'pr',presence:mypres})},
+    onPeers:f=>{peerHandlers.push(f);return()=>{}},
+    peers:()=>Object.values(peers),connected:()=>conns.some(c=>c.open),
+    leave:async()=>{try{peer.destroy()}catch(e){}}};
+}
+function getPseudo(){try{return localStorage.getItem('usine-pseudo')||''}catch(e){return''}}
+function setPseudo(v){v=(v||'').trim().slice(0,20);try{localStorage.setItem('usine-pseudo',v)}catch(e){}if(v&&NET.transport!=='claude')NET.myName=v}
 function randCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=a[(Math.random()*a.length)|0];return s}
 function mpMsg(t,cls){const e=$('mpMsg');if(e){e.textContent=t;e.className='msg '+(cls||'')}}
 function openMp(){renderMp();$('mpDlg').hidden=false}
@@ -1551,18 +1609,21 @@ function renderMp(){
     const hasCoop=hasKey(COOP_KEY);
     c.innerHTML=`<h2>Multijoueur à deux</h2>
       <p class="mut">Chacun a son noyau (à 8 cases l'un de l'autre) et son propre stock. Vagues toutes les 15 minutes, plus de minerai, et la vague peut être lancée plus tôt si vous êtes prêts tous les deux. Si un noyau tombe, l'autre joueur peut le réanimer une fois les monstres éliminés.</p>
+      ${onClaude()?'':`<h4>Ton pseudo</h4><input id="mpName" maxlength="20" placeholder="Pseudo" value="${esc(getPseudo())}" style="text-transform:none;letter-spacing:0;font:14px system-ui">`}
       <h4>Héberger</h4>
       <p class="mut" style="font-size:12px">L'hôte fait tourner la partie : garde l'onglet ouvert pendant que vous jouez.</p>
       <div class="btnrow"><button class="blue" id="mpHost">Créer une nouvelle partie à deux</button>${hasCoop?'<button id="mpResume">Reprendre la partie à deux sauvegardée</button>':''}</div>
       <h4>Rejoindre</h4>
       <div style="display:flex;gap:6px"><input id="mpCode" maxlength="5" placeholder="CODE" autocomplete="off"><button class="okb" id="mpJoin" style="flex:none">Rejoindre</button></div>
-      <p class="mut" style="font-size:12px;margin-top:8px">Ton ami doit être connecté à claude.ai et avoir accès à ce jeu : invite-le par e-mail depuis le bouton Partager (un simple lien public ne suffit pas pour le multijoueur).</p>
+      <p class="mut" style="font-size:12px;margin-top:8px">${onClaude()?'Ton ami doit être connecté à claude.ai et avoir accès à ce jeu : invite-le par e-mail depuis le bouton Partager (un simple lien public ne suffit pas pour le multijoueur).':'Envoie le lien du jeu et le code à ton ami : vos deux navigateurs se connectent directement, sans compte. Sur certains réseaux très verrouillés (entreprise, école), la connexion peut échouer.'}</p>
       <div id="mpMsg" class="msg"></div>
       <div class="btnrow"><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
-    $('mpHost').onclick=()=>startHost(false);
-    if(hasCoop)$('mpResume').onclick=()=>startHost(true);
-    $('mpJoin').onclick=()=>startGuest($('mpCode').value);
-    $('mpCode').addEventListener('keydown',e=>{if(e.key==='Enter')startGuest($('mpCode').value)});
+    if($('mpName'))$('mpName').addEventListener('change',e=>setPseudo(e.target.value));
+    const savePseudo=()=>{if($('mpName'))setPseudo($('mpName').value)};
+    $('mpHost').onclick=()=>{savePseudo();startHost(false)};
+    if(hasCoop)$('mpResume').onclick=()=>{savePseudo();startHost(true)};
+    $('mpJoin').onclick=()=>{savePseudo();startGuest($('mpCode').value)};
+    $('mpCode').addEventListener('keydown',e=>{if(e.key==='Enter'){savePseudo();startGuest($('mpCode').value)}});
   }else{
     const here=NET.role==='host'?NET.guestHere:Date.now()-NET.lastSt<5000;
     c.innerHTML=`<h2>Partie à deux</h2>
@@ -1581,11 +1642,12 @@ async function startHost(resume){
   mpMsg('Connexion…');
   const R=await getRoom().catch(()=>null);
   if(!R){mpMsg('Le multijoueur n\'est pas disponible ici : ouvre le jeu sur claude.ai en étant connecté.','bad');return}
-  const code=randCode();
-  let room;
-  try{room=await R.join('ua-'+code.toLowerCase())}catch(e){mpMsg('Impossible de créer la salle ('+(e&&e.code||'erreur')+').','bad');return}
+  let code,room,lastErr;
+  for(let k=0;k<3&&!room;k++){code=randCode();try{room=await R.join('ua-'+code.toLowerCase(),'host')}catch(e){lastErr=e;if(!(e&&e.code==='unavailable-id'))break}}
+  if(!room){mpMsg(lastErr&&lastErr.code==='load'?'Impossible de charger le module multijoueur (connexion internet ?).':'Impossible de créer la partie ('+(lastErr&&lastErr.code||'erreur')+').','bad');return}
   try{await room.emit('ping',{})}catch(e){if(e&&e.code==='not_permitted'){mpMsg('Seul le propriétaire du jeu (ou un éditeur) peut héberger. Demande à ton ami de créer la partie, ou rejoins-la avec son code.','bad');room.leave();return}}
   if(S&&S.mode==='solo')save();
+  if(NET.transport!=='claude'&&getPseudo())NET.myName=getPseudo();
   NET.role='host';NET.room=room;NET.code=code;NET.guestHere=false;NET.lastSeq=0;NET.sid=null;ME=0;NET.hostName=NET.myName||'Hôte';
   if(!(resume&&loadKey(COOP_KEY)&&S.mode==='coop'))newGame('coop');
   room.onPeers(ch=>{
@@ -1661,7 +1723,8 @@ async function startGuest(codeRaw){
   const R=await getRoom().catch(()=>null);
   if(!R){mpMsg('Le multijoueur n\'est pas disponible ici : ouvre le jeu sur claude.ai en étant connecté.','bad');return}
   let room;
-  try{room=await R.join('ua-'+code.toLowerCase())}catch(e){mpMsg('Impossible de rejoindre ('+(e&&e.code||'erreur')+'). Vérifie que ton ami t\'a invité par e-mail.','bad');return}
+  try{room=await R.join('ua-'+code.toLowerCase(),'guest')}catch(e){const c=e&&e.code;mpMsg(c==='peer-unavailable'?'Aucune partie trouvée avec ce code. Vérifie le code et que ton ami a bien créé la partie (onglet ouvert).':c==='load'?'Impossible de charger le module multijoueur (connexion internet ?).':'Impossible de rejoindre ('+(c||'erreur')+')'+(onClaude()?'. Vérifie que ton ami t\'a invité par e-mail.':'.'),'bad');return}
+  if(NET.transport!=='claude'&&getPseudo())NET.myName=getPseudo();
   if(S&&S.mode==='solo')save();
   NET.role='guest';NET.room=room;NET.code=code;NET.joined=false;NET.mySeq=0;NET.myCmds=[];NET.sid=Math.random().toString(36).slice(2,10);NET.lastSt=0;NET.hostName='Hôte';NET.guestName=NET.myName||'Toi';NET.bl={};NET.mo={};NET.bi={};
   ME=1;S=null;
@@ -1672,6 +1735,7 @@ async function startGuest(codeRaw){
   room.on('mo',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;NET.mo.parts=NET.mo.n===d.n&&NET.mo.parts?NET.mo.parts:[];NET.mo.n=d.n;NET.mo.parts[d.i]=d.d;if(NET.mo.parts.filter(x=>x!=null).length===d.n){guestApplyMonsters(NET.mo.parts.join(''));NET.mo.parts=null}});
   room.on('bi',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;NET.bi.parts=NET.bi.n===d.n&&NET.bi.parts?NET.bi.parts:[];NET.bi.n=d.n;NET.bi.parts[d.i]=d.d;if(NET.bi.parts.filter(x=>x!=null).length===d.n){guestApplyBelts(NET.bi.parts.join(''));NET.bi.parts=null}});
   room.on('st',m=>{if(m.isMe||!S)return;guestApplyState(m.data||{})});
+  room.on('full',()=>{mpMsg('Cette partie est déjà complète (2 joueurs).','bad');leaveCoop()});
   guestPresence();
   refreshUI(true);renderMp();
   setTimeout(()=>{if(NET.role==='guest'&&!NET.joined)mpMsg('Aucune partie trouvée avec ce code pour l\'instant. Vérifie le code et que l\'hôte a bien le jeu ouvert.','bad')},8000);
