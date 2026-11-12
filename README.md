@@ -12,6 +12,8 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 - Toutes les 30 minutes une vague attaque, avec un **boss** à la vague 10.
 - Gagne de l'XP en tuant des monstres : tous les 5 niveaux, de nouveaux bâtiments et recettes se débloquent.
 - Au niveau 20, **renais** pour gagner des points de talent permanents.
+- La nuit tombe à l'approche de chaque attaque : tes bâtiments éclairent la carte.
+- Monstres volants (dès la vague 4) qui survolent les murs, stations de réparation, mini-carte et effets sonores.
 
 ## Commandes
 
