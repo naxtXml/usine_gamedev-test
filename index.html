@@ -286,6 +286,8 @@ const B={
   tapis_express:{cat:'log',base:'tapis',n:'Tapis express',cost:{acier:1,fil_cuivre:2},hp:140,col:'#7a3f9a',spd:8,lvl:20,desc:'Le plus rapide. Pose-le par-dessus un tapis pour l\'améliorer.'},
   fusionneur:{cat:'log',n:'Fusionneur',cost:{lingot_fer:5},hp:150,col:'#5a6170',desc:'Jusqu\'à 3 entrées (arrière + côtés) → 1 sortie (flèche). Alterne entre chaque entrée : parfait pour amener 2 matériaux sur un seul tapis.'},
   repartiteur:{cat:'log',n:'Répartiteur',cost:{lingot_fer:5},hp:150,col:'#5a6170',desc:'1 entrée (arrière) → 3 sorties (avant + côtés), distribuées chacune leur tour.'},
+  lanceur:{cat:'log',n:'Lanceur de matériaux',cost:{acier:10,moteur:2,circuit:4},hp:400,pw:-8,col:'#b0703a',lvl:10,desc:'Reçoit des objets par tapis et les envoie par les airs, par lots de 5, vers un réceptionneur (le plus proche, ou celui que tu choisis). Distance illimitée.'},
+  recepteur:{cat:'log',n:'Réceptionneur',cost:{acier:6,circuit:2},hp:400,col:'#3a7ab0',lvl:10,desc:'Attrape les objets envoyés par tes lanceurs et les ressort côté flèche : vers ton noyau, un tapis ou une machine.'},
   coffre:{cat:'log',n:'Coffre',cost:{lingot_fer:10},hp:300,col:'#8a5d2e',cap:400,desc:'Stocke 400 objets (par tapis ou par robot). Son contenu compte dans ton stock pour construire et pour l\'Atelier.'},
   robot:{cat:'log',unit:true,n:'Robot collecteur',cost:{acier:20,batterie:5,circuit:10},hp:1500,col:'#e0b341',lvl:10,desc:'Très résistant. Va miner seul, fond le minerai sur place et dépose les lingots dans ton coffre le plus proche. Max 5 par joueur.'},
   foreuse:{cat:'prod',n:'Foreuse',cost:{lingot_fer:8},hp:200,pw:-2,col:'#c77d32',spd:1,desc:'Sur un gisement solide (fer, quartz, or, diamant). Sort le minerai côté flèche.'},
@@ -324,7 +326,7 @@ const TYPES=Object.keys(B);
 const CATS=[['log','Logistique'],['prod','Production'],['nrj','Énergie'],['def','Défense']];
 const kind=t=>B[t].base||t;
 const BELT=new Set(['tapis','tapis_rapide','tapis_express']);
-const ROTATABLE=new Set(['tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
+const ROTATABLE=new Set(['recepteur','tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
 const MACHINES=new Set(['fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','forge','centrifugeuse']);
 const DRILLS=new Set(['foreuse','foreuse_avancee','foreuse_laser','pompe']);
 const TURRETS=new Set(['mitrailleuse','mitrailleuse_lourde','laser','plasma','tesla','lance_flammes','railgun']);
@@ -394,6 +396,7 @@ const GOALS=[
   ['Fabriquer 5 moteurs',(o,p)=>(p.made.moteur||0)>=5],
   ['Vaincre la Reine des essaims (vague 20)',()=>(S.bossKills||0)>=2],
   ['Produire 10 plaques de titane',(o,p)=>(p.made.plaque_titane||0)>=10],
+  ['Lancer 50 objets vers un réceptionneur',(o,p)=>(p.launched||0)>=50],
   ['Construire un réacteur à fusion',o=>buildings.some(b=>b.owner===o&&b.type==='reacteur')],
 ];
 
@@ -466,7 +469,7 @@ function setupWorld(seed,mode){
   SPOTS=coreSpots(mode);
   genMap(seed,mode);
   grid=Array.from({length:H},()=>Array(W).fill(null));
-  buildings=[];chests=[];robots=[];monsters=[];effects=[];spawnQ=[];
+  buildings=[];chests=[];robots=[];monsters=[];effects=[];spawnQ=[];CAPS=[];
   cores=SPOTS.map((s,o)=>({type:'noyau',owner:o,x:s.x,y:s.y,rot:0,cd:0}));
   parts=[];decals=[];prevMon=new Map();prevCore=[];shake=0;
   for(const c of cores)for(let y=0;y<3;y++)for(let x=0;x<3;x++)grid[c.y+y][c.x+x]=c;
@@ -498,6 +501,7 @@ function initB(b){
   else if(t==='fusionneur'){b.buf=[null,null,null,null];b.next=0;b.pushCd=0}
   else if(t==='repartiteur'){b.item=null;b.next=0;b.pushCd=0}
   else if(t==='coffre'){b.store=b.store||{};b.used=Object.values(b.store).reduce((a,v)=>a+v,0)}
+  else if(t==='lanceur'||t==='recepteur'){b.store=b.store||{};b.count=Object.values(b.store).reduce((a,v)=>a+v,0);b.cd=0;b.pushCd=0;b.incoming=0;b.lk=b.lk||null}
 }
 function placeB(type,x,y,r,o=0){
   const b={type,x,y,rot:r,owner:o,hp:0};b.hp=maxHp(b);initB(b);
@@ -565,6 +569,7 @@ const ACT={
     notify(to,`${playerName(o)} t'a donné ${n} ${ITEMS[item].n}`);
     return null;
   },
+  link(o,lx,ly,rx,ry){const l=at(lx,ly),r=at(rx,ry);if(!l||!r||l.type!=='lanceur'||r.type!=='recepteur'||l.owner!==o||r.owner!==o)return 'Choisis un de tes réceptionneurs';l.lk=[rx,ry];NET.bver++;return null},
   vote(o,on){if(!coop())return null;S.votes[o]=!!on;return null},
   revive(o){
     if(!coop())return null;const t=other(o);
@@ -605,6 +610,8 @@ function accepts(t,item,fx,fy){
   if(t.type==='fusionneur')return side>=0&&!t.buf[side];
   if(t.type==='repartiteur')return side===(t.rot+2)%4&&!t.item;
   if(t.type==='coffre')return t.used<B.coffre.cap;
+  if(t.type==='lanceur')return t.count<20;
+  if(t.type==='recepteur')return false;
   if(GENS.has(t.type))return item===(B[t.type].fuel||'petrole')&&t.fuel<10;
   const rs=B[t.type].rs;
   if(rs==='fonderie'){
@@ -621,6 +628,7 @@ function give(t,item,fx,fy){
   if(BELT.has(t.type)){t.item=item;t.prog=0;return}
   if(t.type==='fusionneur'){t.buf[dirOf(fx-t.x,fy-t.y)]=item;return}
   if(t.type==='repartiteur'){t.item=item;return}
+  if(t.type==='lanceur'){t.store[item]=(t.store[item]||0)+1;t.count++;return}
   if(t.type==='coffre'){t.store[item]=(t.store[item]||0)+1;t.used++;const p=P(t.owner);p.made[item]=(p.made[item]||0)+1;return}
   if(GENS.has(t.type)){t.fuel++;return}
   t.inb[item]=(t.inb[item]||0)+1;
@@ -668,6 +676,26 @@ function updB(b,dt){
     }
     b.pushCd-=dt;
     if(b.out>0&&b.pushCd<=0&&tryPush(b,b.outItem)){b.out--;b.pushCd=0.1;if(b.out===0)b.outItem=null}
+    return;
+  }
+  if(t==='lanceur'){
+    b.cd-=dt*pr;
+    let tg=b.lk?at(b.lk[0],b.lk[1]):null;
+    if(!tg||tg.type!=='recepteur'||tg.owner!==o){tg=nearestReceiver(b);b.lk=tg?[tg.x,tg.y]:null}
+    if(tg){b.aim=Math.atan2(tg.y-b.y,tg.x-b.x)}
+    if(tg&&b.cd<=0&&b.count>0){
+      const n=Math.min(5,b.count,40-(tg.count+tg.incoming));
+      if(n>0){const items={};let left=n;for(const k in b.store){const q=Math.min(b.store[k],left);if(q>0){items[k]=q;b.store[k]-=q;left-=q}if(!left)break}
+        b.count-=n;tg.incoming+=n;const d2=Math.hypot(tg.x-b.x,tg.y-b.y);
+        CAPS.push({sx:b.x+0.5,sy:b.y+0.5,tx:tg.x+0.5,ty:tg.y+0.5,rx:tg.x,ry:tg.y,t:0,dur:Math.max(0.6,d2/9),items,n,owner:o,it:Object.keys(items)[0]});
+        b.cd=1.2;b.kick=0.25;sfx('launch')}
+    }
+    if(b.kick>0)b.kick-=dt;
+    return;
+  }
+  if(t==='recepteur'){
+    b.pushCd-=dt;
+    if(b.count>0&&b.pushCd<=0){const k=Object.keys(b.store).find(q=>b.store[q]>0);if(k&&tryPush(b,k)){b.store[k]--;b.count--;b.pushCd=0.08}}
     return;
   }
   if(t==='cryo'){b.active=false;const R2=d.range*d.range;if(pr>0.3)for(const m of monsters){if((m.x-b.x-0.5)**2+(m.y-b.y-0.5)**2<=R2){m.slow=0.3;b.active=true}}return}
@@ -845,7 +873,13 @@ function spawnMonster(q,px,py){
   const hp=t.hp*q.hpMul;
   monsters.push({id:monSeq++,type:q.type,wMul:q.wMul||q.hpMul,slow:0,x,y,hp,maxhp:hp,dmg:t.dmg*q.dmgMul,cd:0,ox:(Math.random()-0.5)*0.4,oy:(Math.random()-0.5)*0.4,fx:0,fy:1,seed:Math.random()*10,flash:0,spawnT:6,hpMul:q.hpMul,dmgMul:q.dmgMul});
 }
-let SHIELDS=[0,0];
+let SHIELDS=[0,0],CAPS=[];
+function nearestReceiver(b){let best=null,bd=1e9;for(const r of buildings){if(r.type!=='recepteur'||r.owner!==b.owner)continue;const d=(r.x-b.x)**2+(r.y-b.y)**2;if(d<bd){bd=d;best=r}}return best}
+function updCaps(dt){
+  for(const c of CAPS){c.t+=dt;if(c.t>=c.dur){const r=at(c.rx,c.ry);if(r&&r.type==='recepteur'){for(const k in c.items){r.store[k]=(r.store[k]||0)+c.items[k]}r.count+=c.n;r.incoming=Math.max(0,r.incoming-c.n);const p=P(c.owner);p.launched=(p.launched||0)+c.n}
+    fx({k:'boom',x:c.tx,y:c.ty,r:0.45,col:'255,220,150',t:0.25,max:0.25});c.done=true}}
+  CAPS=CAPS.filter(c=>!c.done);
+}
 function coreDmg(o,d){const p=P(o);if(p.dead)return;p.coreHp-=d*(1-Math.min(0.75,0.25*(SHIELDS[o]||0)));if(p.coreHp<=0&&!p.dead)killCore(o)}
 function killCore(o){
   const p=P(o);p.dead=true;p.coreHp=0;flowDirty=true;
@@ -916,6 +950,7 @@ function update(dt){
   SHIELDS=[0,0];for(const b of buildings)if(b.type==='bouclier'&&P(b.owner).pr>0.5)SHIELDS[b.owner]++;
   for(let i=0;i<buildings.length;i++)updB(buildings[i],dt);
   for(const r of robots)updR(r,dt);
+  updCaps(dt);
   for(let o=0;o<S.players.length;o++){const p=P(o);if(p.craftQ.length){const q=p.craftQ[0];q.left-=dt*mMach(o);if(q.left<=0){const r=RECIPES[q.set][q.i];addInv(o,r.out,r.n);p.made[r.out]=(p.made[r.out]||0)+r.n;p.craftQ.shift()}}}
   flowTimer-=dt;if(flowDirty&&flowTimer<=0){computeFlow();flowDirty=false;flowTimer=0.3}
   S.waveTimer-=dt;
@@ -991,7 +1026,7 @@ try{SFX.on=localStorage.getItem('usine-son')!=='0'}catch(e){}
 function audio(){if(!SFX.on)return null;if(!SFX.ctx){try{SFX.ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(SFX.ctx.state==='suspended')SFX.ctx.resume().catch(()=>{});return SFX.ctx}
 function sfx(name){
   if(!SFX.on||!SFX.ctx)return;const c=SFX.ctx;if(c.state!=='running')return;
-  const t0=c.currentTime,lim={flame:0.12,shot:0.07,laser:0.12,plasma:0.2,boom:0.1,zap:0.15,build:0.04,demolish:0.05,hit:0.3,wave:2,level:1}[name]||0.05;
+  const t0=c.currentTime,lim={launch:0.15,flame:0.12,shot:0.07,laser:0.12,plasma:0.2,boom:0.1,zap:0.15,build:0.04,demolish:0.05,hit:0.3,wave:2,level:1}[name]||0.05;
   if(SFX.last[name]&&t0-SFX.last[name]<lim)return;SFX.last[name]=t0;
   const master=c.createGain();master.gain.value=0.5;master.connect(c.destination);
   const tone=(at,type,f1,f2,dur,vol)=>{const o=c.createOscillator();o.type=type;o.frequency.setValueAtTime(f1,t0+at);o.frequency.exponentialRampToValueAtTime(Math.max(20,f2),t0+at+dur);const g=c.createGain();g.gain.setValueAtTime(0.0001,t0+at);g.gain.exponentialRampToValueAtTime(vol,t0+at+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t0+at+dur);o.connect(g);g.connect(master);o.start(t0+at);o.stop(t0+at+dur+0.05)};
@@ -999,6 +1034,7 @@ function sfx(name){
   switch(name){
     case 'shot':noise(0.05,0.12,2500);break;
     case 'flame':noise(0.15,0.08,1200);break;
+    case 'launch':tone(0,'sine',180,520,0.25,0.12);noise(0.2,0.08,1500);break;
     case 'laser':tone(0,'sawtooth',1500,300,0.14,0.06);break;
     case 'plasma':tone(0,'sine',320,60,0.35,0.16);noise(0.3,0.12,800);break;
     case 'zap':tone(0,'square',1200,150,0.16,0.04);noise(0.12,0.06,6000);break;
@@ -1109,6 +1145,19 @@ function drawB(c,b,x,y,s,now){
   if(k==='noyau'){c.fillStyle='rgba(0,0,0,0.3)';rr(c,x+s*0.3,y+s*0.4,s*2.9,s*2.9,s*0.4);c.fill()}
   else if(k!=='tapis'){c.fillStyle='rgba(0,0,0,0.28)';rr(c,x+s*0.13,y+s*0.17,s*0.88,s*0.88,s*0.16);c.fill()}
   switch(k){
+    case 'lanceur':{
+      body(c,x,y,s,d.col);
+      c.fillStyle='#2a2e36';c.beginPath();c.arc(cx,cy,s*0.26,0,7);c.fill();
+      const fill=Math.min(1,(b.count||0)/20);c.fillStyle='#ffd23f';c.beginPath();c.moveTo(cx,cy);c.arc(cx,cy,s*0.26,-Math.PI/2,-Math.PI/2+fill*Math.PI*2);c.closePath();c.globalAlpha=0.35;c.fill();c.globalAlpha=1;
+      c.save();c.translate(cx,cy);c.rotate(b.aim??-Math.PI/2);const kk=(b.kick>0?b.kick*0.4:0);c.fillStyle='#d9dde4';c.fillRect(-s*0.05-kk*s,-s*0.1,s*0.5,s*0.2);c.fillStyle='#3a2a20';c.fillRect(s*0.36-kk*s,-s*0.12,s*0.1,s*0.24);c.restore();
+      c.fillStyle=d.col;c.beginPath();c.arc(cx,cy,s*0.12,0,7);c.fill();
+      break;}
+    case 'recepteur':{
+      body(c,x,y,s,d.col);
+      c.fillStyle='#1b2a38';c.beginPath();c.arc(cx,cy,s*0.27,0,7);c.fill();
+      c.strokeStyle='#8fd0ff';c.lineWidth=Math.max(1,s*0.05);c.beginPath();c.arc(cx,cy,s*0.2,0,7);c.stroke();c.beginPath();c.arc(cx,cy,s*0.1,0,7);c.stroke();
+      const fill=Math.min(1,(b.count||0)/40);c.fillStyle='rgba(0,0,0,0.6)';c.fillRect(x+s*0.16,y+s*0.82,s*0.68,s*0.06);c.fillStyle='#8fd0ff';c.fillRect(x+s*0.16,y+s*0.82,s*0.68*fill,s*0.06);
+      arrow(c,cx,cy,s,b.rot,'#ffd23f');break;}
     case 'forge':{
       body(c,x,y,s,d.col);
       c.fillStyle='#22262e';c.beginPath();c.moveTo(cx-s*0.24,cy-s*0.08);c.lineTo(cx+s*0.24,cy-s*0.08);c.lineTo(cx+s*0.14,cy+s*0.02);c.lineTo(cx+s*0.1,cy+s*0.2);c.lineTo(cx-s*0.1,cy+s*0.2);c.lineTo(cx-s*0.14,cy+s*0.02);c.closePath();c.fill();
@@ -1355,6 +1404,18 @@ function draw(now){
     else if(e.k==='zap'){ctx.globalAlpha=a;ctx.strokeStyle=e.col;ctx.lineWidth=Math.max(1,e.w*T);ctx.beginPath();const n=6;ctx.moveTo(ox+e.x1*T,oy+e.y1*T);for(let i=1;i<n;i++){const f=i/n;ctx.lineTo(ox+(e.x1+(e.x2-e.x1)*f)*T+(hsh(i,e.seed|0,7)-0.5)*T*0.5,oy+(e.y1+(e.y2-e.y1)*f)*T+(hsh(i,e.seed|0,9)-0.5)*T*0.5)}ctx.lineTo(ox+e.x2*T,oy+e.y2*T);ctx.stroke();ctx.globalAlpha=1}
     else{ctx.fillStyle=`rgba(${e.col},${a*0.6})`;ctx.beginPath();ctx.arc(ox+e.x*T,oy+e.y*T,e.r*T*(1.2-a*0.6),0,7);ctx.fill()}
   }
+  // capsules en vol
+  for(const c of CAPS){
+    const f=Math.min(1,c.t/c.dur),gx=c.sx+(c.tx-c.sx)*f,gy=c.sy+(c.ty-c.sy)*f,dist=Math.hypot(c.tx-c.sx,c.ty-c.sy),h=Math.min(6,dist*0.3)*4*f*(1-f);
+    const X=ox+gx*T,Y=oy+gy*T,Yh=Y-h*T;
+    ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(X,Y,T*0.22*(1-h/12),T*0.1*(1-h/12),0,0,7);ctx.fill();
+    const g=ctx.createRadialGradient(X,Yh,0,X,Yh,T*0.4);g.addColorStop(0,'rgba(255,240,200,0.9)');g.addColorStop(1,'rgba(255,200,120,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(X,Yh,T*0.4,0,7);ctx.fill();
+    ctx.fillStyle='#d9dde4';ctx.strokeStyle='#3a404b';ctx.lineWidth=Math.max(1,T*0.04);ctx.beginPath();ctx.arc(X,Yh,T*0.17,0,7);ctx.fill();ctx.stroke();
+    drawItem(ctx,c.it,X,Yh,T*0.18);
+    if(Math.random()<0.5)addPart({kind:'smoke',x:gx,y:gy-h,vx:0,vy:0,life:0.5,max:0.5,size:0.08,col:'200,200,210'});
+  }
+  if(sel&&sel.type==='lanceur'&&sel.lk){ctx.strokeStyle='rgba(255,210,63,0.6)';ctx.setLineDash([6,6]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ox+(sel.x+0.5)*T,oy+(sel.y+0.5)*T);ctx.lineTo(ox+(sel.lk[0]+0.5)*T,oy+(sel.lk[1]+0.5)*T);ctx.stroke();ctx.setLineDash([])}
+  if(linkFrom){ctx.strokeStyle='rgba(143,208,255,0.85)';ctx.setLineDash([4,4]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ox+(linkFrom.x+0.5)*T,oy+(linkFrom.y+0.5)*T);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([])}
   // particules
   for(const p of parts){
     const a=Math.max(0,p.life/p.max),X=ox+p.x*T,Y=oy+p.y*T;
@@ -1379,6 +1440,7 @@ function draw(now){
       else if(t==='reparateur'||t==='cryo'||t==='bouclier')light(b.x+0.5,b.y+0.5,t==='bouclier'?2.5:1.8,0.75);
       else if(DRILLS.has(t))light(b.x+0.5,b.y+0.5,1,0.4);}
     for(const r of robots)light(r.x,r.y,2,0.85);
+    for(const c of CAPS){const f=Math.min(1,c.t/c.dur);light(c.sx+(c.tx-c.sx)*f,c.sy+(c.ty-c.sy)*f,1.4,0.8)}
     for(const p of parts)if(p.kind==='fire')light(p.x,p.y,0.8,0.5*(p.life/p.max));
     for(let y=Math.max(0,Math.floor(-oy/T));y<=Math.min(H-1,Math.ceil((ch-oy)/T));y++)for(let x=Math.max(0,Math.floor(-ox/T));x<=Math.min(W-1,Math.ceil((cw-ox)/T));x++)if(deposit[y][x]==='minerai_uranium')light(x+0.5,y+0.5,0.9,0.45);
     for(const e of effects){if(e.k==='boom')light(e.x,e.y,e.r*2.5,0.9*(e.t/e.max));else light(e.x2,e.y2,0.9,0.7*(e.t/e.max))}
@@ -1432,7 +1494,7 @@ function costHtml(cost,mul=1){return'<div class="cost">'+Object.keys(cost).map(k
 function recTxt(r){return Object.keys(r.in).map(k=>`${r.in[k]} ${ITEMS[k].n}`).join(' + ')+` → ${r.n} ${ITEMS[r.out].n}`}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-let hoverTool=null;const toolEls={};
+let hoverTool=null,linkFrom=null;const toolEls={};
 function buildToolbar(){
   if(!S)return;
   const cats=$('cats');cats.innerHTML='';
@@ -1503,6 +1565,8 @@ function bInfo(b,isSel){
     if(b.crafting)h+='<p class="okc">En production</p>';else if(b.out>=8)h+='<p class="bad">Sortie bloquée</p>';
   }
   if(b.type==='fusionneur'||b.type==='repartiteur')h+=`<p class="mut">${d.desc}</p>`;
+  if(b.type==='lanceur'){const tg=b.lk?at(b.lk[0],b.lk[1]):null;h+=`<p>Chargement : ${Math.round(b.count||0)} / 20</p>`+(tg&&tg.type==='recepteur'?`<p class="okc">Cible : réceptionneur à ${Math.round(Math.hypot(tg.x-b.x,tg.y-b.y))} cases</p>`:'<p class="bad">Aucun réceptionneur : pose-en un près de ton noyau</p>');if(isSel&&mine)h+=`<div class="btnrow"><button class="blue" data-act="link">${linkFrom===b?'Clique un réceptionneur sur la carte…':'Changer de cible'}</button></div>`}
+  if(b.type==='recepteur')h+=`<p>Stock : ${Math.round(b.count||0)} / 40</p><p class="mut">Oriente la flèche vers ton noyau, un tapis ou une machine (touche R).</p>`;
   if(b.type==='coffre'){if(guest)h+=`<p>Rempli : ${Math.round((b.used||0))} / ${d.cap}</p>`;else{const ks=Object.keys(b.store).filter(k=>b.store[k]>0);h+=`<p>Rempli : ${b.used} / ${d.cap}</p><div class="inv">${ks.map(k=>`<div class="it">${sw(k)}<span>${ITEMS[k].n}</span><span class="n">${b.store[k]}</span></div>`).join('')||'<span class="mut">Vide</span>'}</div>`}}
   if(GENS.has(b.type)){const fu=ITEMS[d.fuel||'petrole'].n;h+=(guest?'':`<p>${fu} en réserve : ${b.fuel}</p>`)+(b.burn>0?`<p class="okc">En marche (+${d.pw} énergie)</p>`:`<p class="bad">À l'arrêt — amène du ${fu.toLowerCase()} par tapis</p>`)}
   if(TURRETS.has(b.type)){h+=`<p>Portée ${d.range} · Dégâts ${Math.round(d.dmg*mArm(b.owner))}${d.splash?' (zone)':''}${d.chain?` (${d.chain} rebonds)`:''} · ${d.rate} tirs/s</p>`;if(d.ammo&&mine)h+=`<p>Munitions en stock : ${Math.floor(total('munitions'))}</p>`}
@@ -1591,6 +1655,7 @@ $('pane').addEventListener('pointerdown',e=>{
   if(k==='rot'&&sel&&ROTATABLE.has(sel.type)){act('rotate',sel.x,sel.y,-1);if(NET.role==='guest')sel.rot=(sel.rot+1)%4}
   if(k==='del'&&sel){if(sel.isRobot)act('rdel',sel.id);else act('demolish',sel.x,sel.y);sel=null}
   if(k==='give')openGive();
+  if(k==='link'&&sel&&sel.type==='lanceur'){linkFrom=sel;toast('Clique sur un de tes réceptionneurs (Échap pour annuler)',true)}
   if(k==='revive'){const err=act('revive');if(err)toast(err)}
   if(k==='talreset'){for(const t of TALENTS){META.points+=(META.talents[t.id]||0)*t.cost}META.talents={};saveMeta();applyTalentsLive()}
   if(k==='rebirth'&&P(ME).level>=20&&!coop()){if(rbArm&&Date.now()-rbArm<4000){rbArm=0;rebirth();return}rbArm=Date.now()}
@@ -1695,6 +1760,12 @@ canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('mousedown',e=>{
   if(!S)return;
   updMouse(e);
+  if(e.button===0&&linkFrom){
+    const r=at(mouse.tx,mouse.ty);
+    if(r&&r.type==='recepteur'&&r.owner===ME){const err=act('link',linkFrom.x,linkFrom.y,r.x,r.y);if(err)toast(err);else{toast('Lanceur relié !',true);if(NET.role==='guest')linkFrom.lk=[r.x,r.y]}}
+    else toast('Ce n\'est pas un de tes réceptionneurs');
+    linkFrom=null;refreshUI(true);return;
+  }
   if(e.button===0){
     if(tool){mouse.left=true;mouse.lastTx=mouse.tx;mouse.lastTy=mouse.ty;tryPlace(mouse.tx,mouse.ty,null)}
     else mouse.pan={x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y,moved:false};
@@ -1747,7 +1818,7 @@ window.addEventListener('keydown',e=>{
     else{const b=mouse.inside?at(mouse.tx,mouse.ty):sel;if(b&&ROTATABLE.has(b.type)&&b.owner===ME){const nr=(b.rot+(e.shiftKey?3:1))%4;act('rotate',b.x,b.y,nr);if(NET.role==='guest')b.rot=nr}}
     return;
   }
-  if(e.code==='Escape'){setTool(null);sel=null;return}
+  if(e.code==='Escape'){setTool(null);sel=null;linkFrom=null;return}
   if(e.code==='Space'){togglePause();e.preventDefault();return}
   if(e.code==='Delete'&&sel&&!sel.isRobot&&sel.type!=='noyau'&&sel.owner===ME){act('demolish',sel.x,sel.y);sel=null;return}
   keys[e.code]=true;
@@ -1781,6 +1852,7 @@ function drawMini(){
   for(const b of buildings){mctx.fillStyle=TURRETS.has(b.type)?'#ffffff':coop()?PCOL[b.owner]:(BELT.has(b.type)?'#8a90a0':'#d9a35a');mctx.fillRect(b.x*2,b.y*2,2,2)}
   for(const c of cores){mctx.fillStyle=P(c.owner).dead?'#555':coop()?PCOL[c.owner]:'#f2a33a';mctx.fillRect(c.x*2-1,c.y*2-1,8,8)}
   mctx.fillStyle='#ffd23f';for(const r of robots)mctx.fillRect(r.x*2-1,r.y*2-1,2.5,2.5);
+  mctx.fillStyle='#ffffff';for(const c of CAPS){const f=Math.min(1,c.t/c.dur);mctx.fillRect((c.sx+(c.tx-c.sx)*f)*2-1,(c.sy+(c.ty-c.sy)*f)*2-1,2,2)}
   for(const m of monsters){const t=MT[m.type];mctx.fillStyle=t.boss?'#c77dff':'#ff4d4d';const z=t.boss?5:2;mctx.fillRect(m.x*2-z/2,m.y*2-z/2,z,z)}
   const T=TS*cam.z,vw=cw/T,vh=ch/T;mctx.strokeStyle='#fff';mctx.lineWidth=1;mctx.strokeRect((cam.x-vw/2)*2,(cam.y-vh/2)*2,vw*2,vh*2);
 }
@@ -1793,7 +1865,7 @@ miniCv.addEventListener('contextmenu',e=>e.preventDefault());
 
 // ================= SAVE / LOAD =================
 function snapshot(){
-  return {v:3,mapV:MAP_V,savedAt:Date.now(),S,gm:guestMeta,b:buildings.map(b=>({t:b.type,x:b.x,y:b.y,r:b.rot,h:b.hp,o:b.owner,rc:b.recipe||0,st:b.store})),rb:robots.map(r=>({x:r.x,y:r.y,h:r.hp,c:r.cargo,n:r.count,p:r.pref,o:r.owner})),m:monsters.map(m=>({t:m.type,x:m.x,y:m.y,h:m.hp,mh:m.maxhp,d:m.dmg,hm:m.hpMul,dm:m.dmgMul})),q:spawnQ};
+  return {v:3,mapV:MAP_V,savedAt:Date.now(),S,gm:guestMeta,b:buildings.map(b=>({t:b.type,x:b.x,y:b.y,r:b.rot,h:b.hp,o:b.owner,rc:b.recipe||0,st:b.store,lk:b.lk})),rb:robots.map(r=>({x:r.x,y:r.y,h:r.hp,c:r.cargo,n:r.count,p:r.pref,o:r.owner})),m:monsters.map(m=>({t:m.type,x:m.x,y:m.y,h:m.hp,mh:m.maxhp,d:m.dmg,hm:m.hpMul,dm:m.dmgMul})),q:spawnQ};
 }
 let localSavedAt=0;
 function save(){
@@ -1810,12 +1882,12 @@ function applySave(d){
   if(!d||!d.S||![1,2,3].includes(d.v))return false;
   $('overlay').hidden=true;
   const s=migrateS(d.S);
-  if(!d.mapV){const sx=16,sy=10;for(const o of d.b||[]){o.x+=sx;o.y+=sy}for(const o of d.rb||[]){o.x+=sx;o.y+=sy}for(const o of d.m||[]){o.x+=sx;o.y+=sy}}
+  if(!d.mapV){const sx=16,sy=10;for(const o of d.b||[]){o.x+=sx;o.y+=sy;if(o.lk){o.lk[0]+=sx;o.lk[1]+=sy}}for(const o of d.rb||[]){o.x+=sx;o.y+=sy}for(const o of d.m||[]){o.x+=sx;o.y+=sy}}
   setupWorld(s.seed,s.mode);
   S=Object.assign(newState(s.seed,s.mode),s);S.paused=false;
   for(const p of S.players){p.craftQ=p.craftQ||[];p.goalsDone=p.goalsDone||[];p.made=p.made||{}}
   if(d.gm)guestMeta=d.gm;
-  for(const o of d.b){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}}
+  for(const o of d.b){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}if(o.lk)b.lk=o.lk}
   robots=(d.rb||[]).map(o=>{const r=newRobot(o.x,o.y,o.o||0);r.hp=o.h;r.cargo=o.c||{};r.count=o.n||0;r.pref=o.p||'auto';return r});
   monsters=(d.m||[]).map(o=>({id:monSeq++,type:o.t,x:o.x,y:o.y,hp:o.h,maxhp:o.mh,dmg:o.d,cd:0,ox:(Math.random()-0.5)*0.4,oy:(Math.random()-0.5)*0.4,fx:0,fy:1,seed:Math.random()*10,flash:0,spawnT:6,hpMul:o.hm||1,dmgMul:o.dm||1}));
   spawnQ=d.q||[];
@@ -2059,7 +2131,7 @@ function onGuestPresence(p){
     for(const c of cmds){NET.lastSeq=c.n;const a=Array.isArray(c.a)?c.a:[];if(!GUEST_ACTS.has(a[0]))continue;try{const err=ACT[a[0]](1,...a.slice(1));if(err&&a[0]!=='place')NET.msgOut.push('?'+err)}catch(e){}}
   }
 }
-const GUEST_ACTS=new Set(['place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
+const GUEST_ACTS=new Set(['link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
 function hostSendHello(){
   if(!NET.room)return;
   NET.room.emit('hello',{seed:S.seed,mode:'coop',name:NET.hostName,meta:META.talents||{}}).catch(()=>{});
@@ -2071,6 +2143,8 @@ function encBuildings(){
     let ex=0;
     if(MACHINES.has(b.type))ex=(b.recipe||0)+(b.crafting?16:0);
     else if(b.type==='cryo')ex=b.active?1:0;
+    else if(b.type==='lanceur')ex=Math.round((b.count||0)/20*63);
+    else if(b.type==='recepteur')ex=Math.round((b.count||0)/40*63);
     else if(GENS.has(b.type))ex=b.burn>0?1:0;
     else if(b.type==='coffre')ex=Math.round(b.used/B.coffre.cap*63);
     else if(b.type==='reparateur')ex=b.healing?1:0;
@@ -2094,7 +2168,9 @@ function hostNetTick(now){
   const fxs=NET.fxOut.splice(0,30).map(e=>e.k==='boom'?['b',+e.x.toFixed(1),+e.y.toFixed(1),+e.r.toFixed(2),e.col,e.max]:[e.k==='zap'?'z':'s',+e.x1.toFixed(2),+e.y1.toFixed(2),+e.x2.toFixed(2),+e.y2.toFixed(2),e.col,e.w,e.max,e.seed||0]);
   NET.fxOut.length=0;
   const msg=NET.msgOut.splice(0,5);
-  NET.room.emit('st',{w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ack:NET.lastSeq,ps,ta,rb,fx:fxs,msg,hm:META.talents||{}}).catch(()=>{});
+  const cp=CAPS.map(c=>[Math.round(c.sx*10),Math.round(c.sy*10),Math.round(c.tx*10),Math.round(c.ty*10),+c.t.toFixed(2),+c.dur.toFixed(2),ITEM_ORDER.indexOf(c.it)]);
+  const lk=buildings.filter(b=>b.type==='lanceur'&&b.lk).map(b=>[b.x,b.y,b.lk[0],b.lk[1]]);
+  NET.room.emit('st',{cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ack:NET.lastSeq,ps,ta,rb,fx:fxs,msg,hm:META.talents||{}}).catch(()=>{});
   let ms='';for(const m of monsters)ms+=e2(m.id%4096)+e1(MTYPES.indexOf(m.type))+e2(m.x*40)+e2(m.y*40)+e1(m.hp/m.maxhp*63)+e1(((Math.atan2(m.fy,m.fx)/(Math.PI*2))*64+64)%64);
   sendChunks('mo',ms);
   let bi='';for(const b of buildings)if(BELT.has(b.type)&&b.item)bi+=e2(b.x)+e2(b.y)+e1(ITEM_ORDER.indexOf(b.item))+e1(b.prog*63);
@@ -2147,6 +2223,7 @@ function guestApplyBuildings(str){
     const t=TYPES[d1(str,i)];if(!t)continue;const x=d2(str,i+1),y=d2(str,i+3);if(x<0||y<0||x>=W||y>=H||grid[y][x])continue;
     const b={type:t,x,y,rot:d1(str,i+5)&3,owner:d1(str,i+6)?1:0,hp:0};initB(b);b.hp=d1(str,i+7)/63*maxHp(b);const ex=d1(str,i+8);
     if(t==='cryo')b.active=!!ex;
+    if(t==='lanceur')b.count=ex/63*20;if(t==='recepteur')b.count=ex/63*40;
     if(MACHINES.has(t)){b.recipe=ex&15;b.crafting=ex&16?{t:1}:null;b.prog=0.5}else if(GENS.has(t))b.burn=ex?1:0;else if(t==='coffre')b.used=ex/63*B.coffre.cap;else if(t==='reparateur')b.healing=!!ex;
     if(DRILLS.has(t))b.spin=0;
     const k=x+','+y;if(keepItems[k]&&BELT.has(t)){b.item=keepItems[k][0];b.prog=keepItems[k][1]}
@@ -2174,6 +2251,8 @@ function guestApplyState(d){
   NET.lastSt=Date.now();
   if(typeof d.w==='number'){if(d.w>S.wave&&S.wave>0||d.w>S.wave&&d.w===1){}S.wave=d.w}
   if(typeof d.wt==='number')S.waveTimer=d.wt;
+  if(Array.isArray(d.cp)){const n0=CAPS.length;CAPS=d.cp.map(a=>({sx:a[0]/10,sy:a[1]/10,tx:a[2]/10,ty:a[3]/10,t:a[4],dur:a[5],it:ITEM_ORDER[a[6]]||'lingot_fer'}));if(CAPS.some(c=>c.t<0.3))sfx('launch')}
+  if(Array.isArray(d.lk))for(const a of d.lk){const b=at(a[0],a[1]);if(b&&b.type==='lanceur'){b.lk=[a[2],a[3]];b.aim=Math.atan2(a[3]-a[1],a[2]-a[0])}}
   if(Array.isArray(d.v))S.votes=[!!d.v[0],!!d.v[1]];
   S.kills=d.k|0;S.bossKills=d.bk|0;
   if(d.hm)NET.hostMeta={talents:d.hm};
@@ -2202,6 +2281,7 @@ function guestFrame(dt){
   for(const r of robots){if(r.tx2!=null){r.x+=(r.tx2-r.x)*k;r.y+=(r.ty2-r.y)*k}r.spin=(r.spin||0)+dt}
   for(const b of buildings){if(BELT.has(b.type)&&b.item&&b.prog<1)b.prog=Math.min(1,b.prog+dt*B[b.type].spd*mBelt(b.owner));if(MACHINES.has(b.type)&&b.crafting)b.spin=(b.spin||0)+dt*4;if(DRILLS.has(b.type))b.spin=(b.spin||0)+dt*8*(P(b.owner).pr||1)}
   for(const e of effects)e.t-=dt;effects=effects.filter(e=>e.t>0);
+  for(const c of CAPS)c.t=Math.min(c.dur,c.t+dt);
   S.waveTimer=Math.max(0,S.waveTimer-dt);
   if(NET.metaDirty){NET.metaDirty=false;guestPresence()}
 }
@@ -2241,7 +2321,7 @@ function frame(nowMs){
 window.addEventListener('beforeunload',save);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){save();cloudPush()}});
 cloudInit();
-window.__game={get S(){return S},get buildings(){return buildings},get robots(){return robots},get monsters(){return monsters},get chests(){return chests},get deposit(){return deposit},get META(){return META},get NET(){return NET},get ME(){return ME},placeB,update,gainXp,startWave,addRobot:(x,y,o=0)=>robots.push(newRobot(x,y,o)),rebirth,total,act,ACT,startHost,startGuest,clearWave:()=>{monsters=[];spawnQ=[]}};
+window.__game={cam,get S(){return S},get buildings(){return buildings},get robots(){return robots},get monsters(){return monsters},get chests(){return chests},get deposit(){return deposit},get META(){return META},get NET(){return NET},get ME(){return ME},placeB,update,gainXp,startWave,addRobot:(x,y,o=0)=>robots.push(newRobot(x,y,o)),rebirth,total,act,ACT,startHost,startGuest,clearWave:()=>{monsters=[];spawnQ=[]}};
 requestAnimationFrame(frame);
 })();
 </script>
