@@ -2147,8 +2147,15 @@ function applySave(d){
   if(d.gm)guestMeta=d.gm;
   for(const o of d.b){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}if(o.lk)b.lk=o.lk;if(o.fl&&ITEMS[o.fl])b.filter=o.fl}
   robots=(d.rb||[]).map(o=>{const r=newRobot(o.x,o.y,o.o||0,UNIT_KINDS.includes(o.k)?o.k:'robot');r.hp=o.h;r.cargo=o.c||{};r.count=o.n||0;r.pref=o.p||'auto';if(o.ch!=null)r.charge=o.ch;if(o.st)r.st=d.mapV?o.st:[o.st[0]+16,o.st[1]+10];return r});
-  monsters=(d.m||[]).map(o=>({id:monSeq++,type:o.t,x:o.x,y:o.y,hp:o.h,maxhp:o.mh,dmg:o.d,cd:0,ox:(Math.random()-0.5)*0.4,oy:(Math.random()-0.5)*0.4,fx:0,fy:1,seed:Math.random()*10,flash:0,spawnT:6,hpMul:o.hm||1,dmgMul:o.dm||1}));
-  spawnQ=d.q||[];
+  const okM=o=>o&&MT[o.t]&&isFinite(o.x)&&isFinite(o.y)&&isFinite(o.h)&&o.h>0;
+  monsters=(d.m||[]).filter(okM).slice(0,MAX_ALIVE).map(o=>({id:monSeq++,type:o.t,x:o.x,y:o.y,hp:o.h,maxhp:o.mh,dmg:o.d,cd:0,ox:(Math.random()-0.5)*0.4,oy:(Math.random()-0.5)*0.4,fx:0,fy:1,seed:Math.random()*10,flash:0,spawnT:6,hpMul:o.hm||1,dmgMul:o.dm||1}));
+  spawnQ=(Array.isArray(d.q)?d.q:[]).filter(q=>q&&MT[q.type]).slice(0,MAX_WAVE*2);
+  if(!isFinite(S.waveTimer)||S.waveTimer<0)S.waveTimer=S.interval||900;
+  // partie à deux quittée pendant une vague : on repart proprement, sans monstres, vague dans 3 min
+  if(S.mode==='coop'&&(monsters.length||spawnQ.length||d.fixWave)){monsters=[];spawnQ=[];S.waveTimer=180;S.warned=0;S.votes=[false,false];
+    for(const p of S.players){if(p.dead){p.dead=false;p.coreHp=Math.max(1,p.coreMax*0.5)}}S.over=false;
+    for(const r of robots)if(r.kind==='gardien'){r.state='dock';if(r.st){r.x=r.st[0]+1;r.y=r.st[1]+1}}
+    S.resetMsg=true}
   computeFlow();flowDirty=false;
   if(S.mode==='solo')localSavedAt=d.savedAt||0;
   if(S.over)showGameOver();
@@ -2205,8 +2212,8 @@ async function cloudPush(){
 // ================= CODE DE SAUVEGARDE =================
 function b64(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s)}
 function unb64(s){const bin=atob(s);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
-async function encodeSave(){
-  const json=JSON.stringify({g:snapshot(),meta:META});
+async function encodeSave(obj){
+  const json=JSON.stringify(obj||{g:snapshot(),meta:META});
   try{if(window.CompressionStream){const st=new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'));return 'UA1Z:'+b64(new Uint8Array(await new Response(st).arrayBuffer()))}}catch(e){}
   return 'UA1:'+b64(new TextEncoder().encode(json));
 }
@@ -2238,7 +2245,7 @@ $('bImport').onclick=async()=>{
   let d;
   try{d=await decodeSave($('impTxt').value)}catch(e){saveMsg('Ce code n\'est pas valide. Vérifie que tu l\'as copié en entier.','bad');return}
   const ds=migrateS(d.g.S);
-  if(ds.mode==='coop'){saveMsg('Ce code contient une partie à deux : il ne peut pas être chargé en solo.','bad');return}
+  if(ds.mode==='coop'){saveMsg('Ce code contient une partie à deux : charge-le depuis le menu Multijoueur (« Importer une partie à deux »).','bad');return}
   if(!impArm||Date.now()-impArm>5000){impArm=Date.now();$('bImport').textContent='Confirmer : remplacer ma partie actuelle';saveMsg(`Code valide : vague ${ds.wave}, niveau ${ds.players[0].level}, ${(d.meta&&d.meta.rebirths)||0} renaissance(s). Ta partie actuelle sera remplacée.`,'pur');return}
   impArm=0;$('bImport').textContent='Charger ce code';
   if(d.meta){META=Object.assign({points:0,talents:{},rebirths:0},d.meta);saveMeta()}
@@ -2374,7 +2381,7 @@ function getPseudo(){try{return localStorage.getItem('usine-pseudo')||''}catch(e
 function setPseudo(v){v=(v||'').trim().slice(0,20);try{localStorage.setItem('usine-pseudo',v)}catch(e){}if(v&&NET.transport!=='claude')NET.myName=v}
 function randCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<5;i++)s+=a[(Math.random()*a.length)|0];return s}
 function mpMsg(t,cls){const e=$('mpMsg');if(e){e.textContent=t;e.className='msg '+(cls||'')}}
-function openMp(){renderMp();$('mpDlg').hidden=false}
+function openMp(){NET.mpBusy=false;renderMp();$('mpDlg').hidden=false}
 function renderMp(){
   const c=$('mpCard');
   if(NET.role==='solo'){
@@ -2389,12 +2396,17 @@ function renderMp(){
       <div style="display:flex;gap:6px"><input id="mpCode" maxlength="5" placeholder="CODE" autocomplete="off"><button class="okb" id="mpJoin" style="flex:none">Rejoindre</button></div>
       <p class="mut" style="font-size:12px;margin-top:8px">${onClaude()?'Ton ami doit être connecté à claude.ai et avoir accès à ce jeu : invite-le par e-mail depuis le bouton Partager (un simple lien public ne suffit pas pour le multijoueur).':'Envoie le lien du jeu et le code à ton ami : vos deux jeux communiquent par un relais internet gratuit, sans compte. L\'hôte garde son onglet ouvert et visible.'}</p>
       <div id="mpMsg" class="msg"></div>
+      <h4>Sauvegarde de la partie à deux</h4>
+      <div class="btnrow">${hasCoop?'<button id="mpExp">Exporter (code)</button>':''}<button id="mpImpBtn">Importer une partie à deux</button></div>
+      <div id="mpSaveBox"></div>
       ${friendsHtml()}
       <div class="btnrow"><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
     if($('mpName'))$('mpName').addEventListener('change',e=>setPseudo(e.target.value));
     const savePseudo=()=>{if($('mpName'))setPseudo($('mpName').value)};
     $('mpHost').onclick=()=>{savePseudo();startHost(false)};
     if(hasCoop)$('mpResume').onclick=()=>{savePseudo();startHost(true)};
+    if($('mpExp'))$('mpExp').onclick=()=>coopExportUI(JSON.parse(localStorage.getItem(COOP_KEY)||'null'));
+    $('mpImpBtn').onclick=coopImportUI;
     $('mpJoin').onclick=()=>{savePseudo();startGuest($('mpCode').value)};
     $('mpCode').addEventListener('keydown',e=>{if(e.key==='Enter'){savePseudo();startGuest($('mpCode').value)}});
   }else if(NET.role==='spec'){
@@ -2407,14 +2419,39 @@ function renderMp(){
       <p style="margin-top:10px">${NET.role==='host'?(here?`<span class="okc">✓ ${esc(NET.guestName)} est connecté</span>`:'<span class="mut">En attente de ton coéquipier… donne-lui ce code.</span>'):(here?`<span class="okc">✓ Connecté à la partie de ${esc(NET.hostName)}</span>`:'<span class="mut">Connexion à l\'hôte…</span>')}</p>
       ${!onClaude()&&NET.matePid&&here?(isFriend(NET.matePid)?`<p class="okc" style="font-size:12.5px">✓ ${esc(NET.role==='host'?NET.guestName:NET.hostName)} est dans tes amis</p>`:`<div class="btnrow"><button class="blue" data-mp="addmate">Ajouter ${esc(NET.role==='host'?NET.guestName:NET.hostName)} en ami</button></div>`):''}
       <div id="mpMsg" class="msg"></div>
+      ${NET.role==='host'?'<div class="btnrow"><button id="mpExp">Exporter la partie (code)</button></div><div id="mpSaveBox"></div>':''}
       <div class="btnrow"><button class="danger" id="mpLeave">Quitter la partie à deux</button><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
     $('mpLeave').onclick=leaveCoop;
+    if($('mpExp'))$('mpExp').onclick=()=>{save();coopExportUI(snapshot())};
   }
   $('mpClose').onclick=()=>{$('mpDlg').hidden=true};
 }
 $('bMp').onclick=openMp;
 $('mpDlg').addEventListener('mousedown',e=>{if(e.target.id==='mpDlg')$('mpDlg').hidden=true});
 
+async function coopExportUI(snap){
+  const box=$('mpSaveBox');if(!box)return;
+  if(!snap||!snap.S){box.innerHTML='<p class="bad">Aucune partie à deux sauvegardée.</p>';return}
+  NET.mpBusy=true;
+  box.innerHTML='<textarea id="mpExpTxt" readonly placeholder="Génération…" style="height:70px"></textarea><div class="btnrow"><button id="mpCopy" class="prim">Copier le code</button><span class="mut" id="mpExpInfo" style="align-self:center;font-size:12px"></span></div>';
+  const c=await encodeSave({g:snap,coop:1});$('mpExpTxt').value=c;
+  const s2=migrateS(snap.S);$('mpExpInfo').textContent=`Vague ${s2.wave} · niveaux ${s2.players.map(p=>p.level).join(' / ')} · ${c.length} caractères`;
+  $('mpCopy').onclick=async()=>{try{await navigator.clipboard.writeText(c);mpMsg('Code copié ! Envoie-le à ton pote ou garde-le.','okc')}catch(e){const t=$('mpExpTxt');t.focus();t.select();mpMsg('Copie bloquée : le code est sélectionné, fais Ctrl+C.','bad')}};
+}
+function coopImportUI(){
+  const box=$('mpSaveBox');if(!box)return;NET.mpBusy=true;
+  box.innerHTML='<textarea id="mpImpTxt" placeholder="Colle ici le code de la partie à deux (UA1…)" style="height:70px"></textarea><div class="btnrow"><button id="mpImpGo" class="warn">Charger et héberger</button></div>';
+  let arm=0;
+  $('mpImpGo').onclick=async()=>{
+    let d;try{d=await decodeSave($('mpImpTxt').value)}catch(e){mpMsg('Ce code n\'est pas valide. Vérifie qu\'il est copié en entier.','bad');return}
+    const ds=migrateS(d.g.S);
+    if(ds.mode!=='coop'){mpMsg('Ce code contient une partie solo : charge-le avec le bouton Sauvegarde.','bad');return}
+    if(hasKey(COOP_KEY)&&(!arm||Date.now()-arm>5000)){arm=Date.now();$('mpImpGo').textContent='Confirmer : remplacer ma partie à deux';mpMsg(`Code valide : vague ${ds.wave}. Ta partie à deux sauvegardée sera remplacée.`,'pur');return}
+    d.g.fixWave=!!((d.g.m&&d.g.m.length)||(d.g.q&&d.g.q.length));
+    try{localStorage.setItem(COOP_KEY,JSON.stringify(d.g))}catch(e){mpMsg('Impossible d\'enregistrer ce code dans le navigateur.','bad');return}
+    NET.mpBusy=false;mpMsg('Partie importée, création de la salle…','okc');startHost(true);
+  };
+}
 async function startHost(resume){
   mpMsg('Connexion…');
   const R=await getRoom().catch(()=>null);
@@ -2428,7 +2465,9 @@ async function startHost(resume){
   if(NET.transport!=='claude'&&getPseudo())NET.myName=getPseudo();
   specBye();NET.specs=new Set();
   NET.role='host';NET.room=room;NET.code=code;NET.guestHere=false;NET.lastSeq=0;NET.sid=null;ME=0;NET.hostName=NET.myName||'Hôte';
-  if(!(resume&&loadKey(COOP_KEY)&&S.mode==='coop'))newGame('coop');
+  let resumed=false;if(resume){try{resumed=loadKey(COOP_KEY)&&S&&S.mode==='coop'}catch(e){resumed=false}}
+  if(!resumed){if(resume)toast('La sauvegarde à deux était illisible : nouvelle partie');newGame('coop')}
+  else if(S.resetMsg){delete S.resetMsg;setTimeout(()=>banner('La partie avait été quittée pendant une vague : monstres retirés, prochaine vague dans 3 min',false,6,'blue'),300)}
   room.onPeers(ch=>{
     for(const p of [...ch.joined,...ch.updated]){if(p.isMe||!p.presence)continue;if(p.presence.role==='guest')onGuestPresence(p);else if(p.presence.role==='spec')onSpecPresence(NET.specs,p,NET.room)}
     for(const p of ch.left)NET.specs.delete(p.peer);
@@ -2446,7 +2485,7 @@ function onGuestPresence(p){
     else if(typeof pr.name==='string')NET.guestName=pr.name.slice(0,24)||'Coéquipier';
     hostSendHello();
     banner(`${NET.guestName} a rejoint la partie !`,false,4,'blue');
-    if(!$('mpDlg').hidden)renderMp();
+    if(!$('mpDlg').hidden&&!NET.mpBusy)renderMp();
   }
   NET.guestHere=true;
   if(typeof pr.pid==='string'&&/^[A-Z0-9]{8}$/.test(pr.pid)&&NET.matePid!==pr.pid){NET.matePid=pr.pid;publishPresence();if(!isFriend(pr.pid)&&!onClaude())setTimeout(()=>toast(`Ajoute ${NET.guestName} en ami depuis le menu Multijoueur`,true),3000)}
@@ -2726,7 +2765,7 @@ async function socialInit(){
     });
   }catch(e){}
   publishPresence();
-  if(!$('mpDlg').hidden)renderMp();
+  if(!$('mpDlg').hidden&&!NET.mpBusy)renderMp();
   setInterval(publishPresence,30000);
   window.addEventListener('beforeunload',()=>{try{cl.publish(pTopic(PID),JSON.stringify({name:myName(),st:'off',t:Date.now()}),{retain:true,qos:0})}catch(e){}});
 }
@@ -2747,7 +2786,7 @@ function onSocialMsg(topic,payload){
     const pid=topic.slice(20);const f=FRIENDS.find(x=>x.pid===pid);if(!f)return;
     const was=friendState(pid);SOC.status[pid]=m;if(typeof m.name==='string'&&m.name&&m.name!==f.name){f.name=m.name.slice(0,20);saveFriends()}
     const now=friendState(pid);if(was==='off'&&now!=='off'&&Date.now()-(m.t||0)<60000)toast(`${f.name} est en ligne`,true);
-    if(!$('mpDlg').hidden&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))renderMp();
+    if(!$('mpDlg').hidden&&!NET.mpBusy&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))renderMp();
     return;
   }
   if(topic===iTopic(PID)){
@@ -2773,7 +2812,7 @@ function addFriend(pid,name){
   if(SOC.client)SOC.client.subscribe(pTopic(pid),{qos:0});
   sendInbox(pid,{type:'friend'});
   toast(`${name||'Ami'} ajouté à tes amis`,true);
-  if(!$('mpDlg').hidden)renderMp();
+  if(!$('mpDlg').hidden&&!NET.mpBusy)renderMp();
   return null;
 }
 function removeFriend(pid){FRIENDS=FRIENDS.filter(f=>f.pid!==pid);saveFriends();if(SOC.client)try{SOC.client.unsubscribe(pTopic(pid))}catch(e){}renderMp()}
@@ -2873,7 +2912,7 @@ function frameBody(nowMs){
     hostNetTick(nowMs);
   }
   draw(nowMs/1000);
-  uiAcc+=dt;if(uiAcc>0.2){uiAcc=0;drawMini();refreshUI();if(!$('mpDlg').hidden&&NET.role!=='solo'&&Math.random()<0.2&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))renderMp()}
+  uiAcc+=dt;if(uiAcc>0.2){uiAcc=0;drawMini();refreshUI();if(!$('mpDlg').hidden&&NET.role!=='solo'&&!NET.mpBusy&&Math.random()<0.2&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))renderMp()}
   saveAcc+=dt;if(saveAcc>5){saveAcc=0;save()}
   cloudAcc+=dt;if(cloudAcc>30){cloudAcc=0;cloudPush()}
 }
