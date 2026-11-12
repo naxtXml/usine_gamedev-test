@@ -27,6 +27,13 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 - Nouvelles machines (forge, centrifugeuse, éolienne, réacteur à fusion, foreuse laser, tapis express) et défenses (lance-flammes, tourelle cryo, canon électromagnétique, mur en titane, bouclier).
 - Monstres variés (kamikaze, blindé, guérisseur, araignée, spectre, brute de cristal, nécromancien) et **6 boss** : Titan (vague 10), Reine des essaims (20), Golem de cristal (30), Dragon (40), Hydre (50), Liche (60), puis le cycle recommence en plus fort.
 
+## Souterrain et autres mondes
+
+- **⛏ Souterrain** (niveau 8) : une deuxième carte, vue en coupe. Construis une **sonde de forage** et dirige-la en cliquant : elle creuse la roche, traverse les grottes, ramasse les minerais (dont l'**obsidienne**) et les remonte à la surface.
+- En profondeur, trouve les **portails** : 🌙 **Lune** (~270 m), 🔴 **Mars** (~600 m), 🧊 **Europe** (~1 000 m).
+- Sur chaque monde, pose des **foreuses spatiales** sur des minerais introuvables sur Terre (régolithe, hélium-3, oxyde martien, cristal rouge, glace cosmique, matière exotique) : la production arrive directement dans ton stock.
+- Nouveautés liées : mur d'obsidienne, réacteur à hélium-3, nouvelles recettes.
+
 ## Succès, biomes et personnalisation
 
 - **24 succès** (premier boss, 1 000 monstres, usine de 500 bâtiments…), conservés d'une partie à l'autre.
