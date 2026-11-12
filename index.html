@@ -941,12 +941,13 @@ function computeFlow(){
   const push=(d,i)=>{hp.push(d);hi.push(i);let k=hp.length-1;while(k>0){const p=(k-1)>>1;if(hp[p]<=hp[k])break;[hp[p],hp[k]]=[hp[k],hp[p]];[hi[p],hi[k]]=[hi[k],hi[p]];k=p}};
   const pop=()=>{const d=hp[0],i=hi[0];const ld=hp.pop(),li=hi.pop();if(hp.length){hp[0]=ld;hi[0]=li;let k=0;for(;;){const l=2*k+1,r=l+1;let m=k;if(l<hp.length&&hp[l]<hp[m])m=l;if(r<hp.length&&hp[r]<hp[m])m=r;if(m===k)break;[hp[m],hp[k]]=[hp[k],hp[m]];[hi[m],hi[k]]=[hi[k],hi[m]];k=m}}return[d,i]};
   for(const c of cores){if(P(c.owner).dead)continue;for(let y=0;y<3;y++)for(let x=0;x<3;x++){const i=(c.y+y)*W+c.x+x;flow[i]=0;push(0,i)}}
-  for(const b of buildings){const l=B[b.type].lure;if(l){const i=b.y*W+b.x;flow[i]=l;push(l,i)}}
-  while(hp.length){
+  for(const b of buildings){const l=B[b.type].lure;if(l){const i=b.y*W+b.x;flow[i]=l;push(Math.fround(l),i)}}
+  let guard=0;
+  while(hp.length&&guard++<400000){
     const [d,i]=pop();if(d>flow[i])continue;
     const x=i%W,y=(i/W)|0,b=grid[y][x];
     let c=1;if(b&&WALK.has(b.type))c=1;else if(b&&B[b.type]&&B[b.type].lure)c=1;else if(b&&b.type!=='noyau')c=1+b.hp/30;else if(b&&b.type==='noyau'&&P(b.owner).dead)c=500;
-    for(const [dx,dy] of DIRS){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;const n=ny*W+nx,nd=d+c;if(nd<flow[n]){flow[n]=nd;push(nd,n)}}
+    for(const [dx,dy] of DIRS){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;const n=ny*W+nx,nd=Math.fround(d+c);if(nd<flow[n]){flow[n]=nd;push(nd,n)}}
   }
 }
 function hurt(m,d,pierce=0){
