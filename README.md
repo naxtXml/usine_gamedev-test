@@ -11,7 +11,7 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 - Construis des défenses : murs, mitrailleuses, lasers, canons plasma, tours Tesla.
 - Toutes les 30 minutes une vague attaque, avec un **boss** à la vague 10.
 - Gagne de l'XP en tuant des monstres : tous les 5 niveaux, de nouveaux bâtiments et recettes se débloquent.
-- Niveau maximum : **50**. Une fois au max, **renais** pour gagner 200 points de talent permanents.
+- Niveau maximum : **50** avant la 1re renaissance, **75** avant la 2e, puis **100**. Chaque renaissance donne 200 points de talent permanents.
 - La nuit tombe à l'approche de chaque attaque : tes bâtiments éclairent la carte.
 - Monstres volants (dès la vague 4) qui survolent les murs, stations de réparation, mini-carte et effets sonores.
 - **Plans** (touche B) : copie une zone de ton usine et recolle-la ailleurs (R pour tourner). Enregistre tes plans favoris dans l'onglet Usine.
@@ -20,7 +20,11 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 - **Labo (recherche)** : dépense des ressources pour des bonus dans ta partie (vitesse des machines, tapis, dégâts, portée, énergie, XP…).
 - **Extracteur** : colle-le à ton noyau (ou à un coffre) pour en ressortir l'objet de ton choix sur un tapis.
 - **Lanceurs de matériaux** (niv 10) : construis des bases avancées n'importe où, elles envoient leurs ressources par les airs vers un réceptionneur à côté de ton noyau.
-- **7 zones** à débloquer avec les niveaux : Plaines, Désert (niv 8, cuivre), Marais (niv 15, cobalt), Toundra (niv 22, titane), Volcan (niv 30, uranium), Cristaux (niv 38, cristal du vide), Abysses (niv 45, mithril).
+- **7 zones** à débloquer avec les niveaux : Plaines, Désert (niv 8, cuivre), Marais (niv 15, cobalt), Toundra (niv 22, titane), Volcan (niv 30, uranium), Cristaux (niv 38, cristal du vide), Abysses (niv 45, mithril), et tout en haut de la carte : **Plateaux célestes** (niv 52, palladium, iridium) et **Terres foudroyées** (niv 68, orichalque).
+- **Compacteur liturique** (niv 52) : compacte palladium, iridium et orichalque.
+- **Synthétiseur 2000** (niv 68) : synthétise la glace cosmique et assemble le cœur du **canon Garik** (niv 70), l'arme ultime (500 glace synthétisée, 100 piles à fusion, 35 modules quantiques et 1 Jeton du Titan, lâché par le boss de la vague 60).
+- **Robot destructeur** (niv 72) : se recharge sur une station, ne s'attaque qu'aux boss (dégâts du canon Garik) et les gèle toutes les 10 s.
+- **Ponts** (niv 15) : passent par-dessus tout (tapis, bâtiments, eau, lave) jusqu'à 10 cases, objets visibles en l'air.
 - **Pièges** : mines, pics, leurres explosifs qui attirent les monstres et sautent quand ils sont presque détruits.
 - **Drone collecteur** (niv 45) : mine 3× plus vite, porte 40 objets et les envoie par les airs.
 - **Robot gardien** (niv 50) : posé sur sa station de recharge 2×2, il sort pendant les vagues pendant 1 minute, attire les monstres et fait de gros dégâts, puis revient se recharger.
@@ -30,8 +34,10 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 ## Souterrain et autres mondes
 
 - **⛏ Souterrain** (niveau 8) : une deuxième carte, vue en coupe. Construis une **sonde de forage** et dirige-la en cliquant : elle creuse la roche, traverse les grottes, ramasse les minerais (dont l'**obsidienne**) et les remonte à la surface.
+- La sonde **gagne des niveaux** en creusant (jusqu'au niveau 25) : plus rapide, plus de chargement, creuse en **3×3 au niveau 10**, en **5×5 au niveau 20**, et perce la roche noire au niveau 25.
 - En profondeur, trouve les **portails** : 🌙 **Lune** (~270 m), 🔴 **Mars** (~600 m), 🧊 **Europe** (~1 000 m).
 - Sur chaque monde, pose des **foreuses spatiales** sur des minerais introuvables sur Terre (régolithe, hélium-3, oxyde martien, cristal rouge, glace cosmique, matière exotique) : la production arrive directement dans ton stock.
+- **Rampe de lancement** (3×3, niveau 55) : lance une fusée vers 🔵 **Neptune** (neptunium) et découvre son **laboratoire extraterrestre**, qui débloque 5 recherches très puissantes.
 - Nouveautés liées : mur d'obsidienne, réacteur à hélium-3, nouvelles recettes.
 
 ## Succès, biomes et personnalisation

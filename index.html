@@ -302,7 +302,9 @@ const ITEMS={
   prisme:{n:'Prisme',c:'#e6d2ff',s:'gem'},
   module_quantique:{n:'Module quantique',c:'#ff9cf0',s:'gem'},
 };
-const MAXLVL=75;
+const LVCAP=100;
+// Plafond de niveau : 50 avant la 1re renaissance, 75 avant la 2e, puis 100 (en multi : 100)
+function capOf(o=ME){if(S&&coop())return LVCAP;const rb=META.rebirths|0;return rb<=0?50:rb===1?75:100}
 const BASE_ITEMS=16;
 const NEW_IT=['obsidienne','regolithe','helium3','oxyde_martien','cristal_rouge','glace_cosmique','exotique','palladium','iridium','orichalque','palladium_compacte','iridium_compacte','orichalque_compacte','glace_synth','titan_token','kit_garik','neptunium'];
 const ITEM_ORDER=Object.keys(ITEMS).filter(k=>!NEW_IT.includes(k)).concat(NEW_IT);
@@ -414,10 +416,11 @@ const B={
 };
 B.compacteur={cat:'prod',rs:'compacteur',n:'Compacteur liturique',cost:{plaque_titane:20,alliage:10,moteur:6,circuit:15},hp:900,pw:-25,col:'#6a7a96',spd:1,lvl:52,desc:'Compacte les nouveaux minerais : 4 palladium, 4 iridium ou 4 orichalque → 1 bloc compacté. Choisit la recette tout seul selon ce qui entre.'};
 B.synthetiseur={cat:'prod',rs:'synthetiseur',n:'Synthétiseur 2000',cost:{palladium_compacte:40,iridium_compacte:30,orichalque_compacte:20,module_quantique:10,pile_fusion:25,plaque_titane:150,circuit:200,prisme:30},hp:4000,pw:-120,col:'#c23dff',spd:1,lvl:68,desc:'La machine ultime. Synthétise la glace cosmique (10 glace + 2 matière exotique → 5 glace synthétisée) et assemble le cœur du canon Garik. Clique dessus pour choisir la recette.'};
-B.canon_garik={cat:'def',size:2,n:'Canon Garik',cost:{kit_garik:1},hp:20000,pw:-200,range:16,rate:1.5,dmg:25000,col:'#ff3df5',lvl:70,desc:'L\'arme absolue (2×2). Un rayon de 25 000 dégâts qui transperce tout sur 16 cases, ignore l\'armure et explose au bout. Pulvérise n\'importe quel boss d\'un seul tir… jusqu\'à la vague 60 : au-delà, les boss ★ lui résistent de plus en plus. Se construit avec un cœur du canon Garik, fabriqué au Synthétiseur 2000 (500 glace synthétisée, 100 piles à fusion, 35 modules quantiques et 1 Jeton du Titan, lâché par le boss de la vague 60).'};
+B.canon_garik={cat:'def',size:2,n:'Canon Garik',cost:{kit_garik:1},hp:20000,pw:-200,range:32,rate:1.5,dmg:25000,col:'#ff3df5',lvl:70,desc:'L\'arme absolue (2×2). Vise les boss en priorité. Un rayon de 25 000 dégâts qui transperce tout sur 32 cases, ignore l\'armure et explose au bout. Pulvérise n\'importe quel boss d\'un seul tir… jusqu\'à la vague 60 : au-delà, les boss ★ lui résistent de plus en plus. Se construit avec un cœur du canon Garik, fabriqué au Synthétiseur 2000 (500 glace synthétisée, 100 piles à fusion, 35 modules quantiques et 1 Jeton du Titan, lâché par le boss de la vague 60).'};
 B.pont_entree={cat:'log',n:'Pont (entrée)',cost:{acier:4,engrenage:2},hp:400,col:'#8a6a4a',reach:10,lvl:15,desc:'Pont roulant amélioré : envoie les objets par-dessus TOUT (tapis, bâtiments, eau, lave) jusqu\'à une sortie de pont dans la même direction, jusqu\'à 10 cases. 2× plus rapide qu\'un tunnel, et peut se poser sur l\'eau.'};
 B.pont_sortie={cat:'log',n:'Pont (sortie)',cost:{acier:4,engrenage:2},hp:400,col:'#8a6a4a',lvl:15,desc:'Sortie d\'un pont roulant (même direction que l\'entrée, 10 cases max). Peut se poser sur l\'eau.'};
 B.rampe={cat:'log',size:3,n:'Rampe de lancement',cost:{plaque_titane:200,alliage:100,moteur:50,circuit:150,pile_fusion:20,module_quantique:5},hp:8000,col:'#9aa4b2',lvl:55,desc:'Grand bâtiment 3×3. Clique dessus puis « Lancer la fusée » (100 hélium-3 + 10 piles à fusion) pour atteindre Neptune et son nouveau minerai, le neptunium.'};
+B.destructeur={cat:'trap',unit:true,n:'Robot destructeur',cost:{module_quantique:10,palladium_compacte:20,orichalque_compacte:20,pile_fusion:20},hp:4000,col:'#8a2be2',lvl:72,desc:'Se pose sur une station de recharge. Quand un boss apparaît, il sort l\'affronter (et lui seul) : autant de dégâts que le canon Garik, et toutes les 10 s il gèle le boss 2,5 s. Encaisse 10 coups de dragon, puis revient se recharger.'};
 B.mur_obsidienne={cat:'def',base:'mur',n:"Mur d'obsidienne",cost:{obsidienne:4,acier:2},hp:16000,col:'#3a2a58',desc:'Le mur le plus solide. L\'obsidienne se trouve en profondeur dans le souterrain.'};
 B.reacteur_helium={cat:'nrj',base:'reacteur',n:'Réacteur à hélium-3',cost:{plaque_titane:10,circuit:10,helium3:20},hp:900,pw:150,fuelT:20,fuel:'helium3',col:'#5aa6d9',desc:'+150 d\'énergie. Consomme 1 hélium-3 (de la Lune) toutes les 20 s.'};
 B.mur_cristal={cat:'def',base:'mur',n:'Mur de cristal',cost:{cristal_vide:2,acier:2},hp:9000,col:'#a98bea',lvl:38,desc:'Le mur le plus solide du jeu.'};
@@ -545,7 +548,7 @@ const GOALS=[
   ['Niveau 10 : construire un robot collecteur',o=>robots.some(r=>r.owner===o)],
   ['Vaincre le Titan de la vague 10',()=>(S.bossKills||0)>=1],
   ['Atteindre le niveau 20',(o,p)=>p.level>=20],
-  ['Atteindre le niveau 50 (maximum) et renaître',(o,p)=>p.level>=MAXLVL],
+  ['Atteindre le niveau maximum et renaître (50, puis 75, puis 100)',(o,p)=>p.level>=capOf(o)],
   ['Niveau 8 : poser une foreuse dans le Désert (cuivre)',o=>buildings.some(b=>b.owner===o&&DRILLS.has(b.type)&&deposit[b.y][b.x]==='minerai_cuivre')],
   ['Fabriquer 5 moteurs',(o,p)=>(p.made.moteur||0)>=5],
   ['Vaincre la Reine des essaims (vague 20)',()=>(S.bossKills||0)>=2],
@@ -579,6 +582,8 @@ const ACH=[
   ['lvl25','⭐','Expérimenté','Atteindre le niveau 25',()=>P(ME).level>=25],
   ['lvl50','🌟','Maître de l\'usine','Atteindre le niveau 50',()=>P(ME).level>=50],
   ['lvl75','💫','Légende vivante','Atteindre le niveau 75',()=>P(ME).level>=75],
+  ['lvl100','👑','Centurion','Atteindre le niveau 100',()=>P(ME).level>=100],
+  ['destr','🦾','Chasseur de boss','Déployer un robot destructeur',()=>robots.some(r=>r.owner===ME&&r.kind==='destructeur')],
   ['titan','🏅','Jeton du Titan','Obtenir un Jeton du Titan (boss de la vague 60)',()=>(P(ME).inv.titan_token||0)>=1||(P(ME).made.kit_garik||0)>=1||myB().some(b=>b.type==='canon_garik')],
   ['garik','☄','Arme absolue','Construire le canon Garik',()=>myB().some(b=>b.type==='canon_garik')],
   ['pont','🌉','Bâtisseur de ponts','Relier un pont de 8 cases ou plus',()=>myB().some(b=>b.type==='pont_entree'&&(tunnelExit(b)||[0,0])[1]>=8)],
@@ -874,7 +879,7 @@ function canPlace(type,x,y,o=ME){
   if(P(o).dead)return 'Ton noyau est détruit : attends d\'être réanimé';
   if(!unlocked(type,o))return `Débloqué au niveau ${B[type].lvl}`;
   if(x<0||y<0||x>=W||y>=H)return 'Hors de la carte';
-  if(type==='gardien'){const st=at(x,y);if(!st||st.type!=='station'||st.owner!==o)return 'Pose le robot gardien sur ta station de recharge';if(robots.some(r=>r.kind==='gardien'&&r.st&&r.st[0]===st.x&&r.st[1]===st.y))return 'Cette station a déjà son gardien';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
+  if(DOCKED.has(type)){const st=at(x,y);if(!st||st.type!=='station'||st.owner!==o)return `Pose le ${B[type].n.toLowerCase()} sur ta station de recharge`;if(robots.some(r=>DOCKED.has(r.kind)&&r.st&&r.st[0]===st.x&&r.st[1]===st.y))return 'Cette station est déjà occupée (une station = un robot)';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
   if(B[type].unit){if(terAt(x,y)===3)return 'Impossible de poser un robot sur l\'eau';if(!zoneOpen(x,y,o))return 'Zone verrouillée';if(robots.filter(r=>r.owner===o&&(r.kind||'robot')===type).length>=MAX_ROBOTS)return `Maximum ${MAX_ROBOTS} ${B[type].n.toLowerCase()}s`;if(grid[y][x])return 'Case occupée';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
   {const z=bsz(type);if(x+z>W||y+z>H)return 'Hors de la carte';for(let j=0;j<z;j++)for(let i=0;i<z;i++){if(terAt(x+i,y+j)===3&&type!=='pont_entree'&&type!=='pont_sortie')return 'Impossible de construire sur l\'eau (sauf les ponts)';if(grid[y+j][x+i])return 'Case occupée';if(!zoneOpen(x+i,y+j,o)){const Z=ZONES[ZMAP[y+j][x+i]];return `${Z.n} : zone débloquée au niveau ${Z.lvl}`}if(z>1&&monsterOn(x+i,y+j))return 'Un monstre est sur cette case'}}
   const d=deposit[y][x];
@@ -889,7 +894,7 @@ function canPlace(type,x,y,o=ME){
 const ACT={
   place(o,t,x,y,r){
     if(!B[t])return 'Inconnu';
-    if(t==='gardien'){const e=canPlace(t,x,y,o);if(e)return e;const st=at(x,y);pay(B[t].cost,o);const r=newRobot(st.x+1,st.y+1,o,'gardien');r.st=[st.x,st.y];robots.push(r);return null}
+    if(DOCKED.has(t)){const e=canPlace(t,x,y,o);if(e)return e;const st=at(x,y);pay(B[t].cost,o);const r=newRobot(st.x+1,st.y+1,o,t);r.st=[st.x,st.y];robots.push(r);return null}
     if(B[t].unit){const e=canPlace(t,x,y,o);if(e)return e;pay(B[t].cost,o);robots.push(newRobot(x+0.5,y+0.5,o,t));P(o).fresh=false;return null}
     const ex=at(x,y);
     if(BELT.has(t)&&ex&&BELT.has(ex.type)){
@@ -1114,6 +1119,7 @@ function updB(b,dt){
     b.cd-=dt*(d.pw?pr:1);if(b.fire>0)b.fire-=dt;
     const rng=d.range*mRange(o);let best=null,bd=rng*rng;const hz=bsz(t)*0.5,cx=b.x+hz,cy=b.y+hz;
     for(const m of monsters){if(m.hp<=0)continue;const dd=(m.x-cx)**2+(m.y-cy)**2;if(dd<bd){bd=dd;best=m}}
+    if(t==='canon_garik'){let bb=null,bbd=rng*rng;for(const m of monsters){if(m.hp<=0||!MT[m.type].boss)continue;const dd=(m.x-cx)**2+(m.y-cy)**2;if(dd<=bbd){bbd=dd;bb=m}}if(bb){best=bb;bd=bbd}}
     b.tgt=!!best;
     if(!best||b.cd>0)return;
     b.angle=Math.atan2(best.y-cy,best.x-cx);
@@ -1163,8 +1169,8 @@ function updB(b,dt){
 }
 
 // ================= ROBOTS =================
-const RSTATES=['seek','mine','deliver','idle','dock','fight','return'],UNIT_KINDS=['robot','drone','gardien'];
-function newRobot(x,y,o=0,kind='robot'){const mh=B[kind].hp*mHp(o);return{isRobot:true,kind,charge:1,st:null,ftime:0,id:robotSeq++,owner:o,x,y,hp:mh,maxhp:mh,state:'seek',tx:null,ty:null,cargo:{},count:0,timer:0,pref:'auto',mine:null,msg:'',spin:0}}
+const RSTATES=['seek','mine','deliver','idle','dock','fight','return'],UNIT_KINDS=['robot','drone','gardien','destructeur'];const DOCKED=new Set(['gardien','destructeur']);
+function newRobot(x,y,o=0,kind='robot'){const mh=kind==='destructeur'?destrHp():B[kind].hp*mHp(o);return{isRobot:true,kind,charge:1,st:null,ftime:0,id:robotSeq++,owner:o,x,y,hp:mh,maxhp:mh,state:'seek',tx:null,ty:null,cargo:{},count:0,timer:0,pref:'auto',mine:null,msg:'',spin:0}}
 function robotTarget(r){
   let want=r.pref;
   if(want==='auto'){
@@ -1213,6 +1219,29 @@ function updDrone(r,dt){
     if(r.timer>=1.2){r.timer-=1.2;const it=SMELT[r.mine];r.cargo[it]=(r.cargo[it]||0)+1;r.count++;stat(r.owner,'p',it);if(Math.random()<0.15)fx({k:'boom',x:r.x,y:r.y+0.2,r:0.25,col:'120,220,255',t:0.25,max:0.25})}
   }else r.state='seek';
 }
+function destrHp(){return 10*MT.dragon.dmg*2}
+function updDestr(r,dt){
+  const o=r.owner,st=r.st?at(r.st[0],r.st[1]):null,home=st&&st.type==='station'?{x:st.x+1,y:st.y+1}:null;r.spin+=dt;r.maxhp=destrHp();if(r.hp>r.maxhp)r.hp=r.maxhp;
+  const sp=4*mRob(o),bosses=monsters.filter(m=>m.hp>0&&MT[m.type].boss);
+  const go=(x,y,stop=0.1)=>{const dx=x-r.x,dy=y-r.y,d=Math.hypot(dx,dy);if(d<stop)return true;const s2=Math.min(d-stop*0.5,sp*dt);r.x+=dx/d*s2;r.y+=dy/d*s2;r.fx=dx/d;r.fy=dy/d;return false};
+  if(!['dock','fight','return'].includes(r.state))r.state='dock';
+  if(r.state==='dock'){if(home){go(home.x,home.y);if(P(o).pr>0.3){r.charge=Math.min(1,r.charge+dt/60*P(o).pr);r.hp=Math.min(r.maxhp,r.hp+r.maxhp*dt/40)}}
+    if(r.charge>=1&&bosses.length&&r.hp>r.maxhp*0.6){r.state='fight';r.ftime=60;r.charge=0;r.frz=0;notify(o,'🦾 Ton robot destructeur part chasser le boss !')}return}
+  if(r.state==='fight'){
+    r.ftime-=dt;if(r.ftime<=0||!bosses.length||r.hp<r.maxhp*0.12){r.state='return';return}
+    let best=null,bd=1e18;for(const m of bosses){const d=(m.x-r.x)**2+(m.y-r.y)**2;if(d<bd){bd=d;best=m}}
+    go(best.x,best.y,2.5);
+    r.cd=(r.cd||0)-dt;r.frzT=(r.frzT??0)-dt;
+    if(Math.sqrt(bd)<=4){
+      if(r.cd<=0){r.cd=1/B.canon_garik.rate;const dmg=B.canon_garik.dmg*mArm(o),tr=best.tier||bossTier(S.wave);
+        if(tr>0)hurt(best,Math.min(dmg,best.maxhp*Math.max(0.03,0.08-0.01*(tr-1))),999);else hurt(best,best.hp+1,999);
+        fx({k:'shot',x1:r.x,y1:r.y,x2:best.x,y2:best.y,col:'#b46bff',w:0.35,t:0.25,max:0.25});fx({k:'shot',x1:r.x,y1:r.y,x2:best.x,y2:best.y,col:'#ffffff',w:0.1,t:0.25,max:0.25})}
+      if(r.frzT<=0&&best.hp>0){r.frzT=10;best.frz=2.5;fx({k:'boom',x:best.x,y:best.y,r:MT[best.type].r*2.5,col:'150,220,255',t:0.8,max:0.8});if(o===ME)toast('❄ Boss gelé !',true)}
+    }
+    return;
+  }
+  if(r.state==='return'){if(!home||go(home.x,home.y))r.state='dock'}
+}
 function updGardien(r,dt){
   const o=r.owner,st=r.st?at(r.st[0],r.st[1]):null,home=st&&st.type==='station'?{x:st.x+1,y:st.y+1}:null;r.spin+=dt;
   const sp=3*mRob(o);
@@ -1238,6 +1267,7 @@ function updGardien(r,dt){
 function updR(r,dt){
   if(r.kind==='drone')return updDrone(r,dt);
   if(r.kind==='gardien')return updGardien(r,dt);
+  if(r.kind==='destructeur')return updDestr(r,dt);
   const o=r.owner,cap=Math.round(10*mRob(o));r.spin+=dt;
   if(r.state==='seek'||r.state==='idle'){
     r.state='seek';
@@ -1262,6 +1292,7 @@ function updR(r,dt){
   }
 }
 function robotMsg(r){
+  if(r.kind==='destructeur'){if(r.state==='fight')return`🦾 Chasse le boss — encore ${Math.ceil(r.ftime||0)} s`;if(r.state==='return')return'Retourne à sa station';if(!r.st||!at(r.st[0],r.st[1]))return'Sa station a été détruite';return r.charge>=1?'Chargé : sortira dès qu\'un boss apparaît':`Se recharge : ${Math.floor((r.charge||0)*100)} %`}
   if(r.kind==='gardien'){if(r.state==='fight')return`⚔ Au combat — encore ${Math.ceil(r.ftime||0)} s`;if(r.state==='return')return'Retourne à sa station';if(!r.st||!at(r.st[0],r.st[1]))return'Sa station a été détruite';return r.charge>=1?'Chargé : sortira à la prochaine vague':`Se recharge : ${Math.floor((r.charge||0)*100)} %`}
   if(r.kind==='drone'&&r.nochest)return'Pose un réceptionneur ou un coffre (sinon il envoie au noyau)';
   if(r.state==='mine'&&r.mine)return`Mine et fond : ${ITEMS[r.mine].n} → ${ITEMS[SMELT[r.mine]].n}`;
@@ -1302,14 +1333,14 @@ function hurt(m,d,pierce=0){
 }
 function gainXp(n){
   for(let o=0;o<S.players.length;o++){
-    const p=P(o);if(p.level>=MAXLVL){p.xp=0;continue}p.xp+=n*mXp(o);
-    while(p.level<MAXLVL&&p.xp>=xpNeed(p.level)){p.xp-=xpNeed(p.level);p.level++;if(o===ME)levelUpFx(p.level)}
-    if(p.level>=MAXLVL)p.xp=0;
+    const p=P(o),cp=capOf(o);if(p.level>=cp){p.xp=0;continue}p.xp+=n*mXp(o);
+    while(p.level<cp&&p.xp>=xpNeed(p.level)){p.xp-=xpNeed(p.level);p.level++;if(o===ME)levelUpFx(p.level)}
+    if(p.level>=cp)p.xp=0;
   }
 }
 function levelUpFx(l){
   sfx('level');
-  if(l===MAXLVL)banner(coop()?`Niveau ${MAXLVL} (max) ! Robot gardien débloqué`:`Niveau ${MAXLVL} (max) ! La Renaissance est disponible (onglet Progression)`,false,7,'pur');
+  if(l===capOf(ME))banner(coop()?`Niveau ${l} (max) !`:`Niveau ${l} (max) ! La Renaissance ${(META.rebirths|0)+1} est disponible (onglet Niveaux)`,false,7,'pur');
   else if(Object.values(ZONES).some(z=>z.lvl===l)){const z=Object.values(ZONES).find(z=>z.lvl===l);banner(`Niveau ${l} ! Nouvelle zone débloquée : ${z.n} (et de nouveaux crafts)`,false,6,'pur')}
   else if(TIERS.includes(l))banner(`Niveau ${l} ! Nouveaux bâtiments et recettes débloqués`,false,5,'pur');
   else banner(`Niveau ${l}`,false,2,'pur');
@@ -1434,6 +1465,9 @@ function updM(m,dt){
     else if(m.type==='dragon'){m.spawnT=4;for(const b of [...buildings]){if((b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2<=2.2*2.2){b.hp-=150*m.dmgMul;if(b.hp<=0){if(B[b.type].lure){detonate(b);continue}fx({k:'boom',x:b.x+0.5,y:b.y+0.5,r:0.9,col:'255,150,60',t:0.45,max:0.45});removeB(b)}}}fx({k:'boom',x:m.x,y:m.y,r:2.2,col:'255,110,40',t:0.6,max:0.6})}
     else m.spawnT=999;
   }}
+  if(m.frz>0){m.frz-=dt;m.slowVis=0.2;return}
+  if(t.boss){let dr=null,dd=36;for(const r of robots){if(r.kind==='destructeur'&&r.state==='fight'){const d=(r.x-m.x)**2+(r.y-m.y)**2;if(d<dd){dd=d;dr=r}}}
+    if(dr&&Math.sqrt(dd)<t.r+3.2){m.fx=(dr.x-m.x)/(Math.sqrt(dd)||1);m.fy=(dr.y-m.y)/(Math.sqrt(dd)||1);if(m.cd<=0){m.cd=1;dr.hp-=m.dmg;fx({k:'boom',x:dr.x,y:dr.y,r:0.8,col:'255,90,90',t:0.3,max:0.3})}return}}
   // le robot gardien attire tous les monstres proches
   {let gd=null,gdd=49;for(const r of robots){if(r.kind==='gardien'&&r.state==='fight'){const d=(r.x-m.x)**2+(r.y-m.y)**2;if(d<gdd){gdd=d;gd=r}}}
    if(gd){const dx=gd.x-m.x,dy=gd.y-m.y,dist=Math.hypot(dx,dy)||1;m.fx=dx/dist;m.fy=dy/dist;
@@ -1505,14 +1539,14 @@ function update(dt){
   }
   for(const m of monsters)if(m.hp>0)updM(m,dt);
   monsters=monsters.filter(m=>m.hp>0);
-  for(const r of robots)if(r.kind==='gardien'&&r.hp<=0){r.hp=1;r.state='return'}
+  for(const r of robots)if(DOCKED.has(r.kind)&&r.hp<=0){r.hp=1;r.state='return'}
   for(const r of robots)if(r.hp<=0){fx({k:'boom',x:r.x,y:r.y,r:1,col:'255,150,60',t:0.5,max:0.5});if(sel===r)sel=null;notify(r.owner,'Un de tes robots collecteurs a été détruit !')}
   robots=robots.filter(r=>r.hp>0);
   for(const e of effects)e.t-=dt;
   effects=effects.filter(e=>e.t>0);
   if(sel&&!sel.isRobot&&sel.type!=='noyau'&&!buildings.includes(sel))sel=null;
   goalAcc+=dt;
-  if(goalAcc>0.5){goalAcc=0;for(let o=0;o<S.players.length;o++){const p=P(o);GOALS.forEach((g,i)=>{if(!p.goalsDone.includes(i)&&g[1](o,p)){p.goalsDone.push(i);const q=p;if(q.level<MAXLVL)q.xp+=60*mXp(o);while(q.level<MAXLVL&&q.xp>=xpNeed(q.level)){q.xp-=xpNeed(q.level);q.level++;if(o===ME)levelUpFx(q.level)}}})}}
+  if(goalAcc>0.5){goalAcc=0;for(let o=0;o<S.players.length;o++){const p=P(o);GOALS.forEach((g,i)=>{if(!p.goalsDone.includes(i)&&g[1](o,p)){p.goalsDone.push(i);const q=p;if(q.level<capOf(o))q.xp+=60*mXp(o);while(q.level<capOf(o)&&q.xp>=xpNeed(q.level)){q.xp-=xpNeed(q.level);q.level++;if(o===ME)levelUpFx(q.level)}}})}}
   if(S.players.every(p=>p.dead)){S.over=true;showGameOver();save()}
 }
 
@@ -1990,6 +2024,17 @@ function drawDrone(c,r,px,py,T,now){
   if(r.state==='mine'&&Math.sin(now*24)>0){c.strokeStyle='rgba(120,220,255,0.8)';c.lineWidth=Math.max(1,T*0.04);c.beginPath();c.moveTo(px,py+s*0.2);c.lineTo(px+(Math.random()-0.5)*s*0.3,py+hov+s*0.1);c.stroke()}
   if(r.hp<r.maxhp){c.fillStyle='rgba(0,0,0,0.7)';c.fillRect(px-s*0.4,py-s*0.75,s*0.8,T*0.07);c.fillStyle='#4cc38a';c.fillRect(px-s*0.4,py-s*0.75,s*0.8*r.hp/r.maxhp,T*0.07)}
 }
+function drawDestr(c,r,px,py,T,now){
+  const s=T*1.25,fight=r.state==='fight',col=coop()&&r.owner>0?shade(pcol(r.owner),-0.1):'#8a2be2';
+  if(fight){const gr=c.createRadialGradient(px,py,s*0.2,px,py,T*2.2);gr.addColorStop(0,'rgba(180,107,255,0.3)');gr.addColorStop(1,'rgba(180,107,255,0)');c.fillStyle=gr;c.beginPath();c.arc(px,py,T*2.2,0,7);c.fill()}
+  c.fillStyle='rgba(0,0,0,0.35)';c.beginPath();c.ellipse(px,py+s*0.42,s*0.48,s*0.15,0,0,7);c.fill();
+  c.fillStyle='#22202a';for(const sg of[-1,1]){c.beginPath();c.moveTo(px+sg*s*0.2,py+s*0.1);c.lineTo(px+sg*s*0.45,py+s*0.42);c.lineTo(px+sg*s*0.3,py+s*0.42);c.closePath();c.fill()}
+  c.fillStyle=col;c.beginPath();c.moveTo(px,py-s*0.5);c.lineTo(px+s*0.42,py-s*0.15);c.lineTo(px+s*0.32,py+s*0.22);c.lineTo(px-s*0.32,py+s*0.22);c.lineTo(px-s*0.42,py-s*0.15);c.closePath();c.fill();c.strokeStyle='#1a0a2a';c.lineWidth=Math.max(1,T*0.04);c.stroke();
+  c.fillStyle='#16131c';c.fillRect(px-s*0.22,py-s*0.22,s*0.44,s*0.12);c.fillStyle=fight?'#ff3df5':'#d9b8ff';c.fillRect(px-s*0.18,py-s*0.2,s*0.36*(fight?1:0.3+0.7*(r.charge||0)),s*0.07);
+  for(const sg of[-1,1]){c.fillStyle='#3a3048';c.fillRect(px+sg*s*0.42-s*0.08,py-s*0.25,s*0.16,s*0.42);c.fillStyle='#ff3df5';c.beginPath();c.arc(px+sg*s*0.42,py+s*0.2,s*0.06,0,7);c.fill()}
+  if(r.state!=='fight'){const ch=r.charge||0;c.fillStyle='rgba(0,0,0,0.6)';c.fillRect(px-s*0.36,py+s*0.5,s*0.72,T*0.08);c.fillStyle='#d9b8ff';c.fillRect(px-s*0.36,py+s*0.5,s*0.72*ch,T*0.08)}
+  if(r.hp<r.maxhp){c.fillStyle='rgba(0,0,0,0.7)';c.fillRect(px-s*0.4,py-s*0.68,s*0.8,T*0.08);c.fillStyle='#4cc38a';c.fillRect(px-s*0.4,py-s*0.68,s*0.8*r.hp/r.maxhp,T*0.08)}
+}
 function drawGardien(c,r,px,py,T,now){
   const s=T*1.15,fight=r.state==='fight',bob=fight?Math.sin(now*10)*T*0.03:0;
   if(fight){const gr=c.createRadialGradient(px,py,s*0.2,px,py,T*2.8);gr.addColorStop(0,'rgba(255,60,60,0.28)');gr.addColorStop(1,'rgba(255,60,60,0)');c.fillStyle=gr;c.beginPath();c.arc(px,py,T*2.8,0,7);c.fill();
@@ -2008,6 +2053,7 @@ function drawGardien(c,r,px,py,T,now){
 function drawRobot(c,r,px,py,T,now){
   if(r.kind==='drone')return drawDrone(c,r,px,py,T,now);
   if(r.kind==='gardien')return drawGardien(c,r,px,py,T,now);
+  if(r.kind==='destructeur')return drawDestr(c,r,px,py,T,now);
   const s=T*0.78,bob=Math.sin(now*6+(r.x+r.y))*T*0.02;
   c.fillStyle='rgba(0,0,0,0.3)';c.beginPath();c.ellipse(px,py+s*0.42,s*0.42,s*0.14,0,0,7);c.fill();
   c.fillStyle='#2a2e36';c.fillRect(px-s*0.48,py-s*0.3,s*0.16,s*0.62);c.fillRect(px+s*0.32,py-s*0.3,s*0.16,s*0.62);
@@ -2059,6 +2105,7 @@ function drawM(c,m,px,py,T,now){
   if(m.type==='spectre'){c.fillStyle='rgba(220,235,255,0.35)';c.beginPath();c.arc(px,py,R*1.3,0,7);c.fill()}
   if(m.type==='hydre'){c.fillStyle=shade(t.col,-0.1);for(let k=-1;k<=1;k++){const a=Math.atan2(ey,ex)+k*0.6,sw=Math.sin(now*3+k)*0.15,hx=px+Math.cos(a+sw)*R*1.25,hy=py+Math.sin(a+sw)*R*1.25;c.strokeStyle=shade(t.col,-0.3);c.lineWidth=R*0.3;c.beginPath();c.moveTo(px,py);c.lineTo(hx,hy);c.stroke();c.beginPath();c.arc(hx,hy,R*0.3,0,7);c.fill();c.fillStyle='#ffe14d';c.beginPath();c.arc(hx+Math.cos(a)*R*0.12,hy+Math.sin(a)*R*0.12,R*0.07,0,7);c.fill();c.fillStyle=shade(t.col,-0.1)}}
   if(m.type==='liche'){c.strokeStyle=`rgba(170,170,255,${0.4+0.3*Math.sin(now*4)})`;c.lineWidth=Math.max(1,T*0.05);c.beginPath();c.arc(px,py,R*1.5+Math.sin(now*3)*R*0.1,0,7);c.stroke();c.strokeStyle='rgba(170,170,255,0.25)';c.setLineDash([3,5]);c.beginPath();c.arc(px,py,T*4,0,7);c.stroke();c.setLineDash([])}
+  if(m.frz>0){c.fillStyle='rgba(170,230,255,0.35)';c.beginPath();c.arc(px,py,R*1.25,0,7);c.fill();c.strokeStyle='#dff6ff';c.lineWidth=Math.max(1,T*0.05);c.stroke()}
   if(m.slow>0||m.slowVis>0){c.strokeStyle='rgba(160,230,255,0.8)';c.lineWidth=Math.max(1,T*0.04);c.beginPath();c.arc(px,py,R*1.15,0,7);c.stroke()}
   if(t.boss){c.fillStyle='#ffd23f';for(let k=-1;k<=1;k++){c.beginPath();c.moveTo(px+k*R*0.3-R*0.12,py-R*0.85);c.lineTo(px+k*R*0.3,py-R*1.15-(k===0?R*0.1:0));c.lineTo(px+k*R*0.3+R*0.12,py-R*0.85);c.fill()}}
   else if(m.hp<m.maxhp){c.fillStyle='rgba(0,0,0,0.7)';c.fillRect(px-R,py-R-T*0.16,R*2,T*0.07);c.fillStyle='#e5484d';c.fillRect(px-R,py-R-T*0.16,R*2*Math.max(0,m.hp/m.maxhp),T*0.07)}
@@ -2171,7 +2218,7 @@ function draw(now){
       const ex=at(mouse.tx,mouse.ty);
       const ok=BELT.has(tool)&&ex&&BELT.has(ex.type)&&mineB(ex)?true:!canPlace(tool,mouse.tx,mouse.ty,ME);
       ctx.globalAlpha=0.6;
-      if(tool==='gardien'){const st=at(mouse.tx,mouse.ty);if(st&&st.type==='station')drawRobot(ctx,newRobotGhost('gardien'),ox+(st.x+1)*T,oy+(st.y+1)*T,T,0);else drawRobot(ctx,newRobotGhost('gardien'),hx+T/2,hy+T/2,T,0)}
+      if(DOCKED.has(tool)){const st=at(mouse.tx,mouse.ty);if(st&&st.type==='station')drawRobot(ctx,newRobotGhost(tool),ox+(st.x+1)*T,oy+(st.y+1)*T,T,0);else drawRobot(ctx,newRobotGhost(tool),hx+T/2,hy+T/2,T,0)}
       else if(B[tool].unit)drawRobot(ctx,newRobotGhost(tool),hx+T/2,hy+T/2,T,0);
       else{const g={type:tool,x:mouse.tx,y:mouse.ty,rot,owner:ME,hp:1};initB(g);g.angle=rot*Math.PI/2;drawB(ctx,g,hx,hy,T,0)}
       ctx.globalAlpha=1;
@@ -2463,7 +2510,7 @@ function buildToolbar(){
     el.addEventListener('mouseenter',()=>{hoverTool=t});el.addEventListener('mouseleave',()=>{hoverTool=null});
     box.appendChild(el);toolEls[t]={el,cv};
     const c=cv.getContext('2d');
-    if(B[t].unit)drawRobot(c,newRobotGhost(t),36,t==='drone'?46:40,t==='gardien'?44:64,0);
+    if(B[t].unit)drawRobot(c,newRobotGhost(t),36,t==='drone'?46:40,DOCKED.has(t)?44:64,0);
     else if(bsz(t)>1){const g={type:t,x:0,y:0,rot:0,owner:ME,hp:1};initB(g);drawB(c,g,4,4,32,0)}
     else{const g={type:t,x:0,y:0,rot:0,owner:ME,hp:1};initB(g);g.angle=-Math.PI/4;drawB(c,g,4,4,64,0)}
   });
@@ -2489,6 +2536,7 @@ function infoHtml(){
 function robotInfo(r,isSel){
   const k=r.kind||'robot',cap=Math.round((k==='drone'?40:10)*mRob(r.owner));const mine=takeOver(ME,r.owner);
   let h=`<b class="t">${B[k].n}</b>${ownerLine(r.owner)}<p>PV ${Math.ceil(r.hp)} / ${Math.ceil(r.maxhp)}</p><p>${robotMsg(r)}</p>`;
+  if(k==='destructeur'){h+=`<p class="mut">N'attaque que les boss : ${Math.round(B.canon_garik.dmg*mArm(r.owner))} dégâts par coup (comme le canon Garik), gel de 2,5 s toutes les 10 s. Se recharge en ≈60 s à sa station (avec de l'énergie).</p>`;if(isSel&&mine)h+='<div class="btnrow"><button data-act="del" class="danger">Démonter (remboursé)</button></div>';return h}
   if(k==='gardien'){h+=`<p class="mut">Sort pendant les vagues quand il est chargé (≈90 s à la station, avec de l'énergie), combat 1 min, attire les monstres à 7 cases.</p>`;if(isSel&&mine)h+='<div class="btnrow"><button data-act="del" class="danger">Démonter (remboursé)</button></div>';return h}
   h+=`<p class="mut">Chargement ${r.count} / ${cap}${k==='drone'?' — envoie ses lingots en capsule volante vers ton réceptionneur, coffre ou noyau':''}</p>`;
   if(isSel&&mine){
@@ -2560,13 +2608,15 @@ function paneBase(){
     <div>${coop()?'':'<kbd>Espace</kbd> pause · '}<kbd>Échap</kbd> annuler</div></div>`;
   return h;
 }
-const TIERS=[1,3,5,8,10,12,15,20,22,25,30,35,38,40,45,50,52,55,60,65,68,70,75];
+const TIERS=[1,3,5,8,10,12,15,20,22,25,30,35,38,40,45,50,52,55,60,65,68,70,72,75,80,90,100];
 function tierContent(lv){
   const items=[];
   for(const t in B)if(B[t].lvl===lv)items.push(`🏗 ${B[t].n}`);
   for(const s in RECIPES)for(const r of RECIPES[s])if(r.lvl===lv)items.push(`⚙ Recette : ${ITEMS[r.out].n}`);
   for(const z in ZONES)if(ZONES[z].lvl===lv&&lv>1)items.unshift(`🗺 Zone : ${ZONES[z].n}`);
-  if(lv===MAXLVL)items.push('✦ Renaissance : 200 points de talent (solo)');
+  if(lv===50)items.push('✦ 1re Renaissance (solo) : 200 points de talent, et le niveau max passe à 75');
+  if(lv===75)items.push('✦ 2e Renaissance (solo) : le niveau max passe à 100');
+  if(lv===100)items.push('✦ 3e Renaissance (solo) et suivantes');
   return items;
 }
 function achHtml(){
@@ -2578,8 +2628,8 @@ function paneProg(){
   let h=achHtml()+`<h3>Niveau</h3><div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline"><span class="big pur">Niv ${p.level}</span><span class="mut">${Math.floor(p.xp)} / ${need} XP</span></div><div class="bar xp"><i style="width:${p.xp/need*100}%"></i></div><p class="mut" style="margin-top:6px">Gagne de l'XP en tuant des monstres (plus la vague est haute, plus ça rapporte) et en réussissant les objectifs. Tous les 5 niveaux : nouveaux bâtiments et recettes.${coop()?' En coop, chaque monstre tué rapporte de l\'XP aux deux joueurs.':''}</p><p class="mut">Monstres tués : ${S.kills} · Renaissances : ${META.rebirths}</p></div>`;
   h+='<h3>Déblocages</h3>';
   for(const lv of TIERS){const ok=p.level>=lv;h+=`<div class="tier${ok?'':' locked'}"><h4><span>Niveau ${lv}</span><span class="${ok?'okc':'mut'}">${ok?'débloqué':'🔒'}</span></h4><ul>${(lv===1?['🏗 Bâtiments de base','🏗 Fusionneur, répartiteur, coffre']:tierContent(lv)).map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
-  const can=p.level>=MAXLVL&&!coop();
-  h+=`<h3>Renaissance</h3><div class="card"><p>Au niveau ${MAXLVL} (le maximum), tu peux renaître : <b>tu perds tout</b> (carte, bâtiments, stock, niveau) mais tu gagnes <b class="pur">200 points de talent</b> pour améliorer définitivement ton usine.</p><div class="btnrow"><button class="prim" data-act="rebirth" ${can?'':'disabled'}>${rbArm&&Date.now()-rbArm<4000?'Clique encore pour confirmer':'Renaître (+200 pts)'}</button></div>${coop()?'<p class="mut">Uniquement en partie solo.</p>':can?'':`<p class="mut">Disponible au niveau ${MAXLVL}.</p>`}</div>`;
+  const can=p.level>=capOf(ME)&&!coop();
+  h+=`<h3>Renaissance</h3><div class="card"><p>Au niveau ${capOf(ME)} (le maximum), tu peux renaître : <b>tu perds tout</b> (carte, bâtiments, stock, niveau) mais tu gagnes <b class="pur">200 points de talent</b> pour améliorer définitivement ton usine.</p><div class="btnrow"><button class="prim" data-act="rebirth" ${can?'':'disabled'}>${rbArm&&Date.now()-rbArm<4000?'Clique encore pour confirmer':'Renaître (+200 pts)'}</button></div>${coop()?'<p class="mut">Uniquement en partie solo.</p>':can?'':`<p class="mut">Disponible au niveau ${capOf(ME)}.</p>`}</div>`;
   return h;
 }
 let SHOWWARN=false;
@@ -2644,7 +2694,7 @@ function paneAtelier(){
   return h;
 }
 function paneTalents(){
-  let h=`<h3>Talents permanents</h3><div class="card"><span class="big pur">${META.points}</span> <span class="mut">points disponibles</span><p class="mut">Gagnés à chaque Renaissance (niveau ${MAXLVL}, en solo). Ils restent acquis pour toujours et s'appliquent aussi à tes bâtiments en coop.</p></div><h3>Améliorations</h3>`;
+  let h=`<h3>Talents permanents</h3><div class="card"><span class="big pur">${META.points}</span> <span class="mut">points disponibles</span><p class="mut">Gagnés à chaque Renaissance (niveau ${capOf(ME)}, en solo). Ils restent acquis pour toujours et s'appliquent aussi à tes bâtiments en coop.</p></div><h3>Améliorations</h3>`;
   for(const t of TALENTS){
     const r=META.talents[t.id]||0,max=r>=t.max;
     h+=`<div class="tal"><div class="r"><b>${t.n}</b><div class="mut">${t.d}</div><div class="pips">${Array.from({length:t.max},(_,i)=>`<i class="${i<r?'on':''}"></i>`).join('')}</div></div><button class="prim" data-tal="${t.id}" ${max||META.points<t.cost?'disabled':''}>${max?'Max':`+1 (${t.cost} pts)`}</button></div>`;
@@ -2694,7 +2744,7 @@ $('pane').addEventListener('pointerdown',e=>{
   if(k==='link'&&sel&&sel.type==='lanceur'){linkFrom=sel;toast('Clique sur un de tes réceptionneurs (Échap pour annuler)',true)}
   if(k==='revive'){const err=act('revive',sel&&sel.type==='noyau'?sel.owner:undefined);if(err)toast(err)}
   if(k==='talreset'){for(const t of TALENTS){META.points+=(META.talents[t.id]||0)*t.cost}META.talents={};saveMeta();applyTalentsLive()}
-  if(k==='rebirth'&&P(ME).level>=MAXLVL&&!coop()){if(rbArm&&Date.now()-rbArm<4000){rbArm=0;rebirth();return}rbArm=Date.now()}
+  if(k==='rebirth'&&P(ME).level>=capOf(ME)&&!coop()){if(rbArm&&Date.now()-rbArm<4000){rbArm=0;rebirth();return}rbArm=Date.now()}
   renderPane(true);
 });
 function applyTalentsLive(){
@@ -2740,7 +2790,7 @@ function refreshUI(force){
   $('timer').textContent=fmtTime(S.waveTimer);
   $('timerBox').classList.toggle('urgent',S.waveTimer<60);
   $('mons').textContent=monsters.length+(isRemote()?0:spawnQ.length);
-  $('lvl').textContent=p.level;$('xpTxt').textContent=p.level>=MAXLVL?'MAX':`${Math.floor(p.xp)}/${xpNeed(p.level)}`;$('xpBar').style.width=(p.level>=MAXLVL?100:p.xp/xpNeed(p.level)*100)+'%';
+  $('lvl').textContent=p.level;$('xpTxt').textContent=p.level>=capOf(ME)?'MAX':`${Math.floor(p.xp)}/${xpNeed(p.level)}`;$('xpBar').style.width=(p.level>=capOf(ME)?100:p.xp/xpNeed(p.level)*100)+'%';
   $('pwTxt').textContent=`${p.prod} / ${p.cons}`;
   const pb=$('pwBar');pb.style.width=(p.cons?Math.min(100,p.prod/p.cons*100):100)+'%';pb.style.background=p.pr<1?'#e5484d':'#4cc38a';
   $('hpLbl').firstChild.textContent=coop()?'Ton noyau ':'Noyau ';
@@ -2763,7 +2813,7 @@ function refreshUI(force){
   for(const t in toolEls)toolEls[t].el.classList.toggle('poor',unlocked(t)&&!canAfford(B[t].cost));
   const lb=document.querySelector('#tabs [data-tab=labo]');{const r=rsOf(ME);const avail=r&&!r.cur&&RESEARCH.some(t=>!r.done.includes(t.id)&&p.level>=t.lvl&&(t.req||[]).every(q=>r.done.includes(q))&&canAfford(t.cost));lb.innerHTML='Labo'+(r&&r.cur?' ⏳':avail?'<span class="dot"></span>':'')}
   const tb=document.querySelector('#tabs [data-tab=talents]');tb.innerHTML='Talents'+(META.points>=15?'<span class="dot"></span>':'');
-  const pg=document.querySelector('#tabs [data-tab=prog]');pg.innerHTML='Niveaux'+(p.level>=MAXLVL&&!coop()?'<span class="dot"></span>':'');
+  const pg=document.querySelector('#tabs [data-tab=prog]');pg.innerHTML='Niveaux'+(p.level>=capOf(ME)&&!coop()?'<span class="dot"></span>':'');
   // étiquette droite
   let tag='';
   if(spec)tag=`👁 Tu regardes la partie de ${NET.hostName}`;
