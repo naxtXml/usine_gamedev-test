@@ -162,6 +162,7 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
       <button id="bSave">Sauvegarde</button>
       <button id="bPause">Pause</button>
       <button id="bRevive" class="okb" style="display:none">Réanimer le noyau</button>
+      <button id="bStopSpec" class="danger" style="display:none">Arrêter de regarder</button>
       <button id="bWave" class="warn">Attaque maintenant</button>
       <button id="bNew" class="danger">Nouvelle partie</button>
     </div>
@@ -418,7 +419,7 @@ try{const m=JSON.parse(localStorage.getItem(META_KEY)||'null');if(m)META=Object.
 let cloudDirty=false;
 function saveMeta(){META.savedAt=Date.now();try{localStorage.setItem(META_KEY,JSON.stringify(META))}catch(e){}cloudDirty=true;NET.metaDirty=true}
 let guestMeta={talents:{}};
-const metaOf=o=>(o===ME?META:o===0?(NET.role==='guest'?NET.hostMeta:META):guestMeta)||{talents:{}};
+const metaOf=o=>(o===ME&&NET.role!=='spec'?META:o===0?(isRemote()?NET.hostMeta:META):guestMeta)||{talents:{}};
 const tl=(id,o=0)=>{const m=metaOf(o);const v=(m.talents||{})[id]|0;const t=TALENTS.find(x=>x.id===id);return clamp(v,0,t?t.max:0)};
 const mMach=o=>1+0.1*tl('machines',o),mArm=o=>1+0.1*tl('armes',o),mHp=o=>1+0.15*tl('blindage',o),mPw=o=>1+0.1*tl('energie',o),mBelt=o=>1+0.15*tl('tapis',o),mXp=o=>1+0.15*tl('xp',o),mRob=o=>1+0.25*tl('robots',o);
 const maxHp=b=>B[b.type].hp*mHp(b.owner||0);
@@ -427,7 +428,8 @@ const maxHp=b=>B[b.type].hp*mHp(b.owner||0);
 let S,deposit,grid,buildings,chests,robots,monsters,effects,spawnQ,flow,flowDirty=true,flowTimer=0,cores,groundCv;
 let tool=null,rot=0,sel=null,cat='log',tab='base',ME=0,robotSeq=1,monSeq=1;
 const cam={x:W/2,y:H/2,z:1};
-const NET={role:'solo',room:null,code:null,guestPeer:null,guestHere:false,guestName:'Coéquipier',hostName:'Hôte',lastSeq:0,sid:null,mySeq:0,myCmds:[],acked:0,lastSt:0,fxOut:[],msgOut:[],bver:1,bSent:0,bAt:0,tickAt:0,hostMeta:{talents:{}},bl:null,status:'',joined:false,metaDirty:true};
+const isRemote=()=>NET.role==='guest'||NET.role==='spec';
+const NET={specs:new Set(),role:'solo',room:null,code:null,guestPeer:null,guestHere:false,guestName:'Coéquipier',hostName:'Hôte',lastSeq:0,sid:null,mySeq:0,myCmds:[],acked:0,lastSt:0,fxOut:[],msgOut:[],bver:1,bSent:0,bAt:0,tickAt:0,hostMeta:{talents:{}},bl:null,status:'',joined:false,metaDirty:true};
 
 function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function hsh(x,y,k){let n=Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(k,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
@@ -493,7 +495,7 @@ function setupWorld(seed,mode){
 
 // ================= STOCK (par joueur) =================
 const at=(x,y)=>(x<0||y<0||x>=W||y>=H)?null:grid[y][x];
-function total(k,o=ME){if(NET.role==='guest')return P(o).inv[k]||0;let n=P(o).inv[k]||0;for(const c of chests)if(c.owner===o)n+=c.store[k]||0;return n}
+function total(k,o=ME){if(isRemote())return P(o).inv[k]||0;let n=P(o).inv[k]||0;for(const c of chests)if(c.owner===o)n+=c.store[k]||0;return n}
 function canAfford(cost,o=ME,mul=1){for(const k in cost)if(total(k,o)<cost[k]*mul)return false;return true}
 function take(k,n,o){const p=P(o);let r=n;const a=Math.min(p.inv[k]||0,r);p.inv[k]=(p.inv[k]||0)-a;r-=a;for(const c of chests){if(r<=0)break;if(c.owner!==o)continue;const b=Math.min(c.store[k]||0,r);c.store[k]-=b;c.used-=b;r-=b}}
 function pay(cost,o,mul=1){for(const k in cost)take(k,cost[k]*mul,o)}
@@ -602,6 +604,7 @@ const ACT={
   },
 };
 function act(name,...args){
+  if(NET.role==='spec'){toast('Mode spectateur : tu ne peux pas agir sur cette partie');return 'spec'}
   if(NET.role==='guest'){sendCmd([name,...args]);return null}
   return ACT[name](ME,...args);
 }
@@ -961,7 +964,7 @@ function updM(m,dt){
     }
   }else if(dist>0.001){const step=Math.min(dist,t.sp*spd*dt);m.x+=dx/dist*step;m.y+=dy/dist*step}
 }
-function fx(e){effects.push(e);onEffect(e);if(NET.role==='host'&&NET.guestHere&&NET.fxOut.length<40)NET.fxOut.push(e)}
+function fx(e){effects.push(e);onEffect(e);if(bcRoom()&&NET.fxOut.length<40)NET.fxOut.push(e)}
 
 // ================= MAIN UPDATE (solo + hôte) =================
 let goalAcc=0;
@@ -1531,6 +1534,7 @@ function buildToolbar(){
   const cats=$('cats');cats.innerHTML='';
   for(const [id,n] of CATS){const b=document.createElement('button');b.textContent=n;b.className=id===cat?'on':'';b.onclick=()=>{cat=id;buildToolbar()};cats.appendChild(b)}
   const box=$('tools');box.innerHTML='';
+  if(NET.role==='spec'){box.innerHTML=`<div style="align-self:center;color:var(--mut);padding:0 10px">👁 Mode spectateur : tu regardes la partie de ${esc(NET.hostName)}. Déplace la vue librement (glisser, ZQSD, molette, mini-carte).</div>`;return}
   const list=TYPES.filter(t=>B[t].cat===cat);
   for(const k in toolEls)delete toolEls[k];
   list.forEach((t,i)=>{
@@ -1548,7 +1552,7 @@ function buildToolbar(){
   });
   setTool(tool);
 }
-function setTool(t){tool=t;for(const k in toolEls)toolEls[k].el.classList.toggle('sel',k===t);if(t)sel=null}
+function setTool(t){if(NET.role==='spec')t=null;tool=t;for(const k in toolEls)toolEls[k].el.classList.toggle('sel',k===t);if(t)sel=null}
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));renderPane(true)});
 
 function ownerLine(o){return coop()?`<p><span class="sw" style="background:${PCOL[o]}"></span> ${o===ME?'À toi':'À '+esc(playerName(o))}</p>`:''}
@@ -1584,7 +1588,7 @@ function bInfo(b,isSel){
     return h;
   }
   const d=B[b.type],mine=b.owner===ME;let h=`<b class="t">${d.n}</b>${ownerLine(b.owner)}<p>PV ${Math.ceil(b.hp)} / ${Math.ceil(maxHp(b))}</p>`;
-  const guest=NET.role==='guest';
+  const guest=isRemote();
   if(DRILLS.has(b.type)){const it=deposit[b.y][b.x];h+=`<p>Extrait : ${sw(it)} ${ITEMS[it].n} (1 / ${(DEP[it].rate/(d.spd*mMach(b.owner))).toFixed(1)} s)</p>`;if(!guest&&b.out>=4)h+='<p class="bad">Sortie bloquée — relie la flèche à un tapis</p>'}
   if(B[b.type].rs==='fonderie'){const r=guest?null:(b.crafting||fonderieRecipe(b));h+=r?`<p>${recTxt(r)}</p>`:'<p class="mut">Fond : minerai, quartz, ou lingots de fer → acier (niv 5).</p>'}
   if(b.type==='raffinerie')h+=`<p>${recTxt(RECIPES.raffinerie[0])}</p>`;
@@ -1613,9 +1617,10 @@ function bInfo(b,isSel){
   return h;
 }
 function paneBase(){
-  const p=P(ME);
+  const p=P(ME),spec=NET.role==='spec';
   let h=`<h3>${coop()?'Ton stock (noyau + coffres)':'Stock (noyau + coffres)'}</h3><div class="inv">`+ITEM_ORDER.filter((k,i)=>i<BASE_ITEMS||Math.floor(total(k))>0).map(k=>{const v=Math.floor(total(k));return`<div class="it${v?'':' zero'}">${sw(k)}<span>${ITEMS[k].n}</span><span class="n">${v}</span></div>`}).join('')+'</div>';
-  if(coop())h+=`<div class="btnrow"><button class="blue" data-act="give" ${P(other(ME)).dead?'disabled':''}>Donner des matériaux à ${esc(playerName(other(ME)))}</button></div>`;
+ if(spec)h=`<h3>Stock de ${esc(NET.hostName)}</h3>`+h.slice(h.indexOf('</h3>')+5);
+  if(coop()&&!spec)h+=`<div class="btnrow"><button class="blue" data-act="give" ${P(other(ME)).dead?'disabled':''}>Donner des matériaux à ${esc(playerName(other(ME)))}</button></div>`;
   h+=`<h3>Infos</h3><div class="card" style="min-height:90px">${infoHtml()}</div>`;
   let cur=-1;for(let i=0;i<GOALS.length;i++)if(!p.goalsDone.includes(i)){cur=i;break}
   h+='<h3>Objectifs (+60 XP chacun)</h3><ol class="goals">'+GOALS.map((g,i)=>`<li class="${p.goalsDone.includes(i)?'done':i===cur?'cur':''}">${g[0]}</li>`).join('')+'</ol>';
@@ -1701,7 +1706,7 @@ $('pane').addEventListener('pointerdown',e=>{
   renderPane(true);
 });
 function applyTalentsLive(){
-  if(NET.role==='guest')return;
+  if(isRemote())return;
   for(let o=0;o<S.players.length;o++)P(o).coreMax=3000*(1+0.2*tl('noyau',o));
   for(const b of buildings){const mh=maxHp(b);if(b.hp>mh)b.hp=mh}
 }
@@ -1734,11 +1739,11 @@ $('giveDlg').addEventListener('mousedown',e=>{if(e.target.id==='giveDlg')$('give
 
 function refreshUI(force){
   if(!S)return;
-  const p=P(ME);
+  const p=P(ME),spec=NET.role==='spec';
   $('waveN').textContent=S.wave;
   $('timer').textContent=fmtTime(S.waveTimer);
   $('timerBox').classList.toggle('urgent',S.waveTimer<60);
-  $('mons').textContent=monsters.length+(NET.role==='guest'?0:spawnQ.length);
+  $('mons').textContent=monsters.length+(isRemote()?0:spawnQ.length);
   $('lvl').textContent=p.level;$('xpTxt').textContent=`${Math.floor(p.xp)}/${xpNeed(p.level)}`;$('xpBar').style.width=(p.xp/xpNeed(p.level)*100)+'%';
   $('pwTxt').textContent=`${p.prod} / ${p.cons}`;
   const pb=$('pwBar');pb.style.width=(p.cons?Math.min(100,p.prod/p.cons*100):100)+'%';pb.style.background=p.pr<1?'#e5484d':'#4cc38a';
@@ -1747,24 +1752,27 @@ function refreshUI(force){
   $('hpBarBox').className='bar '+(coop()&&ME===1?'hp2':'hp');
   $('mate').style.display=coop()?'flex':'none';
   if(coop()){const q=P(other(ME));$('mateName').textContent=playerName(other(ME));$('mateTxt').textContent=q.dead?'· DÉTRUIT':`· niv ${q.level} · ${Math.ceil(q.coreHp)}`;$('mateBar').style.width=(q.coreHp/q.coreMax*100)+'%';$('mateBarBox').className='bar '+(ME===1?'hp':'hp2')}
-  $('rbTag').textContent=coop()?(NET.role==='host'?'Coop · hôte':'Coop · invité'):META.rebirths?`Renaissance ${META.rebirths}`:'prototype';
+  $('rbTag').textContent=spec?'Spectateur':coop()?(NET.role==='host'?'Coop · hôte':'Coop · invité'):META.rebirths?`Renaissance ${META.rebirths}`:'prototype';
   // boutons
-  $('bPause').style.display=coop()?'none':'';
-  $('bSave').style.display=coop()?'none':'';
-  $('bNew').style.display=NET.role==='guest'?'none':'';
+  $('bPause').style.display=coop()||spec?'none':'';
+  $('bSave').style.display=coop()||spec?'none':'';
+  $('bStopSpec').style.display=spec?'':'none';
+  $('bWave').style.display=spec?'none':'';
+  $('bNew').style.display=isRemote()?'none':'';
   const wb=$('bWave');
   if(coop()){const n=(S.votes[0]?1:0)+(S.votes[1]?1:0);wb.textContent=S.votes[ME]?`Prêt ✓ (${n}/2) — annuler`:`Lancer la vague (${n}/2)`;wb.className=S.votes[ME]?'okb':'warn'}
   else{wb.textContent='Attaque maintenant';wb.className='warn'}
-  const canRevive=coop()&&!p.dead&&P(other(ME)).dead&&monsters.length===0&&(NET.role==='guest'||spawnQ.length===0);
-  $('bRevive').style.display=canRevive?'':'none';
+  const canRevive=coop()&&!p.dead&&P(other(ME)).dead&&monsters.length===0&&(isRemote()||spawnQ.length===0);
+  $('bRevive').style.display=canRevive&&!spec?'':'none';
   for(const t in toolEls)toolEls[t].el.classList.toggle('poor',unlocked(t)&&!canAfford(B[t].cost));
   const tb=document.querySelector('#tabs [data-tab=talents]');tb.innerHTML='Talents'+(META.points>=15?'<span class="dot"></span>':'');
   const pg=document.querySelector('#tabs [data-tab=prog]');pg.innerHTML='Progression'+(p.level>=20&&!coop()?'<span class="dot"></span>':'');
   // étiquette droite
   let tag='';
-  if(S.paused&&!coop())tag='PAUSE';
+  if(spec)tag=`👁 Tu regardes la partie de ${NET.hostName}`;
+  else if(S.paused&&!coop())tag='PAUSE';
   else if(coop()&&NET.role==='host'&&!NET.guestHere)tag=`En attente de ton coéquipier… code ${NET.code||''}`;
-  else if(coop()&&NET.role==='guest'&&Date.now()-NET.lastSt>5000)tag='Connexion à l\'hôte perdue…';
+  else if(isRemote()&&NET.joined&&Date.now()-NET.lastSt>5000)tag='Connexion à l\'hôte perdue…';
   else if(coop()&&p.dead)tag='Ton noyau est détruit — attends d\'être réanimé';
   $('tagR').textContent=tag;$('tagR').style.display=tag?'block':'none';
   renderPane(force);
@@ -1871,13 +1879,14 @@ function updSndBtn(){$('bSnd').textContent=SFX.on?'🔊':'🔇'}
 $('bSnd').onclick=()=>{SFX.on=!SFX.on;try{localStorage.setItem('usine-son',SFX.on?'1':'0')}catch(e){}if(SFX.on){audio();sfx('build')}updSndBtn()};
 updSndBtn();
 $('bWave').onclick=()=>{if(!S||S.over)return;if(coop()){const on=!S.votes[ME];act('vote',on);if(NET.role==='guest')S.votes[ME]=on;refreshUI()}else{S.waveTimer=0;if(S.paused)S.paused=false}};
+$('bStopSpec').onclick=()=>leaveCoop();
 $('bRevive').onclick=()=>{const err=act('revive');if(err)toast(err)};
 let newArm=0;
 $('bNew').onclick=()=>{if(Date.now()-newArm<3000){newGame(S.mode);$('bNew').textContent='Nouvelle partie'}else{newArm=Date.now();$('bNew').textContent='Confirmer ?';setTimeout(()=>{$('bNew').textContent='Nouvelle partie'},3000)}};
-$('bRestart').onclick=()=>{if(NET.role==='guest'){$('overlay').hidden=true;return}newGame(S.mode)};
+$('bRestart').onclick=()=>{if(isRemote()){$('overlay').hidden=true;return}newGame(S.mode)};
 function showGameOver(){
   $('goTxt').textContent=coop()?`Les deux noyaux sont tombés à la vague ${S.wave}. ${S.kills} monstres éliminés ensemble.`:`Tu as atteint la vague ${S.wave} et le niveau ${P(0).level}, et éliminé ${S.kills} monstres. Tes talents permanents sont conservés.`;
-  $('bRestart').textContent=NET.role==='guest'?'Fermer':'Recommencer';
+  $('bRestart').textContent=isRemote()?'Fermer':'Recommencer';
   $('overlay').hidden=false;
 }
 
@@ -1908,7 +1917,7 @@ function snapshot(){
 }
 let localSavedAt=0;
 function save(){
-  if(!S||NET.role==='guest')return;
+  if(!S||isRemote())return;
   try{const d=snapshot();if(S.mode==='solo')localSavedAt=d.savedAt;localStorage.setItem(S.mode==='coop'?COOP_KEY:SAVE_KEY,JSON.stringify(d))}catch(e){}
   if(S.mode==='solo')cloudDirty=true;
 }
@@ -2066,10 +2075,10 @@ async function mqttPick(){
   for(let i=0;i<BROKERS.length;i++){try{await mqttConnectTo(i);return i}catch(e){}}
   throw {code:'broker'};
 }
-async function mqttJoin(name,role){
+async function mqttJoin(name,role,opts={}){
   await loadMqtt();
-  const code=name.slice(3).toUpperCase(),bi=clamp((parseInt(code[4],10)||1)-1,0,BROKERS.length-1);
-  let cl=MQ.client&&MQ.bi===bi&&MQ.client.connected?MQ.client:null;
+  const code=name.slice(3).toUpperCase(),bi=opts.bi!=null?opts.bi:clamp((parseInt(code[4],10)||1)-1,0,BROKERS.length-1);
+  let cl=opts.client||(MQ.client&&MQ.bi===bi&&MQ.client.connected?MQ.client:null);
   if(!cl){if(MQ.client){try{MQ.client.end(true)}catch(e){}MQ.client=null}cl=await mqttConnectTo(bi)}
   const base='usine-assiegee/v2/'+name+'/',inT=base+(role==='host'?'g':'h'),outT=base+(role==='host'?'h':'g');
   const myId=Math.random().toString(36).slice(2,10),handlers={},peerHandlers=[],peers={};let mypres={},guestId=null,alive=true;
@@ -2080,7 +2089,7 @@ async function mqttJoin(name,role){
     if(topic!==inT)return;let m;try{m=JSON.parse(payload.toString())}catch(e){return}
     if(!m||typeof m!=='object'||m.f===myId)return;
     if(m.to&&m.to!==myId)return;
-    if(role==='host'&&m.t==='pr'){if(guestId&&m.f!==guestId&&peers[guestId]){send({t:'ev',topic:'full',data:{},to:m.f});return}guestId=m.f}
+    if(role==='host'&&m.t==='pr'&&!(m.presence&&m.presence.role==='spec')){if(guestId&&m.f!==guestId&&peers[guestId]){send({t:'ev',topic:'full',data:{},to:m.f});return}guestId=m.f}
     if(m.t==='ev'&&typeof m.topic==='string')fireTopic(m.topic,m.data,m.f);
     else if(m.t==='pr'&&m.presence&&typeof m.presence==='object'){const isNew=!peers[m.f];peers[m.f]={peer:m.f,by:null,isMe:false,sameTab:false,kind:'viewer',guest:false,presence:m.presence,updatedAt:Date.now(),last:Date.now()};firePeers(isNew?[peers[m.f]]:[],isNew?[]:[peers[m.f]],[])}
     else if(m.t==='hb'&&peers[m.f])peers[m.f].last=Date.now();
@@ -2178,6 +2187,9 @@ function renderMp(){
     if(hasCoop)$('mpResume').onclick=()=>{savePseudo();startHost(true)};
     $('mpJoin').onclick=()=>{savePseudo();startGuest($('mpCode').value)};
     $('mpCode').addEventListener('keydown',e=>{if(e.key==='Enter'){savePseudo();startGuest($('mpCode').value)}});
+  }else if(NET.role==='spec'){
+    c.innerHTML=`<h2>Mode spectateur</h2><p>Tu regardes la partie de <b>${esc(NET.hostName)}</b>.</p><p class="mut" style="font-size:12px">Tu vois tout en direct mais tu ne peux rien construire.</p><div class="btnrow"><button class="danger" id="mpLeave">Arrêter de regarder</button><button id="mpClose" style="margin-left:auto">Fermer</button></div>`;
+    $('mpLeave').onclick=leaveCoop;
   }else{
     const here=NET.role==='host'?NET.guestHere:Date.now()-NET.lastSt<5000;
     c.innerHTML=`<h2>Partie à deux</h2>
@@ -2204,10 +2216,12 @@ async function startHost(resume){
   try{await room.emit('ping',{})}catch(e){if(e&&e.code==='not_permitted'){mpMsg('Seul le propriétaire du jeu (ou un éditeur) peut héberger. Demande à ton ami de créer la partie, ou rejoins-la avec son code.','bad');room.leave();return}}
   if(S&&S.mode==='solo')save();
   if(NET.transport!=='claude'&&getPseudo())NET.myName=getPseudo();
+  specBye();NET.specs=new Set();
   NET.role='host';NET.room=room;NET.code=code;NET.guestHere=false;NET.lastSeq=0;NET.sid=null;ME=0;NET.hostName=NET.myName||'Hôte';
   if(!(resume&&loadKey(COOP_KEY)&&S.mode==='coop'))newGame('coop');
   room.onPeers(ch=>{
-    for(const p of [...ch.joined,...ch.updated])if(!p.isMe&&p.presence&&p.presence.role==='guest')onGuestPresence(p);
+    for(const p of [...ch.joined,...ch.updated]){if(p.isMe||!p.presence)continue;if(p.presence.role==='guest')onGuestPresence(p);else if(p.presence.role==='spec')onSpecPresence(NET.specs,p,NET.room)}
+    for(const p of ch.left)NET.specs.delete(p.peer);
     for(const p of ch.left)if(p.peer===NET.guestPeer){NET.guestHere=false;setTimeout(publishPresence,100);banner(`${NET.guestName} s'est déconnecté — partie en pause`,true,4)}
   });
   room.presence({role:'host',code});
@@ -2233,9 +2247,20 @@ function onGuestPresence(p){
   }
 }
 const GUEST_ACTS=new Set(['filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
-function hostSendHello(){
-  if(!NET.room)return;
-  NET.room.emit('hello',{seed:S.seed,mode:'coop',name:NET.hostName,pid:PID,meta:META.talents||{}}).catch(()=>{});
+function bcRoom(){
+  if(NET.role==='host'&&NET.room&&(NET.guestHere||NET.specs.size))return NET.room;
+  if(NET.role==='solo'&&SPEC.room&&SPEC.specs.size)return SPEC.room;
+  return null;
+}
+function onSpecPresence(set,p,room){
+  if(set.has(p.peer))return;set.add(p.peer);
+  hostSendHello(room);
+  const nm=typeof p.presence.name==='string'&&p.presence.name?p.presence.name.slice(0,20):'Quelqu\'un';
+  banner(`👁 ${nm} regarde ta partie`,false,3,'blue');
+}
+function hostSendHello(room=NET.room){
+  if(!room)return;
+  room.emit('hello',{seed:S.seed,mode:S.mode,name:NET.transport==='claude'?NET.hostName:myName(),pid:PID,meta:META.talents||{}}).catch(()=>{});
   NET.bSent=0;
 }
 function encBuildings(){
@@ -2254,15 +2279,15 @@ function encBuildings(){
   }
   return s;
 }
-function sendChunks(topic,str,extra){
+function sendChunks(topic,str,extra,room=NET.room){
   const n=Math.max(1,Math.ceil(str.length/3500));
-  for(let i=0;i<n;i++)NET.room.emit(topic,Object.assign({i,n,d:str.slice(i*3500,(i+1)*3500)},extra||{})).catch(()=>{});
+  for(let i=0;i<n;i++)room.emit(topic,Object.assign({i,n,d:str.slice(i*3500,(i+1)*3500)},extra||{})).catch(()=>{});
 }
 function hostNetTick(now){
-  if(NET.role!=='host'||!NET.room||!NET.guestHere)return;
+  const RM=bcRoom();if(!RM)return;
   if(now-NET.tickAt<250)return;NET.tickAt=now;
   // bâtiments : quand ils changent (max 3/s) et toutes les 4 s
-  if(NET.bver!==NET.bSent&&now-NET.bAt>330||now-NET.bAt>4000){NET.bSent=NET.bver;NET.bAt=now;sendChunks('bl',encBuildings(),{v:NET.bver})}
+  if(NET.bver!==NET.bSent&&now-NET.bAt>330||now-NET.bAt>4000){NET.bSent=NET.bver;NET.bAt=now;sendChunks('bl',encBuildings(),{v:NET.bver},RM)}
   // état
   const ps=S.players.map((p,o)=>({i:ITEM_ORDER.map(k=>Math.floor(total(k,o))),l:p.level,x:Math.floor(p.xp),h:Math.ceil(p.coreHp),m:Math.ceil(p.coreMax),d:p.dead?1:0,pp:p.prod,pc:p.cons,g:p.goalsDone,cq:p.craftQ.length?[p.craftQ.length,+p.craftQ[0].left.toFixed(1),ITEM_ORDER.indexOf(RECIPES[p.craftQ[0].set][p.craftQ[0].i].out)]:0}));
   let ta='';for(const b of buildings)if(TURRETS.has(b.type)&&b.tgt)ta+=e2(b.x)+e2(b.y)+e1(((b.angle/(Math.PI*2))*64+64)%64)+(b.noAmmo?'1':'0');
@@ -2272,11 +2297,11 @@ function hostNetTick(now){
   const msg=NET.msgOut.splice(0,5);
   const cp=CAPS.map(c=>[Math.round(c.sx*10),Math.round(c.sy*10),Math.round(c.tx*10),Math.round(c.ty*10),+c.t.toFixed(2),+c.dur.toFixed(2),ITEM_ORDER.indexOf(c.it)]);
   const lk=buildings.filter(b=>b.type==='lanceur'&&b.lk).map(b=>[b.x,b.y,b.lk[0],b.lk[1]]);
-  NET.room.emit('st',{cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ack:NET.lastSeq,ps,ta,rb,fx:fxs,msg,hm:META.talents||{}}).catch(()=>{});
+  RM.emit('st',{cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ack:NET.lastSeq,ps,ta,rb,fx:fxs,msg,hm:META.talents||{}}).catch(()=>{});
   let ms='';for(const m of monsters)ms+=e2(m.id%4096)+e1(MTYPES.indexOf(m.type))+e2(m.x*40)+e2(m.y*40)+e1(m.hp/m.maxhp*63)+e1(((Math.atan2(m.fy,m.fx)/(Math.PI*2))*64+64)%64);
-  sendChunks('mo',ms);
+  sendChunks('mo',ms,null,RM);
   let bi='';for(const b of buildings)if(BELT.has(b.type)&&b.item)bi+=e2(b.x)+e2(b.y)+e1(ITEM_ORDER.indexOf(b.item))+e1(b.prog*63);
-  sendChunks('bi',bi);
+  sendChunks('bi',bi,null,RM);
 }
 
 // ----- Invité -----
@@ -2290,19 +2315,25 @@ async function startGuest(codeRaw){
   try{room=await R.join('ua-'+code.toLowerCase(),'guest')}catch(e){const c=e&&e.code;mpMsg(c==='peer-unavailable'?'Aucune partie trouvée avec ce code. Vérifie le code et que ton ami a bien créé la partie (onglet ouvert).':c==='broker'?'Impossible de joindre le serveur de relais. Vérifie ta connexion internet.':c==='load'?'Impossible de charger le module multijoueur (connexion internet ?).':'Impossible de rejoindre ('+(c||'erreur')+')'+(onClaude()?'. Vérifie que ton ami t\'a invité par e-mail.':'.'),'bad');return}
   if(NET.transport!=='claude'&&getPseudo())NET.myName=getPseudo();
   if(S&&S.mode==='solo')save();
+  specBye();
   NET.role='guest';NET.room=room;NET.code=code;NET.joined=false;NET.mySeq=0;NET.myCmds=[];NET.sid=Math.random().toString(36).slice(2,10);NET.lastSt=0;NET.hostName='Hôte';NET.guestName=NET.myName||'Toi';NET.bl={};NET.mo={};NET.bi={};
   ME=1;S=null;
+  bindRemote(room);
+  room.on('full',()=>{mpMsg('Cette partie est déjà complète (2 joueurs).','bad');leaveCoop()});
+  guestPresence();
+  refreshUI(true);renderMp();
+  setTimeout(()=>{if(NET.role==='guest'&&!NET.joined)mpMsg('Aucune partie trouvée avec ce code pour l\'instant. Vérifie le code et que l\'hôte a bien le jeu ouvert.','bad')},8000);
+}
+function bindRemote(room){
+  room.on('bye',()=>{if(NET.role==='spec'){toast('Ton ami a changé de partie');leaveCoop()}});
   room.on('hello',m=>{if(m.isMe)return;const d=m.data||{};if(typeof d.seed!=='number')return;NET.hostName=typeof d.name==='string'?d.name.slice(0,24):'Hôte';if(typeof d.pid==='string'&&/^[A-Z0-9]{8}$/.test(d.pid))NET.matePid=d.pid;NET.hostMeta={talents:d.meta||{}};
-    if(!S||S.seed!==d.seed){S=newState(d.seed,'coop');setupWorld(d.seed,'coop');buildToolbar();banner(`Connecté à la partie de ${NET.hostName} !`,false,4,'blue')}
+    const md=d.mode==='solo'?'solo':'coop';
+    if(!S||S.seed!==d.seed||S.mode!==md){S=newState(d.seed,md);setupWorld(d.seed,md);buildToolbar();banner(NET.role==='spec'?`👁 Tu regardes la partie de ${NET.hostName}`:`Connecté à la partie de ${NET.hostName} !`,false,4,'blue')}
     NET.joined=true;$('mpDlg').hidden=true;refreshUI(true);publishPresence()});
   room.on('bl',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;const key=d.v;NET.bl[key]=NET.bl[key]||[];NET.bl[key][d.i]=d.d;if(NET.bl[key].filter(x=>x!=null).length===d.n){guestApplyBuildings(NET.bl[key].join(''));NET.bl={}}});
   room.on('mo',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;NET.mo.parts=NET.mo.n===d.n&&NET.mo.parts?NET.mo.parts:[];NET.mo.n=d.n;NET.mo.parts[d.i]=d.d;if(NET.mo.parts.filter(x=>x!=null).length===d.n){guestApplyMonsters(NET.mo.parts.join(''));NET.mo.parts=null}});
   room.on('bi',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;NET.bi.parts=NET.bi.n===d.n&&NET.bi.parts?NET.bi.parts:[];NET.bi.n=d.n;NET.bi.parts[d.i]=d.d;if(NET.bi.parts.filter(x=>x!=null).length===d.n){guestApplyBelts(NET.bi.parts.join(''));NET.bi.parts=null}});
   room.on('st',m=>{if(m.isMe||!S)return;guestApplyState(m.data||{})});
-  room.on('full',()=>{mpMsg('Cette partie est déjà complète (2 joueurs).','bad');leaveCoop()});
-  guestPresence();
-  refreshUI(true);renderMp();
-  setTimeout(()=>{if(NET.role==='guest'&&!NET.joined)mpMsg('Aucune partie trouvée avec ce code pour l\'instant. Vérifie le code et que l\'hôte a bien le jeu ouvert.','bad')},8000);
 }
 function guestPresence(){
   if(NET.role!=='guest'||!NET.room)return;
@@ -2375,7 +2406,7 @@ function guestApplyState(d){
   if(Array.isArray(d.rb)){const old={};for(const r of robots)old[r.id]=r;robots=d.rb.map(a=>{let r=old[a[0]];if(!r){r={isRobot:true,id:a[0],x:a[1]/10,y:a[2]/10,cargo:{}}}r.tx2=a[1]/10;r.ty2=a[2]/10;r.hp=a[3];r.maxhp=a[4];r.state=RSTATES[a[5]]||'seek';r.count=a[6];r.owner=a[7]?1:0;r.pref=a[8];r.tx=a[9]>=0?a[9]:null;r.ty=a[10];r.mine=a[11]>=0?ITEM_ORDER[a[11]]:null;r.nochest=!!a[12];return r});if(sel&&sel.isRobot)sel=robots.find(r=>r.id===sel.id)||null}
   // effets
   if(Array.isArray(d.fx))for(const a of d.fx){const e=a[0]==='b'?{k:'boom',x:a[1],y:a[2],r:a[3],col:a[4],t:a[5],max:a[5]}:{k:a[0]==='z'?'zap':'shot',x1:a[1],y1:a[2],x2:a[3],y2:a[4],col:a[5],w:a[6],t:a[7],max:a[7],seed:a[8]};effects.push(e);onEffect(e)}
-  if(Array.isArray(d.msg))for(const t of d.msg){if(typeof t!=='string')continue;if(t[0]==='!'){banner(t.slice(1),true,5);if(t.includes('Vague'))sfx('wave')}else if(t[0]==='?')toast(t.slice(1));else banner(t,false,4,'blue')}
+  if(Array.isArray(d.msg))for(const t of d.msg){if(typeof t!=='string')continue;if(NET.role==='spec'&&t[0]!=='!')continue;if(t[0]==='!'){banner(t.slice(1),true,5);if(t.includes('Vague'))sfx('wave')}else if(t[0]==='?')toast(t.slice(1));else banner(t,false,4,'blue')}
   if(d.o&&!S.over){S.over=true;showGameOver()}else if(!d.o)S.over=false;
 }
 function guestFrame(dt){
@@ -2389,6 +2420,8 @@ function guestFrame(dt){
   if(NET.metaDirty){NET.metaDirty=false;guestPresence()}
 }
 async function leaveCoop(){
+  if(NET.role==='host'&&NET.room&&NET.specs.size){try{await NET.room.emit('bye',{})}catch(e){}}
+  NET.specs=new Set();
   if(NET.room){try{await NET.room.leave()}catch(e){}}
   if(NET.role==='host')save();
   NET.role='solo';NET.room=null;NET.code=null;NET.guestHere=false;NET.matePid=null;ME=0;setTimeout(publishPresence,300);
@@ -2399,6 +2432,8 @@ async function leaveCoop(){
 
 // ================= AMIS (version site web : via le relais) =================
 const SOC={client:null,bi:-1,status:{},ready:false};
+const SPEC={room:null,specs:new Set()};
+function specBye(){if(SPEC.room&&SPEC.specs.size){SPEC.room.emit('bye',{}).catch(()=>{})}SPEC.specs=new Set()}
 function myPid(){let v='';try{v=localStorage.getItem('usine-pid')||''}catch(e){}if(!/^[A-Z0-9]{8}$/.test(v)){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';v='';for(let i=0;i<8;i++)v+=a[(Math.random()*a.length)|0];try{localStorage.setItem('usine-pid',v)}catch(e){}}return v}
 const PID=myPid();
 const fmtPid=p=>p.slice(0,4)+'-'+p.slice(4);
@@ -2424,14 +2459,26 @@ async function socialInit(){
   const subAll=()=>{cl.subscribe(iTopic(PID),{qos:0});for(const f of FRIENDS)cl.subscribe(pTopic(f.pid),{qos:0});publishPresence()};
   cl.on('connect',subAll);subAll();
   SOC.ready=true;
+  // salle « spectateurs » de ma partie solo
+  try{
+    SPEC.room=await mqttJoin('sp-'+PID.toLowerCase(),'host',{client:SOC.client,bi:SOC.bi});
+    SPEC.room.onPeers(ch=>{
+      for(const p of [...ch.joined,...ch.updated]){if(!p.presence||p.presence.role!=='spec')continue;if(NET.role==='solo')onSpecPresence(SPEC.specs,p,SPEC.room);else SPEC.room.emit('bye',{}).catch(()=>{})}
+      for(const p of ch.left)SPEC.specs.delete(p.peer);
+    });
+  }catch(e){}
+  publishPresence();
   if(!$('mpDlg').hidden)renderMp();
   setInterval(publishPresence,30000);
   window.addEventListener('beforeunload',()=>{try{cl.publish(pTopic(PID),JSON.stringify({name:myName(),st:'off',t:Date.now()}),{retain:true,qos:0})}catch(e){}});
 }
 function publishPresence(){
   if(!SOC.client||!SOC.client.connected)return;
-  const st=NET.role==='host'?'host':NET.role==='guest'?'guest':'solo';
-  const pl={name:myName(),st,code:NET.role==='host'&&!NET.guestHere?NET.code:null,t:Date.now()};
+  const st=NET.role==='host'?'host':NET.role==='guest'?'guest':NET.role==='spec'?'spec':'solo';
+  let room=null,bi=null;
+  if(st==='solo'&&SPEC.room){room='sp-'+PID.toLowerCase();bi=SOC.bi}
+  else if((st==='host'||st==='guest')&&NET.transport==='relay'&&NET.code){room='ua-'+NET.code.toLowerCase();bi=MQ.bi}
+  const pl={name:myName(),st,room,bi,code:NET.role==='host'&&!NET.guestHere?NET.code:null,t:Date.now()};
   try{SOC.client.publish(pTopic(PID),JSON.stringify(pl),{retain:true,qos:0})}catch(e){}
 }
 function sendInbox(pid,msg){if(!SOC.client||!SOC.client.connected)return false;msg.from=PID;msg.name=myName();msg.t=Date.now();try{SOC.client.publish(iTopic(pid),JSON.stringify(msg),{qos:0});return true}catch(e){return false}}
@@ -2476,6 +2523,22 @@ let invCb=null;
 function showInvite(title,txt,cb,yes){$('invTitle').textContent=title;$('invTxt').textContent=txt;$('invYes').textContent=yes||'Rejoindre';invCb=cb;$('invDlg').hidden=false;sfx('level')}
 $('invYes').onclick=()=>{$('invDlg').hidden=true;const c=invCb;invCb=null;if(c)c()};
 $('invNo').onclick=()=>{$('invDlg').hidden=true;invCb=null};
+async function startSpectate(pid){
+  const f=FRIENDS.find(x=>x.pid===pid),s=SOC.status[pid];
+  if(!f||!s||!s.room||typeof s.room!=='string'||!/^(sp|ua)-[a-z0-9]{5,8}$/.test(s.room)){toast('Impossible de regarder cette partie');return}
+  if(NET.role!=='solo'){toast('Quitte d\'abord ta partie à deux');return}
+  mpMsg&&$('mpMsg')&&mpMsg('Connexion…');
+  let room;
+  try{const bi=clamp(s.bi|0,0,BROKERS.length-1);room=await mqttJoin(s.room,'spec',{bi,client:SOC.client&&SOC.bi===bi?SOC.client:undefined})}catch(e){toast('Impossible de rejoindre le relais');return}
+  if(S&&S.mode==='solo')save();
+  specBye();
+  NET.role='spec';NET.transport='relay';NET.room=room;NET.code=null;NET.joined=false;NET.lastSt=0;NET.hostName=f.name;NET.bl={};NET.mo={};NET.bi={};
+  ME=0;S=null;tool=null;
+  bindRemote(room);
+  room.presence({role:'spec',pid:PID,name:myName()}).catch(()=>{});
+  $('mpDlg').hidden=true;buildToolbar();publishPresence();
+  setTimeout(()=>{if(NET.role==='spec'&&!NET.joined){toast('Pas de réponse de la partie de ton ami');leaveCoop()}},10000);
+}
 async function inviteFriend(pid){
   const f=FRIENDS.find(x=>x.pid===pid);if(!f)return;
   if(NET.role==='guest'){toast('Tu es déjà dans la partie de quelqu\'un');return}
@@ -2489,15 +2552,16 @@ function friendsHtml(){
   if(!SOC.ready)h+='<p class="mut" style="font-size:12px">Connexion au relais pour voir qui est en ligne…</p>';
   if(!FRIENDS.length)h+='<p class="mut" style="font-size:12px">Aucun ami pour l\'instant. Joue une partie à deux puis clique « Ajouter en ami », ou entre le code ami de quelqu\'un ci-dessous.</p>';
   else{
-    const order={host:0,solo:1,guest:2,off:3};
+    const order={host:0,solo:1,guest:2,spec:3,off:4};
     const list=[...FRIENDS].sort((a,b)=>order[friendState(a.pid)]-order[friendState(b.pid)]);
     for(const f of list){
       const st=friendState(f.pid),s=SOC.status[f.pid]||{};
-      const lbl=st==='off'?'Hors ligne':st==='host'?(s.code?'Héberge une partie — place libre':'En partie à deux'):st==='guest'?'En partie à deux':'En ligne';
+      const lbl=st==='off'?'Hors ligne':st==='host'?(s.code?'Héberge une partie — place libre':'En partie à deux'):st==='guest'?'En partie à deux':st==='spec'?'Regarde une partie':'En ligne (solo)';
       const cls=st==='off'?'':st==='host'&&s.code?'host':st==='solo'?'on':'busy';
       let btn='';
       if(st==='host'&&s.code&&NET.role==='solo')btn=`<button class="okb" data-mp="join:${esc(s.code)}">Rejoindre</button>`;
       else if(st==='solo'&&NET.role!=='guest')btn=`<button class="blue" data-mp="invite:${f.pid}">Inviter</button>`;
+      if(['solo','host','guest'].includes(st)&&s.room&&NET.role==='solo')btn+=`<button data-mp="watch:${f.pid}" title="Regarder sa partie">👁 Regarder</button>`;
       h+=`<div class="friend"><span class="dotst ${cls}"></span><div class="r"><b>${esc(f.name)}</b><span class="mut" style="font-size:11.5px">${lbl}</span></div>${btn}<button data-mp="rm:${f.pid}" title="Retirer">✕</button></div>`;
     }
   }
@@ -2510,6 +2574,7 @@ $('mpDlg').addEventListener('click',async e=>{
     else if(v.startsWith('join:')){startGuest(v.slice(5))}
     else if(v.startsWith('invite:')){inviteFriend(v.slice(7))}
     else if(v.startsWith('rm:')){removeFriend(v.slice(3))}
+    else if(v.startsWith('watch:')){startSpectate(v.slice(6))}
     else if(v==='addmate'&&NET.matePid){const err=addFriend(NET.matePid,NET.role==='host'?NET.guestName:NET.hostName);if(err)toast(err)}
     return}
   if(e.target.id==='fAddBtn'){const err=addFriend($('fAdd').value,'Ami');if(err)toast(err)}
@@ -2529,7 +2594,7 @@ function frame(nowMs){
     if(keys.KeyA||keys.ArrowLeft)cam.x-=ps;
     if(keys.KeyD||keys.ArrowRight)cam.x+=ps;
     cam.x=clamp(cam.x,0,W);cam.y=clamp(cam.y,0,H);
-    if(NET.role==='guest')guestFrame(dt);else update(dt);
+    if(isRemote())guestFrame(dt);else update(dt);
     cosmeticUpdate(dt);
     hostNetTick(nowMs);
   }

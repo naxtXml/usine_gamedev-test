@@ -40,7 +40,7 @@ Les deux jeux communiquent par un relais internet gratuit (serveur MQTT public),
 
 ### Amis
 
-Chaque joueur a un **code ami**. Pendant une partie à deux, ajoute ton coéquipier en un clic. Ensuite, le menu Multijoueur montre qui est en ligne, permet d'**inviter** un ami (il reçoit une fenêtre « Rejoindre ») ou de **rejoindre** directement sa partie.
+Chaque joueur a un **code ami**. Pendant une partie à deux, ajoute ton coéquipier en un clic. Ensuite, le menu Multijoueur montre qui est en ligne, permet d'**inviter** un ami (il reçoit une fenêtre « Rejoindre ») ou de **rejoindre** directement sa partie, ou de la **regarder en spectateur** (en solo comme à deux).
 
 ## Sauvegarde
 
