@@ -137,6 +137,19 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - **Lanceur orbital** et **Quai orbital** (niv 18 du futur) : fusées de 25 objets.
 - Les trains du Présent et du Futur sont séparés (chaque époque a les siens) et marchent en multijoueur et dans les sauvegardes.
 
+## Chapitre 6 : L'Origine (v47)
+- Se débloque après avoir vaincu l'Omnicerveau (fin du chapitre 5). Bouton « ☀ L'Origine » sur la Machine temporelle, dans le Présent.
+- **Expéditions de 25 minutes** sur la planète des Créateurs, sous un soleil qui s'éteint. Ton usine du Présent et du Futur continue de tourner pendant ce temps. Un 3e bouton « ☀ Origine » apparaît à gauche.
+- **Citadelle mobile** : ton noyau roule sur chenilles. Bouton « 🚜 Déplacer la citadelle », puis clic sur la destination : le camp (8 cases autour) est replié et remboursé, la citadelle trouve son chemin en contournant les gouffres. On ne construit qu'autour d'elle.
+- **Objectif** : siphonner les Éclats d'Origine dans les sanctuaires dorés (8 par sanctuaire). Chaque éclat réveille des gardiens. Bouton « ⛺ Rentrer » à tout moment.
+- **Bâtiments de campagne** : foreuse de campagne (envoie directement dans la citadelle), siphon d'éclats, tourelle de campagne, canon solaire, mur de givre, balise de soin, mine de givre. Ressources : alliage ancien et cristal solaire.
+- **Ennemis : les Gardiens des Créateurs** (sentinelle, lancier, éclaireur volant, colosse) et le boss **Gardien Primordial** (150 000 PV, ondes solaires, invocations). Combat mesuré à environ 3 min avec 10 tourelles, 10 canons solaires, un mur et une balise de soin.
+- **5 expéditions d'histoire** : I « Le signal sous la glace » (10 éclats), II « La cité endormie » (15), III « Les archives des Créateurs » (20), IV « Le chemin du soleil » (25), V « Le cœur du soleil » (vaincre le Gardien Primordial). Puis des expéditions libres (30 éclats).
+- **Retour** : éclats gardés (25 % en cas d'échec) ; l'alliage restant devient de l'acier (×2) dans le Présent, le cristal devient du graphène dans le Futur.
+- **Améliorations permanentes** payées en éclats : +8 % de dégâts et +8 % de vitesse des machines dans toutes les époques, kit de départ, citadelle plus rapide et plus solide, gardiens affaiblis.
+- **Histoire** : 10 nouvelles pages (U-1, la Graine, la boucle), ajoutées au Journal. Succès : Premier pas, La boucle, Chercheur d'éclats, Nomade.
+- Multijoueur : l'expédition est commune ; chaque joueur a sa citadelle. Une expédition en cours n'est pas sauvegardée.
+
 ## Commandes
 
 | Action | Touche |
