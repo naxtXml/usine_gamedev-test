@@ -95,6 +95,14 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - Nouveaux ennemis : Blindé IA, Drone kamikaze. Boss Tisseur de code (vague 20, 40… du futur), qui pirate 4 tourelles à la fois.
 - Quand les 8 bunkers sont connectés : offensive (vagues +25 %, plus de hackers).
 
+## Chapitre 5 — Phase 4 : le final
+- Échos temporels : ton usine du Présent laisse des ruines dans le futur (machines/murs → ferraille, tourelles → cristaux de données, Machine temporelle → chrono-sable). Mises à jour toutes les 2 min.
+- Chrono-sable : gisements dans le Désert de verre, le Cratère et la Forêt.
+- Émetteur temporel (niv 28) : envoie vers le Présent, contre 1 chrono-sable : graphène → 4 alliages, supraconducteur → 2 piles à fusion, puce IA → 1 module quantique, fibre optique → 10 circuits, plaque composite → 3 aciers.
+- Ton futur dépend de ta dernière fin du chapitre 4 (Essaim : monstres −10 % PV · Obéir : +15 % dégâts · Protéger : +15 % vitesse des machines · Orbite : frappe orbitale toutes les 15 s).
+- Puits du Cœur (coin du Cratère) : avec les 8 bunkers, le Tisseur vaincu, le niveau 35 et une charge de rupture, lance l'assaut final contre l'Omnicerveau (1,4 M PV, boucliers, piratage de 6 tourelles, impulsions qui coupent l'énergie 3 s).
+- Victoire : fin du chapitre 5 (4 variantes), +50 % de dégâts dans le futur, teaser du chapitre 6.
+
 ## Commandes
 
 | Action | Touche |
