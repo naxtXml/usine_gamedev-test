@@ -88,6 +88,13 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - Récompenses : Labo des survivants (6 recherches du futur), Assembleur IA, Mur holographique, Tour IA, Dynamo de singularité, Canon à antimatière, signal amplifié.
 - Histoire : un message radio par survivant, puis l'Omnicerveau s'invite sur la fréquence…
 
+## Chapitre 5 — Phase 3 : l'offensive de l'Omnicerveau
+- Hackers (vague 4+ du futur) : piratent une tourelle 10 s, qui tire alors sur ta base. Pare-feu (niv 4) : protège et nettoie les tourelles à 6 cases.
+- Hangar à drones (niv 14) : 3 drones de combat autonomes. Dôme-bouclier (niv 20, 2×2) : absorbe 15 000 dégâts, se recharge.
+- Pièges : Puits gravitationnel (niv 16), Portail-piège (niv 24, renvoie au bord de la carte).
+- Nouveaux ennemis : Blindé IA, Drone kamikaze. Boss Tisseur de code (vague 20, 40… du futur), qui pirate 4 tourelles à la fois.
+- Quand les 8 bunkers sont connectés : offensive (vagues +25 %, plus de hackers).
+
 ## Commandes
 
 | Action | Touche |

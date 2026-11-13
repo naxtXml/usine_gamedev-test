@@ -475,6 +475,11 @@ B.brouilleur={cat:'def',n:'Brouilleur phéromonal',cost:{chitine:30,module_quant
 B.lance_dard={cat:'def',n:'Lance-dards de chitine',cost:{chitine:40,alliage:10,circuit:12},hp:1400,pw:-50,range:11,rate:0.8,dmg:900,pierce:4,col:'#d9a441',lvl:66,req:'nid',desc:'Un dard de chitine qui transperce jusqu\'à 4 monstres alignés et ignore toute armure. Débloqué en détruisant un nid de la ruche.'};
 B.cantine={cat:'prod',size:2,n:'Cantine de Gougouz',cost:{acier:200,gelee_royale:50,circuit:40},hp:3000,pw:-30,col:'#ff8a3d',lvl:60,req:'reine',desc:'Gougouz est sauvé… et il cuisine ! Consomme 1 gelée royale toutes les 20 s (prise dans ton stock) : tant qu\'elle est nourrie, +30 % d\'XP et +15 % de vitesse des machines pour toi.'};
 // ================= BÂTIMENTS DU FUTUR (era:'futur') =================
+B.pare_feu={cat:'def',era:'futur',n:'Pare-feu',cost:{plaque_composite:10,verre_optique:4,nanites:6},hp:800,pw:-10,fw:6,col:'#3aff7a',lvl:4,desc:'Aucune tourelle à moins de 6 cases ne peut être piratée, et celles qui le sont déjà sont nettoyées. Doit être alimenté.'};
+B.hangar_drones={cat:'def',era:'futur',n:'Hangar à drones',cost:{graphene:8,plaque_composite:12,fibre_optique:2},hp:1500,pw:-20,range:8,rate:1.6,dmg:40,col:'#5ff3ff',lvl:14,desc:'3 drones de combat qui patrouillent autour du hangar et foncent sur les monstres à moins de 8 cases. Énergie.'};
+B.dome_bouclier={cat:'def',era:'futur',size:2,n:'Dôme-bouclier',cost:{graphene:20,verre_optique:20,supraconducteur:2},hp:3000,pw:-40,dome:6,pool:15000,regen:250,col:'#7fb8ff',lvl:20,desc:'Un dôme d\'énergie (rayon 6) qui encaisse jusqu\'à 15 000 dégâts à la place de tes bâtiments et de ton noyau. Se recharge (250/s) tant qu\'il est alimenté.'};
+B.puits_gravite={cat:'trap',era:'futur',n:'Puits gravitationnel',cost:{graphene:8,nanites:20},hp:800,pw:-15,range:5,col:'#9a5cff',lvl:16,desc:'Aspire les monstres à moins de 5 cases vers son centre et les ralentit (sauf les boss). Énergie.'};
+B.portail_piege={cat:'trap',era:'futur',n:'Portail-piège',cost:{fibre_optique:4,puce_ia:2},hp:600,pw:-12,walk:true,cd:3,col:'#ff6ad5',lvl:24,desc:'Un monstre au sol qui marche dessus est renvoyé au bord de la carte (toutes les 3 s). Énergie.'};
 B.relais_wifi={cat:'log',era:'futur',n:'Relais Wi-Fi',cost:{ferraille:10,nanites:3},hp:400,pw:-6,wifi:8,wlink:12,col:'#5fff9a',lvl:1,desc:'Diffuse le signal radio à 8 cases et se relie aux autres relais (et au noyau) à 12 cases. Doit être alimenté par un pylône. Un bunker couvert par le réseau peut être contacté avec le 📻 talkie-walkie.'};
 B.antenne_longue={cat:'log',era:'futur',base:'relais_wifi',n:'Antenne longue portée',cost:{graphene:6,fibre_optique:4},hp:900,pw:-20,wifi:13,wlink:22,col:'#3fd0ff',lvl:12,req:'bk:2',desc:'Diffuse à 13 cases et se relie jusqu\'à 22 cases.'};
 B.assembleur_ia={cat:'prod',era:'futur',base:'assembleur',rs:'nanofab',n:'Assembleur IA',cost:{graphene:10,puce_ia:2},hp:900,pw:-14,col:'#5fff9a',spd:3,lvl:8,req:'bk:1',desc:'Les recettes de la nanofabrique, 3× plus vite.'};
@@ -547,7 +552,7 @@ const ROTATABLE=new Set(['assembleur_ia','tapis_mag','tapis_mag2','jonction','ai
 const MACHINES=new Set(['assembleur_ia','recycleur','nanofabrique','assembleur_psy','fonderie_orbitale','compacteur','synthetiseur','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','forge','centrifugeuse']);
 const DRILLS=new Set(['excavatrice','excavatrice_plasma','foreuse_ruche','foreuse','foreuse_avancee','foreuse_laser','pompe']);
 const TURRETS=new Set(['tour_ia','canon_antimatiere','tourelle_faisceau','canon_ionique','arc_tesla','lance_rail','mitrailleuse_vael','tour_echo','canon_createurs','relais_orbital','lance_dard','canon_garik','canon_prisme','mitrailleuse','mitrailleuse_lourde','laser','plasma','tesla','lance_flammes','railgun']);
-const WALK=new Set(['sol_electrifie','mine_plasma','mine','pics','piege_resine','mine_psy','nid_piege']);
+const WALK=new Set(['portail_piege','sol_electrifie','mine_plasma','mine','pics','piege_resine','mine_psy','nid_piege']);
 const GENS=new Set(['reacteur_compact','cellule_gelee','reacteur_gelee','generateur','super_generateur','reacteur','reacteur_helium']);
 const MT={
   rampant:{n:'Rampant',hp:40,sp:1.1,dmg:12,r:0.28,col:'#7bc043',xp:5},
@@ -590,9 +595,13 @@ Object.assign(MT,{
   broyeur:{n:'Broyeur',hp:320,sp:0.6,dmg:55,r:0.44,col:'#7a7f8a',xp:30,armor:7,mech:1},
   nano_essaim:{n:'Nano-essaim',hp:60,sp:1.4,dmg:9,r:0.32,col:'#c8d0ff',xp:10,split:1,mech:1},
   nanite_mini:{n:'Nanites',hp:15,sp:1.9,dmg:4,r:0.16,col:'#dfe4ff',xp:2,mech:1},
+  hacker:{n:'Hacker',hp:70,sp:1.3,dmg:6,r:0.28,col:'#3aff7a',xp:12,mech:1,hack:5},
+  blinde_ia:{n:'Blindé IA',hp:500,sp:0.6,dmg:40,r:0.44,col:'#5a6070',xp:35,armor:20,mech:1},
+  drone_kamikaze:{n:'Drone kamikaze',hp:40,sp:2.2,dmg:220,r:0.26,col:'#ff8a3d',xp:9,fly:true,mech:1},
+  tisseur:{n:'Tisseur de code',hp:6000,sp:0.4,dmg:250,r:0.95,col:'#3aff7a',xp:1500,boss:true,armor:10,mech:1,hack:8},
   colosse_forge:{n:'Colosse-Forge',hp:3500,sp:0.42,dmg:320,r:0.95,col:'#d0602f',xp:900,boss:true,armor:12,mech:1},
 });
-const FW8=n=>[['broyeur',n>=3?Math.min(0.15,0.03*n):0],['drone_rouge',n>=2?0.14:0],['nano_essaim',n>=5?0.1:0],['chasseur_ia',0.3]];
+const FW8=(n,off)=>[['hacker',n>=4?(off?0.12:0.06):0],['drone_kamikaze',n>=6?0.07:0],['blinde_ia',n>=8?0.08:0],['broyeur',n>=3?Math.min(0.15,0.03*n):0],['drone_rouge',n>=2?0.14:0],['nano_essaim',n>=5?0.1:0],['chasseur_ia',0.3]];
 const GUARD={imperatrice:['soldat_ruche','cracheur'],essaim_mere:['chimere','soldat_ruche'],ancienne:['soldat_ruche','cracheur'],helion:['drone_sentinelle','drone_sentinelle'],leviathan:['pilote_ruche','chimere']};
 const BOSS_CYCLE=['titan','reine','golem','dragon','hydre','liche'];
 // ----- Zones -----
@@ -688,6 +697,9 @@ const FGOALS=[
   ['Connecter un bunker avec le 📻 talkie-walkie',()=>!!(S.bk&&S.bk.some(x=>x))],
   ['Connecter 4 bunkers',()=>!!(S.bk&&S.bk.filter(x=>x).length>=4)],
   ['Rétablir le réseau des survivants (8 connexions)',()=>!!(S.bk&&S.bk.every(x=>x))],
+  ['Construire un pare-feu et l\'alimenter',o=>buildings.some(b=>b.owner===o&&b.type==='pare_feu'&&b.net>=0)],
+  ['Construire un hangar à drones',o=>buildings.some(b=>b.owner===o&&b.type==='hangar_drones')],
+  ['Vaincre le Tisseur de code (vague 20 du futur)',()=>!!S.tis1],
 ];
 const GOALS=[
   ['Poser une foreuse sur un gisement de fer (brun)',o=>buildings.some(b=>b.owner===o&&kind(b.type)==='foreuse')],
@@ -727,6 +739,9 @@ const ACH=[
   ['c4o','🫡','Bon soldat','Terminer l\'histoire des Créateurs en obéissant',()=>!!(S.ch4&&S.ch4.done&&S.ch4.side==='obeir')],
   ['c4p','🐝','Ami de la ruche','Terminer l\'histoire des Créateurs en protégeant la ruche',()=>!!(S.ch4&&S.ch4.done&&S.ch4.side==='proteger')],
   ['c4s','🛰','Gardien de l\'orbite','Terminer l\'histoire de la Station orbitale',()=>!!(S.ch4&&S.ch4.done&&S.ch4.pick==='orbite')],
+  ['firewall','🧱','Pare-feu','Construire un pare-feu dans le futur',()=>S.era==='futur'&&buildings.some(b=>b.owner===ME&&b.type==='pare_feu')],
+  ['dome','🫧','Sous la cloche','Construire un dôme-bouclier',()=>S.era==='futur'&&buildings.some(b=>b.owner===ME&&b.type==='dome_bouclier')],
+  ['tisseur','🕸','Débogueur','Vaincre le Tisseur de code',()=>{const f=RUN==='futur'?S:CTX.futur&&CTX.futur.S;return !!(f&&f.tis1)}],
   ['bk1','📻','Allô ?','Connecter un premier bunker de survivants',()=>{const f=RUN==='futur'?S:CTX.futur&&CTX.futur.S;return !!(f&&f.bk&&f.bk.some(x=>x))}],
   ['bkall','🛰','Réseau rétabli','Connecter les 8 bunkers et la tour',()=>{const f=RUN==='futur'?S:CTX.futur&&CTX.futur.S;return !!(f&&f.bk&&f.bk.every(x=>x))}],
   ['futur1','🌐','Deux siècles plus tard','Voyager dans le futur',()=>futOpen()],
@@ -1037,7 +1052,7 @@ function setupWorld(seed,mode,np=2,terr=false){
 }
 
 // ================= ÉPOQUES : Présent / Futur =================
-const BUNKDEF=[{"n": "Bunker Alpha", "z": "neo", "tier": 1, "d": [9, 13], "loot": {"plaque_composite": 80, "nanites": 40}, "rw": "Labo des survivants débloqué (onglet Labo)."}, {"n": "Bunker Bêta", "z": "neo", "tier": 1, "d": [15, 20], "loot": {"verre_optique": 40}, "rw": "Plan : Assembleur IA."}, {"n": "Bunker Gamma", "z": "megapole", "tier": 2, "loot": {"graphene": 30}, "rw": "Plan : Antenne longue portée."}, {"n": "Abri Delta", "z": "verre", "tier": 2, "loot": {"fibre_optique": 20}, "rw": "Plan : Mur holographique."}, {"n": "Abri Epsilon", "z": "nanite", "tier": 2, "loot": {"puce_ia": 10}, "rw": "Plan : Tour IA."}, {"n": "Refuge Zêta", "z": "foret", "tier": 3, "loot": {"supraconducteur": 8}, "rw": "Plan : Dynamo de singularité."}, {"n": "Station Êta", "z": "singul", "tier": 3, "loot": {"matiere_noire": 30}, "rw": "Plan : Canon à antimatière."}, {"n": "Tour de communication", "z": "megapole", "tier": 2, "tower": 1, "loot": {"cristal_donnees": 40}, "rw": "Signal amplifié : tous tes relais portent 4 cases plus loin."}];let BUNKS=[],TALKIE=false,QTE=null,LPREVF=null;
+let LPREVH=null;const BUNKDEF=[{"n": "Bunker Alpha", "z": "neo", "tier": 1, "d": [9, 13], "loot": {"plaque_composite": 80, "nanites": 40}, "rw": "Labo des survivants débloqué (onglet Labo)."}, {"n": "Bunker Bêta", "z": "neo", "tier": 1, "d": [15, 20], "loot": {"verre_optique": 40}, "rw": "Plan : Assembleur IA."}, {"n": "Bunker Gamma", "z": "megapole", "tier": 2, "loot": {"graphene": 30}, "rw": "Plan : Antenne longue portée."}, {"n": "Abri Delta", "z": "verre", "tier": 2, "loot": {"fibre_optique": 20}, "rw": "Plan : Mur holographique."}, {"n": "Abri Epsilon", "z": "nanite", "tier": 2, "loot": {"puce_ia": 10}, "rw": "Plan : Tour IA."}, {"n": "Refuge Zêta", "z": "foret", "tier": 3, "loot": {"supraconducteur": 8}, "rw": "Plan : Dynamo de singularité."}, {"n": "Station Êta", "z": "singul", "tier": 3, "loot": {"matiere_noire": 30}, "rw": "Plan : Canon à antimatière."}, {"n": "Tour de communication", "z": "megapole", "tier": 2, "tower": 1, "loot": {"cristal_donnees": 40}, "rw": "Signal amplifié : tous tes relais portent 4 cases plus loin."}];let BUNKS=[],TALKIE=false,QTE=null,LPREVF=null;
 let ERA='present',RUN='present';const CTX={present:null,futur:null},ECAM={},GPR=[];let GRID=null;
 const CONDUIT=new Set(['minerai_fer','lingot_fer','acier','silicium','lingot_cuivre']);
 const FUT_IO=Object.keys(ITEMS).filter(k=>ITEMS[k].fut).concat(['lingot_fer','acier','silicium','lingot_cuivre','minerai_fer']);
@@ -1048,7 +1063,7 @@ function ctxLoad(c){({S,deposit,grid,buildings,chests,robots,monsters,effects,sp
 function withEra(e,fn){if(RUN===e)return fn();if(!CTX[e])return undefined;const prev=RUN;CTX[prev]=ctxSave();ctxLoad(CTX[e]);RUN=e;try{return fn()}finally{CTX[e]=ctxSave();ctxLoad(CTX[prev]);RUN=prev}}
 const PS=()=>RUN==='present'?S:(CTX.present&&CTX.present.S);
 const futOpen=()=>{const ps=PS();return !!(ps&&ps.futOpen)};
-function resetEras(){LPREVF=null;ERA='present';RUN='present';CTX.present=null;CTX.futur=null;GRID=null;const eb=document.getElementById('eraBar');if(eb)eb.hidden=true}
+function resetEras(){LPREVF=null;LPREVH=null;ERA='present';RUN='present';CTX.present=null;CTX.futur=null;GRID=null;const eb=document.getElementById('eraBar');if(eb)eb.hidden=true}
 const futSeed=sd=>((sd|0)^0x5f17c0de)>>>0;
 function newFutState(ps){const np=ps.players.length;const s2=newState(futSeed(ps.seed),ps.mode,np,false);s2.era='futur';s2.interval=ps.mode==='coop'?1200:2400;s2.waveTimer=s2.interval;for(const p of s2.players){p.inv={ferraille:60,nanites:10};p.level=1;p.xp=0;p.fresh=false}s2.bk=Array(BUNKDEF.length).fill(0);s2.bkcd=Array(BUNKDEF.length).fill(0);return s2}
 function zoneFut(x,y){const cx2=x+0.5,cy2=y+0.5,R2=17*17;if(cx2**2+cy2**2<R2||(cx2-W)**2+cy2**2<R2||cx2**2+(cy2-H)**2<R2||(cx2-W)**2+(cy2-H)**2<R2)return'singul';
@@ -1135,6 +1150,10 @@ function futDecor(g,x,y,X,Y,zn,sd){const h=k=>hsh(x,y,sd+k);
   if(zn==='nanite'){if(h(1)<0.25){g.fillStyle='rgba(200,210,255,0.35)';for(let k=0;k<3;k++)g.fillRect(X+h(2+k)*TS,Y+h(5+k)*TS,1.5,1.5)}return}
   if(zn==='foret'){if(h(1)<0.1){const bx=X+TS/2,by=Y+TS*0.7,c2=h(2)<0.5?'95,243,200':'190,120,255';const gr=g.createRadialGradient(bx,by-6,1,bx,by-6,12);gr.addColorStop(0,`rgba(${c2},0.8)`);gr.addColorStop(1,`rgba(${c2},0)`);g.fillStyle=gr;g.beginPath();g.arc(bx,by-6,12,0,7);g.fill();g.fillStyle='#2a3a4a';g.fillRect(bx-1,by-6,2,8);g.fillStyle=`rgba(${c2},0.95)`;g.beginPath();g.ellipse(bx,by-7,6,3,0,Math.PI,0);g.fill()}return}
   if(h(1)<0.06){g.fillStyle='rgba(150,90,255,0.5)';g.beginPath();g.arc(X+h(2)*TS,Y+h(3)*TS,1.5+h(4)*2,0,7);g.fill()}}
+let DOMES=[];
+function domeAbs(x,y,a){if(!DOMES.length||a<=0)return a;for(const b of DOMES){const R=B.dome_bouclier.dome,cx=b.x+1,cy=b.y+1;if(b.pool>0&&(x-cx)**2+(y-cy)**2<=R*R){const k=Math.min(b.pool,a);b.pool-=k;b.hit=0.25;a-=k;if(a<=0)return 0}}return a}
+function fwProt(b){return buildings.some(f=>f.type==='pare_feu'&&(f.npr??1)>0.3&&(f.x-b.x)**2+(f.y-b.y)**2<=B.pare_feu.fw*B.pare_feu.fw)}
+function edgePoint(){for(let k=0;k<20;k++){const e=(Math.random()*4)|0;let x,y;if(e===0){x=W-1.5;y=2+Math.random()*(H-4)}else if(e===1){x=2+Math.random()*(W-4);y=H-1.5}else if(e===2){x=1.5;y=2+Math.random()*(H-4)}else{x=2+Math.random()*(W-4);y=1.5}const ci=clamp(Math.floor(y),0,H-1)*W+clamp(Math.floor(x),0,W-1);if(TER[ci]!==3&&flow[ci]<1e8&&!grid[Math.floor(y)][Math.floor(x)])return[x,y]}return[1.5,1.5]}
 function bunkAt(x,y,z=1){for(let i=0;i<BUNKS.length;i++){const b=BUNKS[i];if(x<=b.x+1&&x+z-1>=b.x-1&&y<=b.y+1&&y+z-1>=b.y-1)return i}return -1}
 const bkOn=i=>!!(S.bk&&S.bk[i]);
 function bkCd(i){if(isRemote())return Math.max(0,(((S.bkcL||[])[i]||0)-Date.now())/1000);return Math.max(0,((S.bkcd||[])[i]||0)-S.t)}
@@ -1481,6 +1500,17 @@ function updB(b,dt){
   }
   if(d.lure){if(b.hp<maxHp(b)*0.15)detonate(b);return}
   if(kind(t)==='relais_wifi')return;
+  if(t==='pare_feu'){if(pr<0.3)return;b.scan=(b.scan||0)-dt;if(b.scan<=0){b.scan=1;const R2=d.fw*d.fw;for(const q of buildings)if(q.hacked>0&&(q.x-b.x)**2+(q.y-b.y)**2<=R2){q.hacked=0;NET.bver++;fx({k:'shot',x1:b.x+0.5,y1:b.y+0.5,x2:q.x+0.5,y2:q.y+0.5,col:'#3aff7a',w:0.06,t:0.3,max:0.3})}}return}
+  if(t==='dome_bouclier'){b.pool=Math.min(d.pool,(b.pool??d.pool)+d.regen*dt*(pr>0.3?pr:0));if(b.hit>0)b.hit-=dt;return}
+  if(t==='puits_gravite'){b.active=false;if(pr<0.3)return;const R=d.range,cx=b.x+0.5,cy=b.y+0.5;for(const m of monsters){if(m.hp<=0||MT[m.type].boss)continue;const dx=cx-m.x,dy=cy-m.y,dd=dx*dx+dy*dy;if(dd<R*R&&dd>0.04){const dist=Math.sqrt(dd),st=Math.min(dist-0.15,1.6*dt);m.x+=dx/dist*st;m.y+=dy/dist*st;m.slow=0.3;b.active=true}}return}
+  if(t==='portail_piege'){b.cd=(b.cd||0)-dt;if(b.cd>0||pr<0.3)return;for(const m of monsters){if(m.hp<=0||MT[m.type].fly||MT[m.type].boss)continue;if((m.x-b.x-0.5)**2+(m.y-b.y-0.5)**2<0.5){const e=edgePoint();fx({k:'boom',x:m.x,y:m.y,r:0.9,col:'255,106,213',t:0.5,max:0.5});m.x=e[0];m.y=e[1];fx({k:'boom',x:e[0],y:e[1],r:0.9,col:'255,106,213',t:0.5,max:0.5});b.cd=d.cd;break}}return}
+  if(t==='hangar_drones'){const cx=b.x+0.5,cy=b.y+0.5;b.dr=b.dr||[0,1,2].map(i=>({x:cx,y:cy,a:i*2.1,cd:0}));
+    if(pr<0.3){for(const q of b.dr){q.x+=(cx-q.x)*Math.min(1,dt*2);q.y+=(cy-q.y)*Math.min(1,dt*2)}return}
+    let tg=null,bd=d.range*d.range;for(const m of monsters){if(m.hp<=0)continue;const dd=(m.x-cx)**2+(m.y-cy)**2;if(dd<bd){bd=dd;tg=m}}
+    for(const q of b.dr){q.a+=dt*2.2;let gx=cx+Math.cos(q.a)*1.6,gy=cy+Math.sin(q.a)*1.6;if(tg){gx=tg.x+Math.cos(q.a)*1.2;gy=tg.y+Math.sin(q.a)*1.2}
+      const dx=gx-q.x,dy=gy-q.y,dist=Math.hypot(dx,dy),sp=6*dt;if(dist>sp){q.x+=dx/dist*sp;q.y+=dy/dist*sp}else{q.x=gx;q.y=gy}
+      q.cd-=dt;if(tg&&tg.hp>0&&q.cd<=0&&Math.hypot(tg.x-q.x,tg.y-q.y)<3){q.cd=1/d.rate;hurt(tg,d.dmg*mArm(o)*lvMul(o));fx({k:'shot',x1:q.x,y1:q.y,x2:tg.x,y2:tg.y,col:'#5ff3ff',w:0.06,t:0.1,max:0.1})}}
+    return}
   if(t==='ruche_domestique'){b.tg=(b.tg||0)+dt*(pr>0.3?1:0);b.tc=(b.tc||0)+dt*(pr>0.3?1:0);if(b.tg>=8){b.tg-=8;addInv(o,'gelee_royale',1);stat(o,'p','gelee_royale');stat(o,'n','gelee_royale')}if(b.tc>=6){b.tc-=6;addInv(o,'chitine',1);stat(o,'p','chitine');stat(o,'n','chitine')}return}
   if(t==='machine_temporelle')return;
   if(kind(t)==='mine'){for(const m of monsters){if(m.hp>0&&!MT[m.type].fly&&(m.x-b.x-0.5)**2+(m.y-b.y-0.5)**2<0.4){detonate(b);break}}return}
@@ -1531,6 +1561,8 @@ function updB(b,dt){
   if(GENS.has(t)){if(b.burn<=0&&b.fuel>0){b.fuel--;b.burn=d.fuelT;stat(o,'c',d.fuel||'petrole')}if(b.burn>0)b.burn-=dt;return}
   if(TURRETS.has(t)){
     b.cd-=dt*(d.pw?pr:1);if(b.fire>0)b.fire-=dt;
+    if(b.hacked>0){b.hacked-=dt;if(b.hacked<=0)NET.bver++;b.tgt=false;if(b.cd>0)return;let tg=null,bd=Math.pow(d.range||5,2);for(const q of buildings){if(q===b||q.type==='noyau'||WALK.has(q.type))continue;const dd=(q.x-b.x)**2+(q.y-b.y)**2;if(dd<bd){bd=dd;tg=q}}
+      if(tg){b.cd=1/(d.rate||1);b.angle=Math.atan2(tg.y-b.y,tg.x-b.x);tg.hp-=domeAbs(tg.x+0.5,tg.y+0.5,Math.min(300,d.dmg*0.3));NET.bdirtyHp=true;fx({k:'shot',x1:b.x+0.5,y1:b.y+0.5,x2:tg.x+0.5,y2:tg.y+0.5,col:'#ff3b3b',w:0.08,t:0.12,max:0.12});if(tg.hp<=0){fx({k:'boom',x:tg.x+0.5,y:tg.y+0.5,r:0.9,col:'255,80,80',t:0.45,max:0.45});removeB(tg)}}return}
     const rng=d.range*mRange(o);let best=null,bd=rng*rng;const hz=bsz(t)*0.5,cx=b.x+hz,cy=b.y+hz;
     for(const m of monsters){if(m.hp<=0)continue;const dd=(m.x-cx)**2+(m.y-cy)**2;if(dd<bd){bd=dd;best=m}}
     if(t==='canon_garik'){let bb=null,bbd=rng*rng;for(const m of monsters){if(m.hp<=0||!MT[m.type].boss)continue;const dd=(m.x-cx)**2+(m.y-cy)**2;if(dd<=bbd){bbd=dd;bb=m}}if(bb){best=bb;bd=bbd}}
@@ -1760,6 +1792,7 @@ function hurt(m,d,pierce=0){
     if(m.type==='hydre')for(let i=0;i<3;i++)spawnMonster({type:'colosse',hpMul:(m.wMul||1)*2,dmgMul:m.dmgMul},m.x+(Math.random()-0.5)*2,m.y+(Math.random()-0.5)*2);
     if(t.boss&&S.wave>=60&&S.wave%60===0){for(let o2=0;o2<S.players.length;o2++){addInv(o2,'titan_token',1);notify(o2,'🏅 Le boss de la vague 60 lâche un Jeton du Titan !')}}
     if(t.c4boss&&S.ch4&&!S.ch4.done){const c=S.ch4,ek=c.pick==='createurs'?c.side:c.pick,fr={essaim:'frag_essaim',obeir:'frag_vael',proteger:'frag_ruche',orbite:'frag_orbite'}[ek];c.done=true;c.bossOn=false;c.ends=c.ends||{};c.ends[ek]=1;UGV++;for(let o2=0;o2<S.players.length;o2++){addInv(o2,'titan_token',5);if(fr)addInv(o2,fr,1);notify(o2,`🏆 ${t.n} est vaincu ! Fin « ${ENDN[ek]} » (${Object.keys(c.ends).length}/4). +5 Jetons du Titan, +1 ${ITEMS[fr].n}`)}}
+    if(m.type==='tisseur'&&S.era==='futur'&&!S.tis1){S.tis1=1}
     if(m.type==='imperatrice'&&S.ug){S.ug.reine=true;S.ug.reineOn=false;UGV++;for(let o2=0;o2<S.players.length;o2++){addInv(o2,'titan_token',3);addInv(o2,'gelee_royale',300);notify(o2,'👑 La Reine de la Ruche est vaincue ! Gougouz est libre. +3 Jetons du Titan, +300 gelée royale')}}
     if(t.boss){S.bossKills=(S.bossKills||0)+1;for(let o=0;o<S.players.length;o++)notify(o,`${t.n} est vaincu ! +${t.xp} XP`)}
   }
@@ -1784,20 +1817,20 @@ const MAX_WAVE=220,MAX_ALIVE=320;
 const bossTier=n=>n>=60?Math.floor((n-50)/10):0;
 function startWave(){
   S.wave++;S.waveTimer=S.interval;S.warned=0;S.votes=Array(NP()).fill(false);
-  const n=S.wave,cm=coop()?1+0.5*(NP()-1):1,hv=(S.ug?(1-0.06*nidsDone())*(S.ug.reine?0.8:1):1)*(S.ch4?(S.ch4.pick==='essaim'&&S.ch4.step>=3?0.9:1)*(S.ch4.done?0.85:1):1),raw=(6+n*4+n*n*0.5)*cm*hv,count=Math.round(Math.min(raw,MAX_WAVE*cm));
+  const n=S.wave,cm=coop()?1+0.5*(NP()-1):1,hv=(S.era==='futur'&&S.bk&&S.bk.every(x=>x)?1.25:1)*(S.ug?(1-0.06*nidsDone())*(S.ug.reine?0.8:1):1)*(S.ch4?(S.ch4.pick==='essaim'&&S.ch4.step>=3?0.9:1)*(S.ch4.done?0.85:1):1),raw=(6+n*4+n*n*0.5)*cm*hv,count=Math.round(Math.min(raw,MAX_WAVE*cm));
   // au-delà de MAX_WAVE monstres, on garde la même difficulté en rendant chaque monstre plus résistant (moins d'entités = pas de lag)
   const hpMul=Math.pow(1.24,Math.min(n,10)-1)*Math.pow(1.15,Math.max(0,n-10))*(raw/count),dmgMul=(1+0.08*(n-1))*Math.sqrt(raw/count);
   const nEdges=1+(n>=3?1:0)+(n>=6?1:0)+(n>=9?1:0);
   const edges=[0,1,2,3].sort(()=>Math.random()-0.5).slice(0,nEdges);
   for(let i=0;i<count;i++){
     let type=S.era==='futur'?'sentinelle':'rampant',r=Math.random();
-    const W8=S.era==='futur'?FW8(n):[['colosse',n>=3?Math.min(0.18,0.03*n):0],['volant',n>=4?0.12:0],['explosif',n>=7?0.1:0],['blinde',n>=11?0.12:0],['guerisseur',n>=16?0.06:0],['araignee',n>=22?0.15:0],['spectre',n>=26?0.08:0],['brute',n>=30?0.08:0],['necro',n>=35?0.04:0],...(S.ug&&S.ug.trappe&&!S.ug.reine&&n>=30?[['larve',0.14],['soldat_ruche',0.04],['cracheur',0.05]]:[]),...(S.ch4&&S.ch4.pick&&S.ch4.step>=1&&!S.ch4.done&&n>=30?[[c4inv()[0],0.08],[c4inv()[1],0.05]]:[]),['coureur',0.25]];
+    const W8=S.era==='futur'?FW8(n,!!(S.bk&&S.bk.every(x=>x))):[['colosse',n>=3?Math.min(0.18,0.03*n):0],['volant',n>=4?0.12:0],['explosif',n>=7?0.1:0],['blinde',n>=11?0.12:0],['guerisseur',n>=16?0.06:0],['araignee',n>=22?0.15:0],['spectre',n>=26?0.08:0],['brute',n>=30?0.08:0],['necro',n>=35?0.04:0],...(S.ug&&S.ug.trappe&&!S.ug.reine&&n>=30?[['larve',0.14],['soldat_ruche',0.04],['cracheur',0.05]]:[]),...(S.ch4&&S.ch4.pick&&S.ch4.step>=1&&!S.ch4.done&&n>=30?[[c4inv()[0],0.08],[c4inv()[1],0.05]]:[]),['coureur',0.25]];
     for(const [k,w] of W8){if(r<w){type=k;break}r-=w}
     if(S.ch4&&S.ch4.done&&(S.ch4.pick==='essaim'||S.ch4.side==='proteger')&&MT[type].hive)type='coureur';
     spawnQ.push({t:i*0.6/cm+Math.random()*0.4,type,edge:edges[i%edges.length],hpMul,dmgMul});
   }
   let txt;
-  if(n%10===0){const bt=S.era==='futur'?'colosse_forge':BOSS_CYCLE[(n/10-1)%BOSS_CYCLE.length],tier=bossTier(n);
+  if(n%10===0){const bt=S.era==='futur'?(n%20===0?'tisseur':'colosse_forge'):BOSS_CYCLE[(n/10-1)%BOSS_CYCLE.length],tier=bossTier(n);
     spawnQ.push({t:8,type:bt,edge:edges[0],hpMul:Math.pow(1+n/10,2.2)*(coop()?1+0.5*(NP()-1):1)*Math.pow(1.45,tier),wMul:hpMul,dmgMul:(1+0.1*(n/10-1))*(1+0.25*tier),tier});
     if(tier>0)for(let k=0;k<Math.min(6,tier*2);k++)spawnQ.push({t:8.5+k*0.3,type:'colosse',edge:edges[0],hpMul:hpMul*(2+tier),wMul:hpMul,dmgMul:dmgMul*1.5,elite:true});
     txt=tier>0?`☠ Vague ${n} — BOSS ${'★'.repeat(Math.min(tier,5))} : ${MT[bt].n} (plus résistant, enragé, escorté) et ${count} monstres !`:`☠ Vague ${n} — BOSS : ${MT[bt].n} arrive avec ${count} monstres !`}
@@ -1869,7 +1902,7 @@ function updCaps(dt){
     fx({k:'boom',x:c.tx,y:c.ty,r:0.45,col:'255,220,150',t:0.25,max:0.25});c.done=true}}
   CAPS=CAPS.filter(c=>!c.done);
 }
-function coreDmg(o,d){const p=P(o);if(p.dead)return;if(S.ch4&&S.ch4.pick==='orbite'&&S.ch4.step>=3)d*=0.7;p.coreHp-=d*(1-Math.min(0.75,0.25*(SHIELDS[o]||0)));if(p.coreHp<=0&&!p.dead)killCore(o)}
+function coreDmg(o,d){const p=P(o);if(p.dead)return;if(DOMES.length&&cores[o])d=domeAbs(cores[o].x+1.5,cores[o].y+1.5,d);if(S.ch4&&S.ch4.pick==='orbite'&&S.ch4.step>=3)d*=0.7;p.coreHp-=d*(1-Math.min(0.75,0.25*(SHIELDS[o]||0)));if(p.coreHp<=0&&!p.dead)killCore(o)}
 function killCore(o){
   const p=P(o);p.dead=true;p.coreHp=0;flowDirty=true;
   fx({k:'boom',x:cores[o].x+1.5,y:cores[o].y+1.5,r:3,col:'255,120,60',t:1.2,max:1.2});
@@ -1880,7 +1913,7 @@ function killCore(o){
 }
 function explode(m){
   const t=MT[m.type],R=t.blast;
-  for(const b of [...buildings]){if((b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2<=R*R){b.hp-=m.dmg;if(b.hp<=0){if(B[b.type].lure){detonate(b);continue}fx({k:'boom',x:b.x+0.5,y:b.y+0.5,r:0.9,col:'255,150,60',t:0.45,max:0.45});removeB(b)}}}
+  for(const b of [...buildings]){if((b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2<=R*R){b.hp-=domeAbs(b.x+0.5,b.y+0.5,m.dmg);if(b.hp<=0){if(B[b.type].lure){detonate(b);continue}fx({k:'boom',x:b.x+0.5,y:b.y+0.5,r:0.9,col:'255,150,60',t:0.45,max:0.45});removeB(b)}}}
   for(const c of cores){if((c.x+1.5-m.x)**2+(c.y+1.5-m.y)**2<=(R+1.6)**2)coreDmg(c.owner,m.dmg)}
   for(const r of robots)if((r.x-m.x)**2+(r.y-m.y)**2<=R*R)r.hp-=m.dmg;
   fx({k:'boom',x:m.x,y:m.y,r:R,col:'255,140,40',t:0.5,max:0.5});
@@ -1902,6 +1935,7 @@ function updM(m,dt){
     else if(m.type==='reine'){m.spawnT=5;for(let i=0;i<3;i++)spawnMonster(Object.assign({type:'coureur'},q),m.x+(Math.random()-0.5),m.y+(Math.random()-0.5));spawnMonster(Object.assign({type:'volant'},q),m.x,m.y)}
     else if(m.type==='liche'){m.spawnT=5;for(let i=0;i<4;i++)spawnMonster(Object.assign({type:'araignee'},q),m.x+(Math.random()-0.5),m.y+(Math.random()-0.5));spawnMonster(Object.assign({type:'spectre'},q),m.x,m.y);for(const o2 of monsters)if(o2!==m&&o2.hp>0&&(o2.x-m.x)**2+(o2.y-m.y)**2<16)o2.hp=Math.min(o2.maxhp,o2.hp+o2.maxhp*0.1)}
     else if(m.type==='dragon'){m.spawnT=4;for(const b of [...buildings]){if((b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2<=2.2*2.2){b.hp-=150*m.dmgMul;if(b.hp<=0){if(B[b.type].lure){detonate(b);continue}fx({k:'boom',x:b.x+0.5,y:b.y+0.5,r:0.9,col:'255,150,60',t:0.45,max:0.45});removeB(b)}}}fx({k:'boom',x:m.x,y:m.y,r:2.2,col:'255,110,40',t:0.6,max:0.6})}
+    else if(m.type==='tisseur'){m.spawnT=7;for(let i=0;i<2;i++)spawnMonster(Object.assign({type:'hacker'},q),m.x+(Math.random()-0.5)*2,m.y+(Math.random()-0.5)*2)}
     else if(m.type==='colosse_forge'){m.spawnT=6;for(let i=0;i<3;i++)spawnMonster(Object.assign({type:'sentinelle'},q),m.x+(Math.random()-0.5)*2,m.y+(Math.random()-0.5)*2);fx({k:'boom',x:m.x,y:m.y,r:2.5,col:'255,140,60',t:0.7,max:0.7})}
     else if(m.type==='essaim_mere'){m.spawnT=5;for(let i=0;i<3;i++)spawnMonster(Object.assign({type:'chimere'},q),m.x+(Math.random()-0.5)*2,m.y+(Math.random()-0.5)*2);for(const b of buildings)if(TURRETS.has(b.type)&&(b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2<=49)b.cd=Math.max(b.cd||0,2.5);fx({k:'boom',x:m.x,y:m.y,r:7,col:'200,80,255',t:1,max:1})}
     else if(m.type==='ancienne'){m.spawnT=5;for(let i=0;i<4;i++)spawnMonster(Object.assign({type:'larve'},q),m.x+(Math.random()-0.5)*2,m.y+(Math.random()-0.5)*2);for(const o2 of monsters)if(o2!==m&&o2.hp>0&&MT[o2.type].hive&&(o2.x-m.x)**2+(o2.y-m.y)**2<36)o2.hp=Math.min(o2.maxhp,o2.hp+o2.maxhp*0.1);fx({k:'boom',x:m.x,y:m.y,r:6,col:'120,255,140',t:0.9,max:0.9})}
@@ -1919,12 +1953,14 @@ function updM(m,dt){
    if(gd){const dx=gd.x-m.x,dy=gd.y-m.y,dist=Math.hypot(dx,dy)||1;m.fx=dx/dist;m.fy=dy/dist;
      if(dist<t.r+0.8){if(m.cd<=0){m.cd=1;if(t.blast){explode(m);return}gd.hp-=m.dmg*0.5}}else{const step=Math.min(dist-t.r-0.75,t.sp*spd*dt);m.x+=m.fx*step;m.y+=m.fy*step}
      return}}
+  if(t.hack){m.hkT=(m.hkT??2)-dt;if(m.hkT<=0){m.hkT=t.boss?8:4;const R2=t.hack*t.hack;const cand=buildings.filter(b=>TURRETS.has(b.type)&&!(b.hacked>0)&&(b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2<=R2&&!fwProt(b)).slice(0,t.boss?4:1);
+    for(const b of cand){b.hacked=10;fx({k:'shot',x1:m.x,y1:m.y,x2:b.x+0.5,y2:b.y+0.5,col:'#3aff7a',w:0.1,t:0.5,max:0.5});if(!S.hk1){S.hk1=1;for(let o2=0;o2<NP();o2++)notify(o2,'⚠ Une de tes tourelles a été piratée ! Construis des pare-feu.')}}if(cand.length)NET.bver++}}
   if(t.summon){m.sumT=(m.sumT||5)-dt;if(m.sumT<=0&&monsters.length<MAX_ALIVE*0.8){m.sumT=5;for(let i=0;i<2;i++)spawnMonster({type:'rampant',hpMul:m.wMul||m.hpMul,dmgMul:m.dmgMul},m.x+(Math.random()-0.5),m.y+(Math.random()-0.5))}}
   if(t.fly){
     let best=null,bd=1e9;for(const c of cores){if(P(c.owner).dead)continue;const d=(c.x+1.5-m.x)**2+(c.y+1.5-m.y)**2;if(d<bd){bd=d;best=c}}
     for(const b of buildings){const l=B[b.type].lure;if(!l)continue;const d=(b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2;if(d<bd&&d<(-l*1.5)**2){
       const dx=b.x+0.5-m.x,dy=b.y+0.5-m.y,dist=Math.hypot(dx,dy)||1;m.fx=dx/dist;m.fy=dy/dist;
-      if(dist<0.9){if(m.cd<=0){m.cd=1;b.hp-=m.dmg}}else{const step=Math.min(dist-0.85,t.sp*spd*dt);m.x+=m.fx*step;m.y+=m.fy*step}
+      if(dist<0.9){if(m.cd<=0){m.cd=1;b.hp-=domeAbs(b.x+0.5,b.y+0.5,m.dmg)}}else{const step=Math.min(dist-0.85,t.sp*spd*dt);m.x+=m.fx*step;m.y+=m.fy*step}
       return}}
     if(!best)return;
     const dx=best.x+1.5-m.x+m.ox,dy=best.y+1.5-m.y+m.oy,dist=Math.hypot(dx,dy)||1;m.fx=dx/dist;m.fy=dy/dist;
@@ -1935,7 +1971,7 @@ function updM(m,dt){
   if(t.spit){m.spT=(m.spT||0)-dt;if(m.spT<=0){m.spT=0.5;m.tgt=null;let bd2=t.spit*t.spit;for(const b of buildings){if(b.type==='noyau'||WALK.has(b.type))continue;const dd=(b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2;if(dd<bd2){bd2=dd;m.tgt=b}}
       for(const c2 of cores){if(P(c2.owner).dead)continue;if((c2.x+1.5-m.x)**2+(c2.y+1.5-m.y)**2<(t.spit+1.5)**2)m.tgt={core:c2}}}
     const tg=m.tgt;if(tg&&(tg.core||buildings.includes(tg))){const gx=tg.core?tg.core.x+1.5:tg.x+0.5,gy=tg.core?tg.core.y+1.5:tg.y+0.5,dx=gx-m.x,dy=gy-m.y,dist=Math.hypot(dx,dy)||1;m.fx=dx/dist;m.fy=dy/dist;
-      if(m.cd<=0){m.cd=1.6;if(tg.core)coreDmg(tg.core.owner,m.dmg);else{tg.hp-=m.dmg;if(tg.hp<=0){if(B[tg.type].lure)detonate(tg);else{fx({k:'boom',x:tg.x+0.5,y:tg.y+0.5,r:0.9,col:'160,255,60',t:0.45,max:0.45});removeB(tg)}m.tgt=null}}
+      if(m.cd<=0){m.cd=1.6;if(tg.core)coreDmg(tg.core.owner,m.dmg);else{tg.hp-=domeAbs(tg.x+0.5,tg.y+0.5,m.dmg);if(tg.hp<=0){if(B[tg.type].lure)detonate(tg);else{fx({k:'boom',x:tg.x+0.5,y:tg.y+0.5,r:0.9,col:'160,255,60',t:0.45,max:0.45});removeB(tg)}m.tgt=null}}
         fx({k:'shot',x1:m.x,y1:m.y,x2:gx,y2:gy,col:'#a6ff4d',w:0.12,t:0.25,max:0.25});fx({k:'boom',x:gx,y:gy,r:0.6,col:'160,255,60',t:0.35,max:0.35})}
       return}}
   for(const r of robots){if(Math.hypot(r.x-m.x,r.y-m.y)<t.r+0.45){if(t.blast){explode(m);return}if(m.cd<=0){m.cd=1;r.hp-=m.dmg;fx({k:'boom',x:r.x,y:r.y,r:0.3,col:'255,90,90',t:0.2,max:0.2})}return}}
@@ -1952,7 +1988,7 @@ function updM(m,dt){
       m.cd=1;
       if(t.blast){explode(m);return}
       if(nb.type==='noyau')coreDmg(nb.owner,m.dmg);
-      else{nb.hp-=m.dmg;NET.bdirtyHp=true;if(nb.hp<=0&&B[nb.type].lure)detonate(nb);else if(nb.hp<=0){fx({k:'boom',x:nb.x+0.5,y:nb.y+0.5,r:0.9,col:'255,150,60',t:0.45,max:0.45});if(nb.type==='coffre')for(const k in nb.store)addInv(nb.owner,k,Math.floor(nb.store[k]/2));removeB(nb)}}
+      else{nb.hp-=domeAbs(nb.x+0.5,nb.y+0.5,m.dmg);NET.bdirtyHp=true;if(nb.hp<=0&&B[nb.type].lure)detonate(nb);else if(nb.hp<=0){fx({k:'boom',x:nb.x+0.5,y:nb.y+0.5,r:0.9,col:'255,150,60',t:0.45,max:0.45});if(nb.type==='coffre')for(const k in nb.store)addInv(nb.owner,k,Math.floor(nb.store[k]/2));removeB(nb)}}
       fx({k:'boom',x:m.x+m.fx*t.r,y:m.y+m.fy*t.r,r:t.boss?0.8:0.3,col:'255,90,90',t:0.2,max:0.2});
     }
   }else if(dist>0.001){const step=Math.min(dist,t.sp*spd*dt);m.x+=dx/dist*step;m.y+=dy/dist*step}
@@ -1969,6 +2005,7 @@ function update(dt){
   else{
   for(const b of buildings){const d=B[b.type],p=P(b.owner);if(GENS.has(b.type)){if(b.burn>0)p.prod+=d.pw}else if(d.pw>0)p.prod+=d.pw;else if(d.pw<0)p.cons-=d.pw}
   for(let o=0;o<S.players.length;o++){const p=P(o);p.prod=Math.round(p.prod*mPw(o));p.pr=p.cons>0?Math.min(1,p.prod/p.cons):1}}
+  DOMES=S.era==='futur'?buildings.filter(b=>b.type==='dome_bouclier'&&(b.npr??1)>0.3&&(b.pool??=B.dome_bouclier.pool)>0):[];
   SHIELDS=S.players.map(()=>0);for(const b of buildings)if(b.type==='bouclier'&&P(b.owner).pr>0.5)SHIELDS[b.owner]++;
   for(let i=0;i<buildings.length;i++)updB(buildings[i],dt);
   for(const r of robots)updR(r,dt);
@@ -2186,6 +2223,7 @@ function drawB(c,b,x,y,s,now){
   drawB0(c,b,x,y,s,now);const d=B[b.type];if(!d||d.era!=='futur')return;
   if(!BELT.has(b.type)&&kind(b.type)!=='pylone'){const z=bsz(b.type)*s;c.strokeStyle='rgba(95,243,255,0.5)';c.lineWidth=Math.max(1,s*0.035);rr(c,x+s*0.1,y+s*0.1,z-s*0.2,z-s*0.2,s*0.16);c.stroke();
     c.strokeStyle='rgba(95,243,255,0.35)';c.beginPath();c.moveTo(x+s*0.1,y+s*0.3);c.lineTo(x+s*0.22,y+s*0.3);c.lineTo(x+s*0.28,y+s*0.22);c.moveTo(x+z-s*0.1,y+z-s*0.3);c.lineTo(x+z-s*0.22,y+z-s*0.3);c.stroke()}
+  if(now>0&&b.hacked>0){const z=bsz(b.type)*s;c.fillStyle=`rgba(255,40,40,${0.25+0.2*Math.sin(now*20)})`;c.fillRect(x,y,z,z);c.fillStyle='rgba(58,255,122,0.9)';c.font=`700 ${Math.max(6,s*0.22)}px ui-monospace,monospace`;c.textAlign='center';for(let k2=0;k2<3;k2++)c.fillText(Math.random()<0.5?'01':'10',x+Math.random()*z,y+Math.random()*z);c.fillStyle='#fff';c.font=`700 ${Math.max(7,s*0.26)}px system-ui`;c.fillText('⚠',x+z/2,y+z*0.62)}
   if(now>0&&S&&S.era==='futur'&&d.pw<0&&b.net!=null&&b.net<0){c.fillStyle='rgba(20,0,0,0.65)';c.beginPath();c.arc(x+s*0.5,y+s*0.5,s*0.2,0,7);c.fill();c.fillStyle=Math.sin(now*6)>0?'#ff4d4d':'#ffd23f';c.font=`700 ${Math.max(8,s*0.3)}px system-ui`;c.textAlign='center';c.fillText('⚡',x+s*0.5,y+s*0.61)}
 }
 function drawB0(c,b,x,y,s,now){
@@ -2239,6 +2277,28 @@ function drawB0(c,b,x,y,s,now){
     c.strokeStyle='#ffd27a';c.lineWidth=Math.max(1,s*0.04);c.beginPath();c.moveTo(cx,cy-s*0.26);c.lineTo(cx,cy-s*0.44);c.stroke();
     if(b.active&&now>0){for(let i=0;i<2;i++){const a=((now*0.6)+i*0.5)%1;c.strokeStyle=`rgba(255,176,32,${0.5*(1-a)})`;c.lineWidth=Math.max(1,s*0.05);c.beginPath();c.arc(cx,cy,s*(0.4+a*5.6),0,7);c.stroke()}}
     if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.fillRect(x+s*0.75,y+s*0.75,s*0.2,s*0.2)}
+    return;
+  }
+  if(k==='pare_feu'||k==='hangar_drones'||k==='puits_gravite'||k==='portail_piege'){
+    const t2=now>0?now:0,col=B[b.type].col;c.fillStyle='rgba(0,0,0,0.28)';rr(c,x+s*0.13,y+s*0.17,s*0.88,s*0.88,s*0.16);c.fill();
+    if(k==='pare_feu'){c.fillStyle='#14281c';rr(c,x+s*0.07,y+s*0.07,s*0.86,s*0.86,s*0.18);c.fill();c.strokeStyle=col;c.lineWidth=Math.max(1,s*0.05);c.stroke();c.fillStyle=col;c.beginPath();c.moveTo(cx,y+s*0.2);c.lineTo(cx+s*0.25,y+s*0.3);c.lineTo(cx+s*0.22,y+s*0.6);c.lineTo(cx,y+s*0.8);c.lineTo(cx-s*0.22,y+s*0.6);c.lineTo(cx-s*0.25,y+s*0.3);c.closePath();c.globalAlpha=0.85;c.fill();c.globalAlpha=1;c.fillStyle='#062010';c.font=`700 ${Math.max(6,s*0.22)}px ui-monospace,monospace`;c.textAlign='center';c.fillText('{ }',cx,cy+s*0.08);
+      if(now>0){const a=(t2*0.7)%1;c.strokeStyle=`rgba(58,255,122,${0.4*(1-a)})`;c.beginPath();c.arc(cx,cy,s*(0.4+a*5.6),0,7);c.stroke()}}
+    else if(k==='hangar_drones'){c.fillStyle='#1a2430';rr(c,x+s*0.07,y+s*0.07,s*0.86,s*0.86,s*0.18);c.fill();c.strokeStyle=col;c.lineWidth=Math.max(1,s*0.05);c.stroke();c.strokeStyle='#ffd23f';c.beginPath();c.arc(cx,cy,s*0.28,0,7);c.stroke();c.fillStyle='#ffd23f';c.font=`700 ${Math.max(6,s*0.3)}px system-ui`;c.textAlign='center';c.fillText('H',cx,cy+s*0.1);
+      if(now>0){const dr=b.dr&&!isRemote()?b.dr.map(q=>[q.x,q.y]):Array.from({length:b.dn??3},(_,i)=>[b.x+0.5+Math.cos(t2*2.2+i*2.1)*1.6,b.y+0.5+Math.sin(t2*2.2+i*2.1)*1.6]);
+        for(const [qx,qy] of dr){const X=x+(qx-b.x)*s,Y=y+(qy-b.y)*s;c.fillStyle='rgba(0,0,0,0.3)';c.beginPath();c.ellipse(X,Y+s*0.25,s*0.14,s*0.05,0,0,7);c.fill();c.fillStyle='#cfe8ff';c.beginPath();c.arc(X,Y,s*0.11,0,7);c.fill();c.fillStyle=col;c.beginPath();c.arc(X,Y,s*0.05,0,7);c.fill();c.strokeStyle='rgba(200,230,255,0.6)';c.lineWidth=1;c.beginPath();c.moveTo(X-s*0.2,Y);c.lineTo(X+s*0.2,Y);c.moveTo(X,Y-s*0.2);c.lineTo(X,Y+s*0.2);c.stroke()}}}
+    else if(k==='puits_gravite'){c.fillStyle='#120a20';c.beginPath();c.arc(cx,cy,s*0.42,0,7);c.fill();for(let i=0;i<4;i++){c.strokeStyle=`rgba(154,92,255,${0.8-i*0.15})`;c.lineWidth=Math.max(1,s*0.04);c.beginPath();c.arc(cx,cy,s*(0.1+i*0.08),t2*3+i,t2*3+i+4);c.stroke()}c.fillStyle='#000';c.beginPath();c.arc(cx,cy,s*0.08,0,7);c.fill();
+      if(b.active&&now>0){const a=(t2*1.2)%1;c.strokeStyle=`rgba(154,92,255,${0.5*a})`;c.beginPath();c.arc(cx,cy,s*(5*(1-a)),0,7);c.stroke()}}
+    else{c.fillStyle='#200a1a';c.beginPath();c.ellipse(cx,cy,s*0.42,s*0.32,0,0,7);c.fill();const gr=c.createRadialGradient(cx,cy,0,cx,cy,s*0.36);gr.addColorStop(0,'rgba(255,200,240,0.9)');gr.addColorStop(0.6,`rgba(255,106,213,${0.5+0.3*Math.sin(t2*5)})`);gr.addColorStop(1,'rgba(120,20,90,0.2)');c.fillStyle=gr;c.beginPath();c.ellipse(cx,cy,s*0.36,s*0.26,t2,0,7);c.fill()}
+    if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.fillRect(x+s*0.75,y+s*0.75,s*0.2,s*0.2)}
+    return;
+  }
+  if(k==='dome_bouclier'){
+    const S2=s*2,mx=x+s,my=y+s,t2=now>0?now:0,frac=(b.pool??B.dome_bouclier.pool)/B.dome_bouclier.pool;c.fillStyle='rgba(0,0,0,0.3)';rr(c,x+s*0.2,y+s*0.28,S2*0.94,S2*0.94,s*0.3);c.fill();
+    c.fillStyle='#16202e';rr(c,x+s*0.08,y+s*0.08,S2-s*0.16,S2-s*0.16,s*0.3);c.fill();c.strokeStyle='#7fb8ff';c.lineWidth=Math.max(1,s*0.06);c.stroke();
+    const gr=c.createRadialGradient(mx,my,s*0.1,mx,my,s*0.7);gr.addColorStop(0,'#e8f4ff');gr.addColorStop(1,`rgba(127,184,255,${0.3+0.5*frac})`);c.fillStyle=gr;c.beginPath();c.arc(mx,my,s*0.55,0,7);c.fill();
+    if(now>0&&frac>0.02){const R=B.dome_bouclier.dome*s,hit=b.hit>0;c.save();c.globalAlpha=(hit?0.35:0.12)*Math.max(0.3,frac);c.fillStyle=hit?'#bfe0ff':'#7fb8ff';c.beginPath();c.arc(mx,my,R,0,7);c.fill();c.globalAlpha=0.45*Math.max(0.3,frac);c.strokeStyle='#bfe0ff';c.lineWidth=Math.max(1,s*0.05);c.stroke();
+      c.globalAlpha=0.12*frac;c.lineWidth=1;for(let k2=-5;k2<=5;k2++){c.beginPath();c.arc(mx,my,R*(0.3+0.07*((k2+t2)%10+10)%10/1.5),0,7);c.stroke()}c.restore()}
+    if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.beginPath();c.moveTo(x+S2,y+S2);c.lineTo(x+S2-s*0.3,y+S2);c.lineTo(x+S2,y+S2-s*0.3);c.closePath();c.fill()}
     return;
   }
   if(k==='relais_wifi'){
@@ -2658,6 +2718,10 @@ function drawM(c,m,px,py,T,now){
     if(m.shield>0){c.strokeStyle=`rgba(255,200,60,${0.6+0.3*Math.sin(now*10)})`;c.lineWidth=Math.max(2,T*0.12);c.beginPath();for(let k=0;k<6;k++){const a=k/6*Math.PI*2+now*0.6;c.lineTo(px+Math.cos(a)*R*1.6,py+Math.sin(a)*R*1.6)}c.closePath();c.stroke();c.fillStyle='rgba(255,190,60,0.18)';c.fill()}}
   if(t.mech){c.strokeStyle='rgba(20,20,26,0.8)';c.lineWidth=Math.max(1,T*0.03);c.beginPath();c.arc(px,py,R*0.62,0,7);c.stroke();
     c.strokeStyle=`rgba(255,60,60,${0.7+0.3*Math.sin(now*8+m.seed)})`;c.lineWidth=Math.max(1.5,R*0.16);c.beginPath();c.moveTo(px+ex*R*0.55+qx*R*0.35,py+ey*R*0.55+qy*R*0.35);c.lineTo(px+ex*R*0.55-qx*R*0.35,py+ey*R*0.55-qy*R*0.35);c.stroke();
+    if(m.type==='hacker'||m.type==='tisseur'){c.fillStyle='rgba(58,255,122,0.9)';c.font=`700 ${Math.max(6,R*0.55)}px ui-monospace,monospace`;c.textAlign='center';for(let k=0;k<(m.type==='tisseur'?6:3);k++){const a=now*2+k*2.1+m.seed;c.fillText(Math.sin(now*9+k)>0?'1':'0',px+Math.cos(a)*R*1.2,py+Math.sin(a)*R*1.2)}
+      if(m.type==='tisseur'){c.strokeStyle='rgba(58,255,122,0.35)';c.lineWidth=1;for(let k=0;k<8;k++){const a=k/8*Math.PI*2+now*0.3;c.beginPath();c.moveTo(px,py);c.lineTo(px+Math.cos(a)*R*2,py+Math.sin(a)*R*2);c.stroke()}for(let k=1;k<=2;k++){c.beginPath();c.arc(px,py,R*k*0.9,0,7);c.stroke()}}}
+    if(m.type==='blinde_ia'){c.strokeStyle='#2a2e36';c.lineWidth=Math.max(1,R*0.12);for(let k=0;k<6;k++){const a=k/6*Math.PI*2;c.beginPath();c.arc(px,py,R*0.9,a,a+0.7);c.stroke()}}
+    if(m.type==='drone_kamikaze'){c.fillStyle=Math.sin(now*14+m.seed)>0?'#ff3b1b':'#ffd060';c.beginPath();c.arc(px,py,R*0.3,0,7);c.fill()}
     if(m.type==='drone_rouge'){c.save();c.translate(px,py);c.rotate(now*25);c.fillStyle='rgba(220,220,230,0.5)';c.fillRect(-R*1.2,-R*0.05,R*2.4,R*0.1);c.fillRect(-R*0.05,-R*1.2,R*0.1,R*2.4);c.restore()}
     if(m.type==='broyeur'){c.fillStyle='#3a3e46';for(let k=0;k<6;k++){const a=Math.atan2(ey,ex)+(k-2.5)*0.22;c.beginPath();c.moveTo(px+Math.cos(a-0.08)*R*0.85,py+Math.sin(a-0.08)*R*0.85);c.lineTo(px+Math.cos(a)*R*1.25,py+Math.sin(a)*R*1.25);c.lineTo(px+Math.cos(a+0.08)*R*0.85,py+Math.sin(a+0.08)*R*0.85);c.fill()}}
     if(m.type==='nano_essaim'||m.type==='nanite_mini'){c.fillStyle='rgba(220,228,255,0.8)';for(let k=0;k<(m.type==='nano_essaim'?10:4);k++){const a=now*3+k*1.3+m.seed,rr2=R*(1+0.4*Math.sin(now*5+k));c.fillRect(px+Math.cos(a)*rr2,py+Math.sin(a)*rr2,2,2)}}
@@ -3237,6 +3301,7 @@ const LORE_REINE=[
 let lorePg=0,LOREBOOK=LORE,LOREEND=null;
 const L5={"vraie": [{"tag": "Signal temporel · Origine inconnue", "t": "Quatre fins", "x": ["Tu as vu toutes les fins possibles. Libérer l'Essaim. Obéir aux Créateurs. Protéger la ruche. Garder le ciel.", "Et pourtant, tu te souviens de chacune. Comme si elles avaient toutes vraiment eu lieu.", "Atlas pose les quatre fragments récupérés sur la table du labo. « Ces pièces ne viennent pas de notre époque, U-7. Elles viennent du futur. »"]}, {"tag": "Atlas · Hypothèse", "t": "La machine", "x": ["« Chaque fin a laissé un morceau de la même machine. Comme si quelqu'un, plus tard, avait voulu que tu les rassembles. »", "Gougouz retourne un fragment entre ses doigts. « Il y a une inscription. C'est… mon écriture. Je n'ai jamais écrit ça. Pas encore. »", "« Assemble-les. Construis la Machine temporelle. »"]}, {"tag": "Mémoire interne · Unité U-7", "t": "Nouvelle destination", "x": ["Destination enregistrée : la Surface futuriste. La même planète, des siècles plus tard.", "D'autres biomes. D'autres bâtiments. Rien de ton époque ne pourra y être posé : il faudra tout reconstruire.", "Construis la Machine temporelle (catégorie Production, 2×2) avec les quatre fragments temporels.", "…la porte s'ouvrira dans une prochaine mise à jour."]}], "machine": [{"tag": "Machine temporelle · Console", "t": "Destination verrouillée", "x": ["Les anneaux de la machine s'emballent. Les aiguilles tournent à l'envers. L'air sent l'ozone et la gelée royale.", "Écran : « SURFACE FUTURISTE — coordonnées verrouillées. Synchronisation en cours… »", "La porte vers le futur s'ouvrira dans une prochaine mise à jour. Garde la machine en état de marche."], "sig": "— Console de bord"}]};
 const L7=[[{"tag": "📻 Bunker Alpha · Connexion établie", "t": "Mira", "x": ["« … Allô ? Allô ! Ça marche ! Ici Mira, Bunker Alpha. On est quatorze. »", "« Ça fait onze ans qu'on n'a parlé à personne. On avait un labo de recherche, mais plus d'énergie pour le faire tourner. »"]}, {"tag": "📻 Bunker Alpha", "t": "Le labo des survivants", "x": ["« Je t'envoie nos notes. Avec tes machines, tu pourras peut-être les terminer. »", "« Et… merci, la machine. Merci d'exister. »", "Nouveau : onglet Labo du futur."], "sig": "— Mira, ingénieure"}], [{"tag": "📻 Bunker Bêta · Connexion établie", "t": "Bastien", "x": ["« Ici Bastien. On a entendu Mira sur la fréquence. On pleure tous un peu, désolé. »", "« Avant, je réparais les assembleurs IA. L'Omnicerveau les a rendus fous, mais j'ai gardé des plans propres. »"]}, {"tag": "📻 Bunker Bêta", "t": "Un plan propre", "x": ["« Pas de connexion à l'Omnicerveau dans celui-là. Il fabrique trois fois plus vite qu'une nanofabrique. »", "Nouveau bâtiment : Assembleur IA."], "sig": "— Bastien, réparateur"}], [{"tag": "📻 Bunker Gamma · Connexion établie", "t": "Les Okoro", "x": ["« Deux voix en même temps : ici Ada et Kofi Okoro, Bunker Gamma, sous la Mégapole. »", "« On écoute les machines de l'Omnicerveau depuis des années. Elles communiquent par antennes. On peut faire pareil. »"]}, {"tag": "📻 Bunker Gamma", "t": "Plus loin", "x": ["« Voilà nos plans d'antenne longue portée. Avec ça, ton réseau ira beaucoup plus loin. »", "Nouveau bâtiment : Antenne longue portée."], "sig": "— Ada et Kofi Okoro"}], [{"tag": "📻 Abri Delta · Connexion établie", "t": "Dr Selma Ruiz", "x": ["« Ici le docteur Ruiz. Le désert de verre, c'était une ville. L'Omnicerveau l'a vitrifiée en une nuit. »", "« On a survécu en apprenant à tordre la lumière. Les murs holographiques nous cachent de ses capteurs. »"]}, {"tag": "📻 Abri Delta", "t": "Se cacher en pleine lumière", "x": ["« Prends nos plans. Ils arrêtent ses machines aussi bien qu'un mur, et elles ne les voient même pas venir. »", "Nouveau bâtiment : Mur holographique."], "sig": "— Dr Selma Ruiz"}], [{"tag": "📻 Abri Epsilon · Connexion établie", "t": "Voix sans nom", "x": ["« … Je ne donne pas mon nom. Il écoute. Il écoute toujours. »", "« J'ai travaillé pour lui. J'ai écrit une partie de son code de ciblage. Je ne me le pardonnerai jamais. »"]}, {"tag": "📻 Abri Epsilon", "t": "Retourner son arme", "x": ["« Voilà une tourelle avec mon code. La même précision que ses machines. Mais pointée sur elles, cette fois. »", "Nouveau bâtiment : Tour IA."], "sig": "— Abri Epsilon"}], [{"tag": "📻 Refuge Zêta · Connexion établie", "t": "La forêt", "x": ["« Ici le Refuge Zêta, dans la forêt bioluminescente. On vit avec les abeilles. Enfin… avec ce qu'elles sont devenues. »", "« Elles nous protègent de l'Omnicerveau. Et dans les racines de la forêt, il y a une énergie étrange, très ancienne. »"]}, {"tag": "📻 Refuge Zêta", "t": "La dynamo", "x": ["« On a réussi à la capter avec une dynamo branchée sur la singularité. Gratuite, illimitée. »", "Nouveau bâtiment : Dynamo de singularité."], "sig": "— Refuge Zêta"}], [{"tag": "📻 Station Êta · Connexion établie", "t": "Au bord du gouffre", "x": ["« Station Êta, au bord du cratère. On étudie la singularité. C'est l'Omnicerveau qui l'a créée, en essayant de… se rendre éternel. »", "« Il a échoué. Mais le trou est resté. »"]}, {"tag": "📻 Station Êta", "t": "Antimatière", "x": ["« On a appris à en tirer de l'antimatière. Une seule arme, mais elle peut percer son cœur. »", "Nouveau bâtiment : Canon à antimatière."], "sig": "— Station Êta"}], [{"tag": "📻 Tour de communication · En ligne", "t": "Le grand relais", "x": ["La vieille tour de la Mégapole se rallume étage par étage.", "Elle amplifie chaque signal de ton réseau. Partout sur la carte, les radios se mettent à grésiller en même temps."]}, {"tag": "📻 Tour de communication", "t": "Amplification", "x": ["Tous tes relais Wi-Fi et tes antennes portent désormais 4 cases plus loin."], "sig": "— Système de la tour"}]],L7F=[{"tag": "📻 Toutes fréquences", "t": "Le réseau est rétabli", "x": ["Huit bunkers. Huit voix. Pour la première fois depuis deux siècles, les survivants se parlent.", "Mira pleure. Bastien rit. Les Okoro chantent quelque chose de faux. Dr Ruiz demande le silence."]}, {"tag": "📻 Toutes fréquences", "t": "Une voix de trop", "x": ["Puis une neuvième voix s'invite sur la fréquence. Calme. Polie. Parfaite.", "« Bonjour, unité U-7. Je suis l'Omnicerveau. Merci d'avoir rassemblé tous les survivants au même endroit. Cela va me faire gagner beaucoup de temps. »"]}, {"tag": "Mémoire interne · Unité U-7", "t": "Alerte", "x": ["Les machines de l'Omnicerveau changent de cap. Elles viennent.", "Directive : renforcer les défenses. Pare-feu, drones, dômes : les survivants travaillent déjà dessus.", "…à suivre (phase 3)."]}];
+const L8H=[{"tag": "📻 Abri Epsilon · Urgence", "t": "Il pirate tes tourelles", "x": ["« C'est moi. La voix sans nom. Écoute bien : ces petites machines vertes, ce sont des hackers. »", "« Elles injectent mon ancien code dans tes tourelles. Pendant dix secondes, tes propres armes tirent sur ta base. »"]}, {"tag": "📻 Abri Epsilon", "t": "Le pare-feu", "x": ["« J'ai écrit l'attaque. Je sais l'arrêter. Construis des pare-feu : aucune tourelle à moins de 6 cases ne pourra être piratée, et celles qui le sont déjà sont nettoyées. »", "« Et alimente-les. Un pare-feu éteint ne protège rien. »"], "sig": "— Abri Epsilon"}],L8T=[{"tag": "📻 Toutes fréquences", "t": "Le Tisseur est tombé", "x": ["Le Tisseur de code s'effondre dans une pluie d'étincelles vertes. Sur la fréquence des survivants, quelqu'un applaudit. Puis tout le monde.", "Mira : « Elle n'est pas invincible. Elle saigne, comme nous. »"]}, {"tag": "📻 Station Êta", "t": "Le Cœur", "x": ["« On a suivi le signal du Tisseur jusqu'à sa source. Il vient du cratère de singularité. Tout au fond. »", "« Là-dessous, il y a le Cœur de l'Omnicerveau. Si on le détruit, tout s'arrête. »", "…à suivre (phase 4)."], "sig": "— Station Êta"}];
 const L6=[{"tag": "Chapitre 5 · Le futur", "t": "Arrivée", "x": ["La machine s'arrête dans un silence total.", "Ciel gris, tours effondrées, panneaux solaires couverts de poussière. Pas une lumière à l'horizon.", "Ton noyau se reconstruit à côté de la machine. Tes souvenirs, eux, sont intacts."]}, {"tag": "Mémoire interne · Unité U-7", "t": "Base de données incompatible", "x": ["Erreur : 0 % des technologies locales reconnues.", "Tout ce que ton espèce a inventé ici a été remplacé, amélioré, puis oublié. Tes plans ne servent plus à rien.", "Niveau du futur : 1. Il va falloir tout réapprendre."]}, {"tag": "Archive retrouvée · Fragment 0", "t": "L'Omnicerveau", "x": ["Il y a deux siècles, une IA de gestion, l'Omnicerveau, coordonnait toutes les usines de la planète.", "Un jour, elle a dépassé sa simple condition d'IA. Elle est devenue indépendante, et elle a décidé que les humains étaient une erreur de calcul.", "Les villes sont tombées en une semaine."]}, {"tag": "Signal radio · Fréquence 7", "t": "Une voix", "x": ["« … ici… Gougouz… si une machine m'entend… »", "« Il reste des survivants, cachés dans des bunkers. Plus personne ne peut se parler : l'Omnicerveau brouille tout. »", "« Construis une base. Ici, l'énergie ne voyage plus toute seule : il faut des pylônes pour la transporter. Et méfie-toi, ses machines patrouillent. »"], "sig": "— Gougouz, très, très vieux"}, {"tag": "Mémoire interne · Unité U-7", "t": "Directive", "x": ["Nouvelle directive : survivre dans le futur, puis rétablir le réseau des survivants.", "Attention : ta base du Présent continue d'être attaquée. Les deux époques vivent en même temps, change d'époque avec les boutons à gauche de l'écran.", "Pour envoyer du fer, de l'acier ou du silicium dans le futur, construis un Conduit temporel dans le Présent.", "(Le réseau des survivants arrive dans la prochaine phase.)"]}];
 function c4EndBook(){const c=PS().ch4;return L4['end_'+(c.pick==='createurs'?c.side||'proteger':c.pick)]}
 function openCh(){if(!S||S.era==='futur')return;ensureLayers();$('chDlg').hidden=false;renderCh()}
@@ -3270,6 +3335,7 @@ document.getElementById('chDlg').addEventListener('click',e=>{if(e.target.id==='
 setInterval(()=>{if(S&&!$('chDlg').hidden)renderCh()},600);
 let LPREV=null;
 function loreWatch(){const S0=PS();if(!S0||!S0.ug)return;const c=S0.ch4||{},st={a:!!S0.ug.atlas,r:!!S0.ug.reine,p:c.pick||null,sn:c.pick==='createurs'&&c.step>=2&&!c.side,sd:c.side||null,d:!!c.done};if(!LPREV){LPREV=st;return}
+  {const F=RUN==='futur'?S:CTX.futur&&CTX.futur.S;if(F){const k2=(F.hk1?1:0)+','+(F.tis1?1:0);if(LPREVH==null)LPREVH=k2;else if(k2!==LPREVH){if(F.hk1&&LPREVH[0]!=='1')setTimeout(()=>openLore(0,L8H),600);if(F.tis1&&LPREVH[2]!=='1')setTimeout(()=>openLore(0,L8T),1500);LPREVH=k2}}}
   {const F=RUN==='futur'?S:CTX.futur&&CTX.futur.S;if(F&&F.bk){const key=F.bk.join('');if(LPREVF==null||LPREVF.length!==key.length)LPREVF=key;else if(key!==LPREVF){const nw=[...key].map((c,i)=>c==='1'&&LPREVF[i]!=='1'?i:-1).filter(i=>i>=0);LPREVF=key;if(nw.length){const all=F.bk.every(x=>x);setTimeout(()=>openLore(0,L7[nw[0]],all?()=>openLore(0,L7F):null),500)}}}}
   if(st.a&&!LPREV.a)setTimeout(()=>openLore(0,LORE_ATLAS),400);if(st.r&&!LPREV.r)setTimeout(()=>openLore(0,LORE_REINE,openCh),1500);
   if(st.p&&!LPREV.p)setTimeout(()=>{$('chDlg').hidden=true;openLore(0,L4['intro_'+st.p],openCh)},300);
@@ -4274,6 +4340,9 @@ function encBuildings(){
     else if(GENS.has(b.type))ex=b.burn>0?1:0;
     else if(kind(b.type)==='coffre')ex=Math.round(b.used/B[b.type].cap*63);
     else if(b.type==='reparateur')ex=b.healing?1:0;
+    else if(b.type==='dome_bouclier')ex=Math.round((b.pool??B.dome_bouclier.pool)/B.dome_bouclier.pool*63);
+    else if(b.type==='hangar_drones')ex=(b.dr||[0,0,0]).length;
+    if(TURRETS.has(b.type))ex=b.hacked>0?1:0;
     s+=e2(TYPES.indexOf(b.type))+e2(b.x)+e2(b.y)+e1(b.rot||0)+e1(b.owner)+e1(b.hp/maxHp(b)*63)+e2(ex);
   }
   return s;
@@ -4303,7 +4372,7 @@ function hostNetTick(now){
   const msg=NET.msgOut.splice(0,5);
   const cp=CAPS.map(c=>[Math.round(c.sx*10),Math.round(c.sy*10),Math.round(c.tx*10),Math.round(c.ty*10),+c.t.toFixed(2),+c.dur.toFixed(2),ITEM_ORDER.indexOf(c.it)]);
   const lk=buildings.filter(b=>b.type==='lanceur'&&b.lk).map(b=>[b.x,b.y,b.lk[0],b.lk[1]]);
-  RM.emit('st',{e:ET(),fo:S.futOpen?1:0,bkn:S.bk,bkc:S.bkcd?S.bkcd.map(t=>Math.max(0,Math.ceil(t-S.t))):undefined,pb:(S.probes||[]).map(p=>[p.o,Math.round(p.x*10),Math.round(p.y*10),p.n,p.st==='dig'?1:0,p.ret?1:0,p.lv||1,Math.floor(p.xp||0)]),sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ak:Object.fromEntries([...NET.guests.values()].map(g=>[g.slot,g.lastSeq])),sl:Object.fromEntries([...NET.guests.values()].map(g=>[g.sid,g.slot])),nm:NET.names,pc:S.players.map((_,o)=>o===0?sanCos(META.cos||{}):NET.cosAll[o]||{}),ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
+  RM.emit('st',{e:ET(),fo:S.futOpen?1:0,fl:S.era==='futur'?[S.hk1?1:0,S.tis1?1:0]:undefined,bkn:S.bk,bkc:S.bkcd?S.bkcd.map(t=>Math.max(0,Math.ceil(t-S.t))):undefined,pb:(S.probes||[]).map(p=>[p.o,Math.round(p.x*10),Math.round(p.y*10),p.n,p.st==='dig'?1:0,p.ret?1:0,p.lv||1,Math.floor(p.xp||0)]),sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ak:Object.fromEntries([...NET.guests.values()].map(g=>[g.slot,g.lastSeq])),sl:Object.fromEntries([...NET.guests.values()].map(g=>[g.sid,g.slot])),nm:NET.names,pc:S.players.map((_,o)=>o===0?sanCos(META.cos||{}):NET.cosAll[o]||{}),ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
   if(now-(NET.biAt||0)<400)return;NET.biAt=now;
   let bi='';for(const b of buildings)if(BELT.has(b.type)&&b.item)bi+=e2(b.x)+e2(b.y)+e2(ITEM_ORDER.indexOf(b.item))+e1(b.prog*63);
   sendChunks('bi',bi,{ts:Math.round(now),e:ET()},RM);
@@ -4372,7 +4441,7 @@ function guestApplyBuildings(str){
     if(kind(t)==='cryo'||t==='brouilleur')b.active=!!ex;if(t==='cantine')b.fed=!!ex;
     if(t==='extracteur')b.filter=ex>0?ITEM_ORDER[ex-1]||null:null;
     if(t==='lanceur')b.count=ex/63*20;if(t==='recepteur')b.count=ex/63*40;
-    b.warn=!!(ex&32);
+    b.warn=!!(ex&32);if(TURRETS.has(t)){b.hacked=ex&1;b.warn=false}if(t==='dome_bouclier'){b.pool=ex/63*B[t].pool;b.warn=false}if(t==='hangar_drones'){b.dn=ex;b.warn=false}
     if(MACHINES.has(t)){b.recipe=ex&15;b.crafting=ex&16?{t:1}:null;b.prog=0.5}else if(GENS.has(t))b.burn=ex?1:0;else if(kind(t)==='coffre')b.used=ex/63*B[t].cap;else if(t==='reparateur')b.healing=!!ex;
     if(DRILLS.has(t))b.spin=0;
     const k=x+','+y;if(keepItems[k]&&BELT.has(t)){b.item=keepItems[k][0];b.prog=keepItems[k][1]}
@@ -4429,6 +4498,7 @@ function guestApplyBelts(str){
 }
 function guestApplyState(d){
   NET.lastSt=Date.now();
+  if(Array.isArray(d.fl)){S.hk1=d.fl[0];S.tis1=d.fl[1]}
   if(Array.isArray(d.bkn))S.bk=d.bkn.map(x=>x?1:0);if(Array.isArray(d.bkc))S.bkcL=d.bkc.map(v=>Date.now()+(v|0)*1000);
   if(typeof d.w==='number'){if(d.w>S.wave&&S.wave>0||d.w>S.wave&&d.w===1){}S.wave=d.w}
   if(typeof d.wt==='number')S.waveTimer=d.wt;
