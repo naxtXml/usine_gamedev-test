@@ -416,7 +416,7 @@ const B={
 };
 B.compacteur={cat:'prod',rs:'compacteur',n:'Compacteur liturique',cost:{plaque_titane:20,alliage:10,moteur:6,circuit:15},hp:900,pw:-25,col:'#6a7a96',spd:1,lvl:52,desc:'Compacte les nouveaux minerais : 4 palladium, 4 iridium ou 4 orichalque → 1 bloc compacté. Choisit la recette tout seul selon ce qui entre.'};
 B.synthetiseur={cat:'prod',rs:'synthetiseur',n:'Synthétiseur 2000',cost:{palladium_compacte:40,iridium_compacte:30,orichalque_compacte:20,module_quantique:10,pile_fusion:25,plaque_titane:150,circuit:200,prisme:30},hp:4000,pw:-120,col:'#c23dff',spd:1,lvl:68,desc:'La machine ultime. Synthétise la glace cosmique (10 glace + 2 matière exotique → 5 glace synthétisée) et assemble le cœur du canon Garik. Clique dessus pour choisir la recette.'};
-B.canon_garik={cat:'def',size:2,n:'Canon Garik',cost:{kit_garik:1},hp:20000,pw:-200,range:32,rate:1.5,dmg:25000,col:'#ff3df5',lvl:70,desc:'L\'arme absolue (2×2). Vise les boss en priorité. Un rayon de 25 000 dégâts qui transperce tout sur 32 cases, ignore l\'armure et explose au bout. Pulvérise n\'importe quel boss d\'un seul tir… jusqu\'à la vague 60 : au-delà, les boss ★ lui résistent de plus en plus. Se construit avec un cœur du canon Garik, fabriqué au Synthétiseur 2000 (500 glace synthétisée, 100 piles à fusion, 35 modules quantiques et 1 Jeton du Titan, lâché par le boss de la vague 60).'};
+B.canon_garik={cat:'def',size:2,n:'Canon Garik',cost:{kit_garik:1},hp:20000,pw:-200,range:32,rate:1.5,dmg:25000,col:'#ff3df5',lvl:70,desc:'L\'arme absolue (2×2). Vise les boss en priorité. Un rayon de 25 000 dégâts (× ton niveau) qui pulvérise TOUS les monstres normaux touchés, sur 32 cases, ignore l\'armure et explose au bout. Pulvérise n\'importe quel boss d\'un seul tir… jusqu\'à la vague 60 : au-delà, les boss ★ lui résistent de plus en plus. Se construit avec un cœur du canon Garik, fabriqué au Synthétiseur 2000 (500 glace synthétisée, 100 piles à fusion, 35 modules quantiques et 1 Jeton du Titan, lâché par le boss de la vague 60).'};
 B.pont_entree={cat:'log',n:'Pont (entrée)',cost:{acier:4,engrenage:2},hp:400,col:'#8a6a4a',reach:10,lvl:15,desc:'Pont roulant amélioré : envoie les objets par-dessus TOUT (tapis, bâtiments, eau, lave) jusqu\'à une sortie de pont dans la même direction, jusqu\'à 10 cases. 2× plus rapide qu\'un tunnel, et peut se poser sur l\'eau.'};
 B.pont_sortie={cat:'log',n:'Pont (sortie)',cost:{acier:4,engrenage:2},hp:400,col:'#8a6a4a',lvl:15,desc:'Sortie d\'un pont roulant (même direction que l\'entrée, 10 cases max). Peut se poser sur l\'eau.'};
 B.rampe={cat:'log',size:3,n:'Rampe de lancement',cost:{plaque_titane:200,alliage:100,moteur:50,circuit:150,pile_fusion:20,module_quantique:5},hp:8000,col:'#9aa4b2',lvl:55,desc:'Grand bâtiment 3×3. Clique dessus puis « Lancer la fusée » (100 hélium-3 + 10 piles à fusion) pour atteindre Neptune et son nouveau minerai, le neptunium.'};
@@ -590,6 +590,7 @@ const ACH=[
   ['sonde25','⛏','Foreuse légendaire','Monter une sonde au niveau 25',()=>{const p=probeOf(ME);return p&&(p.lv||1)>=25}],
   ['neptune','🚀','Cap sur Neptune','Lancer la fusée vers Neptune',()=>!!(S.ug&&S.ug.found&&S.ug.found.neptune)],
   ['alien','👽','Rencontre du 3e type','Découvrir le labo extraterrestre',()=>!!(S.ug&&S.ug.lab)],
+  ['glace','🧊','Sous la glace','Découvrir ce qui se cache sous la glace de Neptune (chapitre 2)',()=>!!(S.ug&&S.ug.trappe)],
   ['res','🔬','Savant','Terminer toutes les recherches (hors labo extraterrestre)',()=>{const r=rsOf(ME);return r&&RESEARCH.every(t=>t.alien||r.done.includes(t.id))}],
   ['quant','⚛','Physique quantique','Fabriquer un module quantique',()=>(P(ME).made.module_quantique||0)>=1],
   ['gard','🤖','Gardien','Déployer un robot gardien',()=>robots.some(r=>r.owner===ME&&r.kind==='gardien')],
@@ -644,6 +645,8 @@ const NP=()=>S?S.players.length:1;
 // L'hôte peut gérer les constructions d'un joueur absent (il est alors considéré comme leur propriétaire)
 function takeOver(o,owner){return owner===o||(coop()&&o===0&&owner>0&&S.players[owner]&&!S.players[owner].on&&(NET.role==='host'||NET.role==='solo'))}
 const mineB=b=>!!b&&takeOver(ME,b.owner);
+// Dégâts des tourelles × (dizaine du niveau du joueur qui les a posées + 1) : niv 1-9 ×1, 10-19 ×2, 30-39 ×4…
+const lvMul=o=>{const p=S&&S.players&&S.players[o];return p?Math.floor((p.level||1)/10)+1:1};
 const mates=()=>S?S.players.map((_,o)=>o).filter(o=>o!==ME):[];
 function activeSlots(){return S.players.map((p,o)=>o).filter(o=>!S.players[o].dead&&(o===0||S.players[o].on))}
 function allVoted(){if(!coop())return false;const a=activeSlots();return a.length>0&&a.every(o=>S.votes[o])}
@@ -737,20 +740,20 @@ function genUG(seed){
   const place=(w,y0,y1)=>{const x=8+((r()*(UGW-16))|0),y=y0+((r()*(y1-y0))|0);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const i=ugIdx(x+dx,y+dy);UGT[i]=0;UGO[i]=0}PORTALS.push({w,x,y})};
   place('lune',24,31);place('mars',58,66);place('europe',96,104);
   for(let x=44;x<=52;x++)for(let y=0;y<=2;y++)UGS[ugIdx(x,y)]=1;
-  UGV++;
+  UGV++;ugFull=true;
 }
 function genWorlds(seed){
   WDEP={};
   WORLD_IDS.forEach((w,wi)=>{const r=rng((seed^(0x51ab+wi*7919))>>>0);const d=Array.from({length:WH},()=>Array(WW).fill(null));const W2=WORLDS[w];
     const blob=(it,n,mn,mx)=>{for(let k=0;k<n;k++){let x=2+((r()*(WW-4))|0),y=2+((r()*(WH-4))|0),m=mn+((r()*(mx-mn+1))|0);for(let j=0;j<m;j++){if(Math.abs(x-WW/2)>4||Math.abs(y-WH/2)>3)d[y][x]=it;const [dx,dy]=DIRS[(r()*4)|0];x=clamp(x+dx,1,WW-2);y=clamp(y+dy,1,WH-2)}}};
-    blob(W2.ores[0],11,6,11);blob(W2.ores[1],6,3,6);if(w==='neptune')for(let y=LAB.y-2;y<=LAB.y+3;y++)for(let x=LAB.x-2;x<=LAB.x+3;x++)if(d[y]&&x>=0&&x<WW)d[y][x]=null;WDEP[w]=d});
+    blob(W2.ores[0],11,6,11);blob(W2.ores[1],6,3,6);if(w==='neptune'){for(let y=LAB.y-2;y<=LAB.y+3;y++)for(let x=LAB.x-2;x<=LAB.x+3;x++)if(d[y]&&x>=0&&x<WW)d[y][x]=null;for(let y=9-1;y<=9+1;y++)for(let x=12-1;x<=12+1;x++)if(d[y])d[y][x]=null}WDEP[w]=d});
   WCV={};
 }
 // ---- encodage des cartes de bits (sauvegarde / réseau)
 function bitsEnc(a){const u=new Uint8Array(Math.ceil(a.length/8));for(let i=0;i<a.length;i++)if(a[i])u[i>>3]|=1<<(i&7);return b64(u)}
 function bitsDec(s,a){try{const u=unb64(s);a.fill(0);for(let i=0;i<a.length;i++)a[i]=(u[i>>3]>>(i&7))&1}catch(e){}}
 function ensureLayers(){S.ug=S.ug||{found:{},maxD:[0,0,0,0]};S.ug.found=S.ug.found||{};S.ug.maxD=S.ug.maxD||[0,0,0,0];S.probes=S.probes||[];S.wb=S.wb||{};for(const w of WORLD_IDS)S.wb[w]=S.wb[w]||[]}
-function loadUGState(){ensureLayers();if(S.ugD)bitsDec(S.ugD,UGD);if(S.ugS)bitsDec(S.ugS,UGS);for(let x=44;x<=52;x++)for(let y=0;y<=2;y++)UGS[ugIdx(x,y)]=1;UGV++}
+function loadUGState(){ugFull=true;ensureLayers();if(S.ugD)bitsDec(S.ugD,UGD);if(S.ugS)bitsDec(S.ugS,UGS);for(let x=44;x<=52;x++)for(let y=0;y<=2;y++)UGS[ugIdx(x,y)]=1;UGV++}
 // ---- sonde
 const PMAX=25,pNeed=l=>10+8*l,pSpd=p=>1+0.08*((p.lv||1)-1),pCap=p=>PROBE_CAP+4*((p.lv||1)-1),pRad=p=>(p.lv||1)>=20?2:(p.lv||1)>=10?1:0,pBed=p=>(p.lv||1)>=PMAX;
 function ugCost(i,bed){if(ugOpen(i))return 1;const t=UGT[i];return t===1?3:t===2?7:bed?14:Infinity}
@@ -765,9 +768,9 @@ function ugPath(sx,sy,tx,ty,bed){
   if(dist[ti]>=1e9)return null;const path=[];let c=ti;while(c!==si&&c>=0){path.push(c);c=prev[c]}path.reverse();return path;
 }
 function probeOf(o){return(S.probes||[]).find(p=>p.o===o)}
-function reveal(x,y,R){let ch=false;for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){if(dx*dx+dy*dy>R*R+1)continue;const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=UGW||ny>=UGH)continue;const i=ugIdx(nx,ny);if(!UGS[i]){UGS[i]=1;ch=true}}if(ch)UGV++}
+function reveal(x,y,R){let ch=false;for(let dy=-R;dy<=R;dy++)for(let dx=-R;dx<=R;dx++){if(dx*dx+dy*dy>R*R+1)continue;const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=UGW||ny>=UGH)continue;const i=ugIdx(nx,ny);if(!UGS[i]){UGS[i]=1;ch=true;ugMark(i)}}if(ch)UGV++}
 function probeDig(p,j){
-  const t=UGT[j];UGD[j]=1;let xp=t===3?8:t===2?3:1;const o=UGO[j];
+  const t=UGT[j];UGD[j]=1;ugMark(j);let xp=t===3?8:t===2?3:1;const o=UGO[j];
   if(o){xp+=4;const it=UG_ORES[o-1],q=2;if(p.n<pCap(p)){p.cargo[it]=(p.cargo[it]||0)+q;p.n+=q}}
   probeXp(p,xp);
 }
@@ -1123,7 +1126,7 @@ function updB(b,dt){
     b.tgt=!!best;
     if(!best||b.cd>0)return;
     b.angle=Math.atan2(best.y-cy,best.x-cx);
-    const dmg=d.dmg*mArm(o);
+    const dmg=d.dmg*mArm(o)*lvMul(o);
     if(d.ammo){
       if(total('munitions',o)<1){b.noAmmo=true;return}
       if(Math.random()>=rsv('ammo',o)){take('munitions',1,o);stat(o,'c','munitions')}b.noAmmo=false;hurt(best,dmg);
@@ -1138,7 +1141,7 @@ function updB(b,dt){
     }else if(t==='canon_garik'){
       const ux=Math.cos(b.angle),uy=Math.sin(b.angle);
       // les boss d'avant la vague 60 sont pulvérisés d'un tir ; à partir de la vague 60 : 8 % de leurs PV par tir, puis de moins en moins (3 % minimum)
-      const gk=(m,d2)=>{const mt=MT[m.type];if(mt.boss){const tr=m.tier||bossTier(S.wave);if(tr>0)hurt(m,Math.min(d2,m.maxhp*Math.max(0.03,0.08-0.01*(tr-1))),999);else hurt(m,m.hp+1,999)}else hurt(m,d2,999)};
+      const gk=(m,d2)=>{const mt=MT[m.type];if(!mt.boss){hurt(m,Math.max(d2,m.hp+1),999);return}if(mt.boss){const tr=m.tier||bossTier(S.wave);if(tr>0)hurt(m,Math.min(d2,m.maxhp*Math.max(0.03,0.08-0.01*(tr-1))),999);else hurt(m,m.hp+1,999)}else hurt(m,d2,999)};
       for(const m of monsters){if(m.hp<=0)continue;const dx=m.x-cx,dy=m.y-cy,along=dx*ux+dy*uy;if(along<0||along>rng)continue;if(Math.abs(dx*uy-dy*ux)<=0.9+MT[m.type].r)gk(m,dmg)}
       const ex=cx+ux*Math.min(rng,Math.sqrt(bd)),ey=cy+uy*Math.min(rng,Math.sqrt(bd));for(const m of monsters)if(m.hp>0&&(m.x-ex)**2+(m.y-ey)**2<=3*3)gk(m,dmg*0.6);
       fx({k:'shot',x1:cx+ux*1.1,y1:cy+uy*1.1,x2:cx+ux*rng,y2:cy+uy*rng,col:'#ff3df5',w:0.55,t:0.4,max:0.4});fx({k:'shot',x1:cx+ux*1.1,y1:cy+uy*1.1,x2:cx+ux*rng,y2:cy+uy*rng,col:'#ffffff',w:0.18,t:0.4,max:0.4});fx({k:'boom',x:ex,y:ey,r:2.5,col:'255,61,245',t:0.6,max:0.6});b.fire=0.4;
@@ -1233,7 +1236,7 @@ function updDestr(r,dt){
     go(best.x,best.y,2.5);
     r.cd=(r.cd||0)-dt;r.frzT=(r.frzT??0)-dt;
     if(Math.sqrt(bd)<=4){
-      if(r.cd<=0){r.cd=1/B.canon_garik.rate;const dmg=B.canon_garik.dmg*mArm(o),tr=best.tier||bossTier(S.wave);
+      if(r.cd<=0){r.cd=1/B.canon_garik.rate;const dmg=B.canon_garik.dmg*mArm(o)*lvMul(o),tr=best.tier||bossTier(S.wave);
         if(tr>0)hurt(best,Math.min(dmg,best.maxhp*Math.max(0.03,0.08-0.01*(tr-1))),999);else hurt(best,best.hp+1,999);
         fx({k:'shot',x1:r.x,y1:r.y,x2:best.x,y2:best.y,col:'#b46bff',w:0.35,t:0.25,max:0.25});fx({k:'shot',x1:r.x,y1:r.y,x2:best.x,y2:best.y,col:'#ffffff',w:0.1,t:0.25,max:0.25})}
       if(r.frzT<=0&&best.hp>0){r.frzT=10;best.frz=2.5;fx({k:'boom',x:best.x,y:best.y,r:MT[best.type].r*2.5,col:'150,220,255',t:0.8,max:0.8});if(o===ME)toast('❄ Boss gelé !',true)}
@@ -2297,33 +2300,95 @@ function drawBlueprint(ox,oy,T,now){
   }
 }
 // ---- rendu des plans
-let ugCv=null,ugCvV=-1,ugCvAt=0;
-const UGC=16;
-function ugDepthCol(y,hard){const f=y/UGH;const a=[[122,86,58],[96,90,92],[86,52,58],[58,40,78]];const k=Math.min(2.999,f*3),i=Math.floor(k),t=k-i,c=a[i].map((v,j)=>v+(a[i+1][j]-v)*t);return c.map(v=>Math.round(v*(hard?0.78:1)))}
-function renderUG(){
-  if(!ugCv){ugCv=document.createElement('canvas');ugCv.width=UGW*UGC;ugCv.height=UGH*UGC}
-  const g=ugCv.getContext('2d');const sd=(S&&S.seed)|0;
-  for(let y=0;y<UGH;y++)for(let x=0;x<UGW;x++){const i=ugIdx(x,y),X=x*UGC,Y=y*UGC;
-    if(!UGS[i]){g.fillStyle=`rgb(${10+hsh(x,y,sd)*6|0},${9+hsh(x,y,sd+1)*5|0},${12+hsh(x,y,sd+2)*6|0})`;g.fillRect(X,Y,UGC,UGC);continue}
-    if(ugOpen(i)){const c=ugDepthCol(y,false);g.fillStyle=`rgb(${c[0]*0.28|0},${c[1]*0.26|0},${c[2]*0.3|0})`;g.fillRect(X,Y,UGC,UGC);if(UGD[i]){g.fillStyle='rgba(255,220,170,0.05)';g.fillRect(X+2,Y+2,UGC-4,UGC-4)}continue}
-    const t=UGT[i];
-    if(t===3){g.fillStyle='#17141c';g.fillRect(X,Y,UGC,UGC);g.strokeStyle='rgba(120,110,150,0.25)';g.beginPath();g.moveTo(X,Y+UGC*hsh(x,y,9));g.lineTo(X+UGC,Y+UGC*hsh(x,y,10));g.stroke();continue}
-    const c=ugDepthCol(y,t===2),n=0.85+hsh(x,y,sd+4)*0.3;g.fillStyle=`rgb(${c[0]*n|0},${c[1]*n|0},${c[2]*n|0})`;g.fillRect(X,Y,UGC,UGC);
-    g.fillStyle='rgba(0,0,0,0.18)';g.fillRect(X+UGC*hsh(x,y,7)*0.7,Y+UGC*hsh(x,y,8)*0.7,3,2);
-    const o=UGO[i];if(o){const it=ITEMS[UG_ORES[o-1]];g.fillStyle=it.c;for(let k=0;k<3;k++){g.beginPath();g.arc(X+3+hsh(x,y,20+k)*(UGC-6),Y+3+hsh(x,y,30+k)*(UGC-6),1.6+hsh(x,y,40+k)*1.6,0,7);g.fill()}}
-    // bord avec les cavités
-    g.fillStyle='rgba(255,255,255,0.07)';if(y>0&&ugOpen(i-UGW))g.fillRect(X,Y,UGC,2);
+let ugCv=null,ugCvV=-1,ugCvAt=0,ugDirty=new Set(),ugFull=true;
+const UGC=24;
+function ugDepthCol(y,hard){const f=y/UGH;const a=[[128,90,60],[104,96,98],[92,56,62],[62,44,86]];const k=Math.min(2.999,f*3),i=Math.floor(k),t=k-i,c=a[i].map((v,j)=>v+(a[i+1][j]-v)*t);return c.map(v=>Math.round(v*(hard?0.74:1)))}
+function ugMark(i){if(ugFull)return;const x=i%UGW,y=(i/UGW)|0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const X=x+dx,Y=y+dy;if(X>=0&&Y>=0&&X<UGW&&Y<UGH)ugDirty.add(Y*UGW+X)}}
+function drawUGCell(g,x,y,sd){
+  const i=ugIdx(x,y),X=x*UGC,Y=y*UGC,C=UGC,q=C/4;
+  if(!UGS[i]){for(let by=0;by<4;by++)for(let bx=0;bx<4;bx++){const n=hsh(x*4+bx,y*4+by,sd);g.fillStyle=`rgb(${8+n*7|0},${7+n*6|0},${11+n*8|0})`;g.fillRect(X+bx*q,Y+by*q,q,q)}return}
+  const open=ugOpen(i);
+  if(open){
+    const c=ugDepthCol(y,false);
+    for(let by=0;by<4;by++)for(let bx=0;bx<4;bx++){const n=0.8+hsh(x*4+bx,y*4+by,sd+11)*0.25;g.fillStyle=`rgb(${c[0]*0.22*n|0},${c[1]*0.2*n|0},${c[2]*0.26*n|0})`;g.fillRect(X+bx*q,Y+by*q,q,q)}
+    // parois : ombre sous le plafond, lumière sur le sol
+    const up=y>0&&!ugOpen(i-UGW),dn=y<UGH-1&&!ugOpen(i+UGW),lf=x>0&&!ugOpen(i-1),rt=x<UGW-1&&!ugOpen(i+1);
+    if(up){const gr=g.createLinearGradient(0,Y,0,Y+C*0.5);gr.addColorStop(0,'rgba(0,0,0,0.55)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(X,Y,C,C*0.5);
+      if(hsh(x,y,sd+21)<0.45){const c2=ugDepthCol(y-1,UGT[i-UGW]===2);g.fillStyle=`rgb(${c2[0]*0.75|0},${c2[1]*0.75|0},${c2[2]*0.75|0})`;const sx=X+C*(0.2+hsh(x,y,sd+22)*0.6),L=C*(0.25+hsh(x,y,sd+23)*0.4);g.beginPath();g.moveTo(sx-C*0.1,Y);g.lineTo(sx,Y+L);g.lineTo(sx+C*0.1,Y);g.closePath();g.fill()}}
+    if(dn){g.fillStyle='rgba(255,230,190,0.06)';g.fillRect(X,Y+C-3,C,3);if(hsh(x,y,sd+24)<0.3){g.fillStyle='rgba(120,100,80,0.6)';g.beginPath();g.ellipse(X+C*(0.3+hsh(x,y,sd+25)*0.4),Y+C-2,C*0.12,C*0.06,0,0,7);g.fill()}}
+    if(lf){g.fillStyle='rgba(0,0,0,0.25)';g.fillRect(X,Y,3,C)}if(rt){g.fillStyle='rgba(0,0,0,0.25)';g.fillRect(X+C-3,Y,3,C)}
+    if(UGD[i]){g.strokeStyle='rgba(255,220,170,0.05)';g.lineWidth=1;g.beginPath();g.moveTo(X+3,Y+C*hsh(x,y,31));g.lineTo(X+C-3,Y+C*hsh(x,y,32));g.stroke()}
+    if(y<5&&hsh(x,y,sd+26)<0.5){g.strokeStyle='rgba(90,140,60,0.5)';g.lineWidth=1.5;g.beginPath();const rx=X+C*hsh(x,y,27);g.moveTo(rx,Y);g.quadraticCurveTo(rx+C*0.3,Y+C*0.5,rx+C*0.05,Y+C*0.8);g.stroke()}
+    return;
   }
+  const t=UGT[i];
+  if(t===3){for(let by=0;by<4;by++)for(let bx=0;bx<4;bx++){const n=hsh(x*4+bx,y*4+by,sd+5);g.fillStyle=`rgb(${18+n*10|0},${14+n*8|0},${26+n*14|0})`;g.fillRect(X+bx*q,Y+by*q,q,q)}
+    g.strokeStyle='rgba(150,120,220,0.35)';g.lineWidth=1;g.beginPath();g.moveTo(X,Y+C*hsh(x,y,9));g.lineTo(X+C*0.5,Y+C*hsh(x,y,12));g.lineTo(X+C,Y+C*hsh(x,y,10));g.stroke();
+    if(hsh(x,y,13)<0.25){g.fillStyle='rgba(190,160,255,0.6)';g.fillRect(X+C*hsh(x,y,14),Y+C*hsh(x,y,15),2,2)}return}
+  const c=ugDepthCol(y,t===2);
+  for(let by=0;by<4;by++)for(let bx=0;bx<4;bx++){const yy=y*4+by;const strata=0.92+0.1*Math.sin(yy*0.9+vnoise(x*4+bx,yy,9,sd)*4);const n=(0.82+hsh(x*4+bx,yy,sd+4)*0.22)*strata;g.fillStyle=`rgb(${Math.min(255,c[0]*n)|0},${Math.min(255,c[1]*n)|0},${Math.min(255,c[2]*n)|0})`;g.fillRect(X+bx*q,Y+by*q,q,q)}
+  // cailloux / fissures
+  if(hsh(x,y,sd+6)<0.5){g.fillStyle='rgba(0,0,0,0.22)';g.beginPath();g.ellipse(X+C*(0.2+hsh(x,y,7)*0.6),Y+C*(0.2+hsh(x,y,8)*0.6),C*0.12,C*0.08,hsh(x,y,9)*3,0,7);g.fill();g.fillStyle='rgba(255,255,255,0.08)';g.beginPath();g.ellipse(X+C*(0.2+hsh(x,y,7)*0.6)-1,Y+C*(0.2+hsh(x,y,8)*0.6)-1,C*0.06,C*0.04,0,0,7);g.fill()}
+  if(t===2&&hsh(x,y,sd+16)<0.4){g.strokeStyle='rgba(0,0,0,0.35)';g.lineWidth=1;g.beginPath();g.moveTo(X+C*hsh(x,y,17),Y);g.lineTo(X+C*hsh(x,y,18),Y+C*0.5);g.lineTo(X+C*hsh(x,y,19),Y+C);g.stroke()}
+  // bord avec une cavité au-dessus : sol éclairé
+  if(y>0&&ugOpen(i-UGW)){g.fillStyle='rgba(255,240,210,0.16)';g.fillRect(X,Y,C,2);g.fillStyle='rgba(0,0,0,0.15)';g.fillRect(X,Y+2,C,2)}
+  const o=UGO[i];if(o){const it=ITEMS[UG_ORES[o-1]];
+    for(let k=0;k<4;k++){const cx=X+4+hsh(x,y,20+k)*(C-8),cy=Y+4+hsh(x,y,30+k)*(C-8),r=2+hsh(x,y,40+k)*2.6;
+      const gr=g.createRadialGradient(cx,cy,0,cx,cy,r*2.4);gr.addColorStop(0,it.c+'88');gr.addColorStop(1,it.c+'00');g.fillStyle=gr;g.beginPath();g.arc(cx,cy,r*2.4,0,7);g.fill();
+      g.fillStyle=it.c;g.beginPath();g.moveTo(cx,cy-r);g.lineTo(cx+r*0.8,cy);g.lineTo(cx,cy+r);g.lineTo(cx-r*0.8,cy);g.closePath();g.fill();
+      g.fillStyle='rgba(255,255,255,0.75)';g.fillRect(cx-r*0.3,cy-r*0.5,1.5,1.5)}}
+}
+function renderUG(){
+  if(!ugCv){ugCv=document.createElement('canvas');ugCv.width=UGW*UGC;ugCv.height=UGH*UGC;ugFull=true}
+  const g=ugCv.getContext('2d');const sd=(S&&S.seed)|0;
+  if(ugFull){for(let y=0;y<UGH;y++)for(let x=0;x<UGW;x++)drawUGCell(g,x,y,sd);ugFull=false;ugDirty.clear()}
+  else{for(const i of ugDirty)drawUGCell(g,i%UGW,(i/UGW)|0,sd);ugDirty.clear()}
   ugCvV=UGV;
 }
+// ---- textures des mondes
+function wPix(w,x,y,sd){
+  const n1=vnoise(x,y,220,sd),n2=vnoise(x,y,60,sd+1),n3=hsh(x,y,sd+2),n4=vnoise(x,y,18,sd+3);
+  if(w==='lune'){const mare=vnoise(x,y,420,sd+7)>0.58?0.62:1;const v=(78+n1*48+n2*26+n3*10+n4*10)*mare;return[v,v,v*1.04]}
+  if(w==='mars'){const dune=Math.sin((x*0.06+y*0.025)+vnoise(x,y,120,sd+5)*6)*0.5+0.5,bas=vnoise(x,y,300,sd+8)>0.62?0.6:1;const f=(0.72+n1*0.25+n2*0.12+dune*0.12+n3*0.05)*bas;return[178*f,82*f,46*f]}
+  if(w==='europe'){const f=0.86+n1*0.1+n2*0.06+n3*0.04;return[205*f,222*f,236*f]}
+  const sw=Math.sin(y*0.02+vnoise(x,y,260,sd+9)*7+x*0.004)*0.5+0.5,f=0.65+sw*0.3+n2*0.12+n3*0.04;return[28*f,52*f,128*f]
+}
 function wGround(w){
-  if(WCV[w])return WCV[w];const cv=document.createElement('canvas');cv.width=WW*TS;cv.height=WH*TS;const g=cv.getContext('2d');const W2=WORLDS[w],[R,G2,Bl]=W2.bg,sd=((S&&S.seed)|0)+w.length*31;
-  for(let y=0;y<WH;y++)for(let x=0;x<WW;x++){const n=0.8+vnoise(x*TS,y*TS,140,sd)*0.35;g.fillStyle=`rgb(${R*n|0},${G2*n|0},${Bl*n|0})`;g.fillRect(x*TS,y*TS,TS,TS)}
-  for(let k=0;k<70;k++){const x=hsh(k,1,sd)*WW*TS,y=hsh(k,2,sd)*WH*TS,r=4+hsh(k,3,sd)*(w==='lune'?38:20);g.fillStyle='rgba(0,0,0,0.22)';g.beginPath();g.arc(x,y,r,0,7);g.fill();g.strokeStyle='rgba(255,255,255,0.12)';g.lineWidth=2;g.beginPath();g.arc(x-1,y-1,r,Math.PI*0.9,Math.PI*1.7);g.stroke()}
-  const d=WDEP[w];for(let y=0;y<WH;y++)for(let x=0;x<WW;x++){const it=d[y][x];if(!it)continue;const X=x*TS,Y=y*TS;g.fillStyle='rgba(0,0,0,0.3)';rr(g,X+2,Y+2,TS-4,TS-4,6);g.fill();g.fillStyle=ITEMS[it].c;for(let k=0;k<4;k++){const cx=X+6+hsh(x,y,k)*(TS-12),cy=Y+6+hsh(x,y,k+9)*(TS-12),s2=3+hsh(x,y,k+19)*4;g.beginPath();g.moveTo(cx,cy-s2);g.lineTo(cx+s2*0.7,cy);g.lineTo(cx,cy+s2);g.lineTo(cx-s2*0.7,cy);g.closePath();g.fill()}}
+  if(WCV[w])return WCV[w];const cv=document.createElement('canvas');cv.width=WW*TS;cv.height=WH*TS;const g=cv.getContext('2d');const W2=WORLDS[w],sd=((S&&S.seed)|0)+w.length*31,GW=cv.width,GH=cv.height;
+  const img=g.createImageData(GW,GH),px=img.data;
+  for(let y=0;y<GH;y+=2)for(let x=0;x<GW;x+=2){const c=wPix(w,x,y,sd);for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){const i=((y+dy)*GW+x+dx)*4;px[i]=c[0];px[i+1]=c[1];px[i+2]=c[2];px[i+3]=255}}
+  g.putImageData(img,0,0);
+  const R=(k,j)=>hsh(k,j,sd);
+  if(w==='lune'||w==='mars'){const nc=w==='lune'?90:35;for(let k=0;k<nc;k++){const x=R(k,1)*GW,y=R(k,2)*GH,r=5+Math.pow(R(k,3),2.2)*(w==='lune'?70:40);
+      const gr=g.createRadialGradient(x+r*0.25,y+r*0.25,r*0.1,x,y,r);gr.addColorStop(0,'rgba(0,0,0,0.38)');gr.addColorStop(0.8,'rgba(0,0,0,0.12)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,7);g.fill();
+      g.strokeStyle='rgba(255,255,255,0.22)';g.lineWidth=Math.max(1,r*0.08);g.beginPath();g.arc(x,y,r*0.95,Math.PI*1.05,Math.PI*1.75);g.stroke();g.strokeStyle='rgba(0,0,0,0.25)';g.beginPath();g.arc(x,y,r*0.95,Math.PI*0.05,Math.PI*0.75);g.stroke()}}
+  if(w==='mars'){g.strokeStyle='rgba(70,20,10,0.5)';g.lineWidth=3;for(let k=0;k<4;k++){g.beginPath();let x=R(k,40)*GW,y=R(k,41)*GH;g.moveTo(x,y);for(let s2=0;s2<14;s2++){x+=(R(k,50+s2)-0.3)*90;y+=(R(k,70+s2)-0.5)*70;g.lineTo(x,y)}g.stroke()}
+    for(let k=0;k<160;k++){const x=R(k,90)*GW,y=R(k,91)*GH,r=2+R(k,92)*5;g.fillStyle='rgba(0,0,0,0.3)';g.beginPath();g.ellipse(x+2,y+2,r,r*0.7,0,0,7);g.fill();g.fillStyle='#7a3a22';g.beginPath();g.ellipse(x,y,r,r*0.7,0,0,7);g.fill();g.fillStyle='rgba(255,180,140,0.3)';g.beginPath();g.ellipse(x-r*0.3,y-r*0.3,r*0.4,r*0.25,0,0,7);g.fill()}}
+  if(w==='lune'){for(let k=0;k<200;k++){const x=R(k,90)*GW,y=R(k,91)*GH,r=1+R(k,92)*3;g.fillStyle='rgba(0,0,0,0.35)';g.beginPath();g.arc(x+1.5,y+1.5,r,0,7);g.fill();g.fillStyle='#b8bcc4';g.beginPath();g.arc(x,y,r,0,7);g.fill()}}
+  if(w==='europe'){for(let k=0;k<26;k++){g.strokeStyle=`rgba(${150+R(k,5)*40|0},${80+R(k,6)*30|0},${50},${0.35+R(k,7)*0.3})`;g.lineWidth=1.5+R(k,8)*3;g.beginPath();let x=R(k,1)*GW,y=R(k,2)*GH,a=R(k,3)*6.28;g.moveTo(x,y);for(let s2=0;s2<20;s2++){a+=(R(k,10+s2)-0.5)*0.5;x+=Math.cos(a)*60;y+=Math.sin(a)*60;g.lineTo(x,y)}g.stroke();g.strokeStyle='rgba(255,255,255,0.25)';g.lineWidth=1;g.stroke()}
+    for(let k=0;k<500;k++){g.fillStyle=`rgba(255,255,255,${0.3+R(k,30)*0.6})`;g.fillRect(R(k,31)*GW,R(k,32)*GH,1.5,1.5)}
+    for(let k=0;k<30;k++){const x=R(k,60)*GW,y=R(k,61)*GH;g.fillStyle='rgba(120,170,210,0.25)';g.beginPath();for(let j=0;j<6;j++){const a=j/6*6.28;g.lineTo(x+Math.cos(a)*(20+R(k,62+j)*30),y+Math.sin(a)*(20+R(k,70+j)*30))}g.closePath();g.fill()}}
+  if(w==='neptune'){for(let k=0;k<40;k++){const x=R(k,1)*GW,y=R(k,2)*GH,L=80+R(k,3)*200;const gr=g.createLinearGradient(x,y,x+L,y);gr.addColorStop(0,'rgba(220,240,255,0)');gr.addColorStop(0.5,`rgba(220,240,255,${0.12+R(k,4)*0.2})`);gr.addColorStop(1,'rgba(220,240,255,0)');g.fillStyle=gr;g.beginPath();g.ellipse(x+L/2,y,L/2,4+R(k,5)*8,R(k,6)*0.3-0.15,0,7);g.fill()}
+    const sx=GW*0.72,sy=GH*0.7;const gr=g.createRadialGradient(sx,sy,10,sx,sy,120);gr.addColorStop(0,'rgba(5,10,40,0.85)');gr.addColorStop(0.6,'rgba(10,20,70,0.5)');gr.addColorStop(1,'rgba(10,20,70,0)');g.fillStyle=gr;g.beginPath();g.ellipse(sx,sy,160,90,-0.15,0,7);g.fill();
+    g.strokeStyle='rgba(200,230,255,0.3)';g.lineWidth=3;g.beginPath();g.ellipse(sx,sy,150,82,-0.15,Math.PI*1.1,Math.PI*1.9);g.stroke()}
+  // gisements : cristaux lumineux
+  const d=WDEP[w];for(let y=0;y<WH;y++)for(let x=0;x<WW;x++){const it=d[y][x];if(!it)continue;const X=x*TS,Y=y*TS,c=ITEMS[it].c;
+    const gl=g.createRadialGradient(X+TS/2,Y+TS/2,2,X+TS/2,Y+TS/2,TS*0.7);gl.addColorStop(0,c+'55');gl.addColorStop(1,c+'00');g.fillStyle=gl;g.fillRect(X-TS*0.2,Y-TS*0.2,TS*1.4,TS*1.4);
+    g.fillStyle='rgba(0,0,0,0.28)';rr(g,X+3,Y+5,TS-6,TS-6,8);g.fill();
+    for(let k=0;k<5;k++){const cx=X+6+hsh(x,y,k)*(TS-12),cy=Y+8+hsh(x,y,k+9)*(TS-14),h2=5+hsh(x,y,k+19)*7,w2=h2*0.45;
+      g.fillStyle='rgba(0,0,0,0.35)';g.beginPath();g.moveTo(cx+2,cy-h2+2);g.lineTo(cx+w2+2,cy+2);g.lineTo(cx+2,cy+h2*0.4+2);g.lineTo(cx-w2+2,cy+2);g.closePath();g.fill();
+      const gg=g.createLinearGradient(cx-w2,cy-h2,cx+w2,cy+h2*0.4);gg.addColorStop(0,'#ffffff');gg.addColorStop(0.35,c);gg.addColorStop(1,shade(c,-0.45));g.fillStyle=gg;
+      g.beginPath();g.moveTo(cx,cy-h2);g.lineTo(cx+w2,cy);g.lineTo(cx,cy+h2*0.4);g.lineTo(cx-w2,cy);g.closePath();g.fill()}}
   // aire d'arrivée du portail
-  const cx=WW/2*TS,cy=WH/2*TS;g.strokeStyle=W2.col;g.lineWidth=3;g.setLineDash([10,8]);g.beginPath();g.arc(cx,cy,TS*2.4,0,7);g.stroke();g.setLineDash([]);
+  const cx=WW/2*TS,cy=WH/2*TS;g.fillStyle='rgba(0,0,0,0.25)';g.beginPath();g.arc(cx,cy,TS*2.4,0,7);g.fill();g.strokeStyle=W2.col;g.lineWidth=3;g.setLineDash([10,8]);g.beginPath();g.arc(cx,cy,TS*2.4,0,7);g.stroke();g.setLineDash([]);
+  for(let k=0;k<8;k++){const a=k/8*6.28;g.fillStyle=W2.col;g.beginPath();g.arc(cx+Math.cos(a)*TS*2.4,cy+Math.sin(a)*TS*2.4,4,0,7);g.fill()}
   WCV[w]=cv;return cv;
+}
+function wFx(w,ox,oy,T,now){
+  if(w==='mars'){ctx.fillStyle='rgba(230,150,100,0.35)';for(let k=0;k<70;k++){const x=((hsh(k,1,9)*WW+now*(0.6+hsh(k,2,9)))%WW),y=hsh(k,3,9)*WH+Math.sin(now+k)*0.3;ctx.fillRect(ox+x*T,oy+y*T,2,2)}}
+  else if(w==='europe'){for(let k=0;k<40;k++){const a=Math.sin(now*3+k*1.7);if(a<0.85)continue;ctx.fillStyle=`rgba(255,255,255,${(a-0.85)*6})`;const x=ox+hsh(k,4,3)*WW*T,y=oy+hsh(k,5,3)*WH*T;ctx.fillRect(x-1,y-4,2,8);ctx.fillRect(x-4,y-1,8,2)}}
+  else if(w==='neptune'){ctx.globalAlpha=0.18;for(let k=0;k<6;k++){const y=oy+(hsh(k,1,5)*WH)*T,x=ox+((now*1.2*(0.5+hsh(k,2,5))*T+hsh(k,3,5)*WW*T)%(WW*T*1.4))-WW*T*0.2;const gr=ctx.createLinearGradient(x,0,x+T*12,0);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(0.5,'rgba(220,240,255,1)');gr.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=gr;ctx.fillRect(x,y,T*12,T*0.4)}ctx.globalAlpha=1}
+  else if(w==='lune'){const ex=ox-T*3,ey=oy-T*3;if(ex>-T*4){const gr=ctx.createRadialGradient(ex,ey,T*0.5,ex,ey,T*2.2);gr.addColorStop(0,'#5fa8ff');gr.addColorStop(0.7,'#2a6fb0');gr.addColorStop(1,'rgba(42,111,176,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(ex,ey,T*2.2,0,7);ctx.fill()}}
 }
 function layerW(){return LAYER==='surface'?W:LAYER==='ug'?UGW:WW}
 function layerH(){return LAYER==='surface'?H:LAYER==='ug'?UGH:WH}
@@ -2365,7 +2430,7 @@ function drawLayer(now){
   }else{
     const w=LAYER,W2=WORLDS[w];
     ctx.fillStyle='#05060a';ctx.fillRect(0,0,cw,ch);for(let k=0;k<120;k++){ctx.fillStyle=`rgba(255,255,255,${0.2+hsh(k,5,3)*0.6})`;ctx.fillRect(hsh(k,1,3)*cw,hsh(k,2,3)*ch,1.5,1.5)}
-    ctx.drawImage(wGround(w),ox,oy,WW*T,WH*T);
+    ctx.drawImage(wGround(w),ox,oy,WW*T,WH*T);wFx(w,ox,oy,T,now);
     const X=ox+WW/2*T,Y=oy+WH/2*T;for(let k=0;k<3;k++){ctx.strokeStyle=W2.col;ctx.globalAlpha=0.4+0.3*Math.sin(now*3+k);ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(X,Y,T*(1.2-k*0.3),T*(1.2-k*0.3)*0.6,0,0,7);ctx.stroke()}ctx.globalAlpha=1;
     if(w==='neptune'){const LX=ox+(LAB.x+1)*T,LY=oy+(LAB.y+1)*T,found=S.ug.lab;
       ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(LX+T*0.2,LY+T*0.5,T*1.6,T*0.6,0,0,7);ctx.fill();
@@ -2374,6 +2439,12 @@ function drawLayer(now){
       for(let k=0;k<3;k++){ctx.fillStyle=`rgba(126,249,255,${0.4+0.4*Math.sin(now*3+k*2)})`;ctx.beginPath();ctx.arc(LX-T*0.8+k*T*0.8,LY+T*0.45,T*0.12,0,7);ctx.fill()}
       ctx.strokeStyle='#7ef9ff';ctx.beginPath();ctx.moveTo(LX,LY-T*1.35);ctx.lineTo(LX,LY-T*1.9);ctx.stroke();ctx.fillStyle=Math.sin(now*5)>0?'#7ef9ff':'#2a4a8a';ctx.beginPath();ctx.arc(LX,LY-T*1.95,T*0.12,0,7);ctx.fill();
       ctx.fillStyle='#fff';ctx.font='700 12px system-ui';ctx.textAlign='center';{const lt=found?'👽 Labo d\'Atlas & Gougouz — clique pour lire':'❓ Structure inconnue — clique dessus',lw=ctx.measureText(lt).width;ctx.fillText(lt,Math.max(LX,lw/2+8),LY-T*2.3)}}
+    if(w==='neptune'&&S.ug.lab){const TX=ox+(TRAP.x+0.5)*T,TY=oy+(TRAP.y+0.5)*T,op=alienDone();
+      ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.ellipse(TX,TY+T*0.15,T*0.9,T*0.5,0,0,7);ctx.fill();
+      ctx.fillStyle='#9fd8ff';rr(ctx,TX-T*0.7,TY-T*0.45,T*1.4,T*0.9,T*0.15);ctx.fill();ctx.strokeStyle=op?'#7ef9ff':'#5a6b80';ctx.lineWidth=2;ctx.stroke();
+      ctx.strokeStyle='rgba(40,60,90,0.8)';ctx.beginPath();ctx.moveTo(TX,TY-T*0.45);ctx.lineTo(TX,TY+T*0.45);ctx.stroke();
+      if(op){ctx.fillStyle=`rgba(126,249,255,${0.3+0.3*Math.sin(now*3)})`;ctx.beginPath();ctx.arc(TX,TY,T*0.25,0,7);ctx.fill()}else{ctx.fillStyle='#5a6b80';ctx.font=`${Math.max(10,T*0.4)}px system-ui`;ctx.textAlign='center';ctx.fillText('🔒',TX,TY+T*0.15)}
+      ctx.fillStyle='#fff';ctx.font='600 11px system-ui';ctx.textAlign='center';ctx.fillText(op?'Trappe — clique pour descendre':'Trappe scellée',TX,TY-T*0.75)}
     for(const b of S.wb[w]){const g={type:WB[b.t].look,x:b.x,y:b.y,rot:0,owner:b.o,hp:1};initB(g);g.spin=now*8*WB[b.t].spd;drawB(ctx,g,ox+b.x*T,oy+b.y*T,T,0);if(coop()){ctx.fillStyle=pcol(b.o);ctx.fillRect(ox+(b.x+0.75)*T,oy+(b.y+0.75)*T,T*0.22,T*0.22)}
       if(Math.sin(now*4+b.x+b.y)>0.92){ctx.fillStyle='#fff';ctx.font='700 11px system-ui';ctx.textAlign='center';ctx.fillText('+1',ox+(b.x+0.5)*T,oy+(b.y-0.1)*T)}}
     if(mouse.inside&&mouse.tx>=0&&mouse.ty>=0&&mouse.tx<WW&&mouse.ty<WH){const ok=LTOOL?!worldCanPlace(w,LTOOL,mouse.tx,mouse.ty,ME):true;ctx.strokeStyle=ok?'rgba(255,255,255,0.7)':'#e5484d';ctx.lineWidth=1.5;ctx.strokeRect(ox+mouse.tx*T+0.5,oy+mouse.ty*T+0.5,T-1,T-1);
@@ -2431,7 +2502,10 @@ function layerInfo(){
   if(it)return`<b class="t">Gisement</b><p>${sw(it)} ${ITEMS[it].n}</p><p class="mut">Pose une foreuse spatiale ici.</p>`;
   return`<b class="t">${WORLDS[w].ic} ${WORLDS[w].n}</b><p class="mut">${WORLDS[w].d}</p>`;
 }
+const TRAP={x:12,y:9};
+const alienDone=()=>{const r=rsOf(ME);return r&&RESEARCH.filter(t=>t.alien).every(t=>r.done.includes(t.id))};
 function layerClick(x,y){
+  if(LAYER==='neptune'&&S.ug.lab&&Math.abs(x-TRAP.x)<=1&&Math.abs(y-TRAP.y)<=1){if(alienDone())openLore(0,LORE2);else toast('🔒 Une trappe scellée… Termine toutes les recherches du labo extraterrestre pour l\'ouvrir.');return}
   if(LAYER==='neptune'&&x>=LAB.x-1&&x<=LAB.x+2&&y>=LAB.y-1&&y<=LAB.y+2){if(!S.ug.lab){act('lab');if(NET.role==='guest')S.ug.lab=true;sfx('level')}openLore();return}
   if(LAYER==='ug'){if(!probeOf(ME)){toast('Construis d\'abord une sonde (barre du bas)');return}const err=act('pgo',x,y);if(err)toast(err);return}
   if(!LTOOL){toast('Choisis une foreuse dans la barre du bas');return}
@@ -2447,13 +2521,20 @@ const LORE=[
   {tag:'Journal de Gougouz · Entrée 22',t:'« Note à moi-même »',x:['Atlas ne dort plus. Moi non plus, mais c\'est à cause du bruit des tempêtes.','Les alliages qu\'on a fondus avec le neptunium sont incroyables. Les réacteurs aussi. On pourrait faire tourner une usine entière avec trois cristaux.','Si une unité de colonisation trouve ce labo : tout est dans les terminaux. Sers-t\'en. Et garde un œil sur ce qui gratte sous la glace.'],sig:'— Gougouz, ingénieur (et cuisinier, quand Atlas oublie de manger)'},
   {tag:'Dernière entrée · Auteur inconnu',t:'Le silence',x:['Les deux combinaisons ont disparu du sas.','Le dernier relevé d\'atmosphère n\'a jamais été envoyé.','Personne ne sait où sont Atlas et Gougouz.','Mais leurs recherches sont là, intactes. À toi de les terminer, U-7.']},
 ];
-let lorePg=0;
-function openLore(p=0){lorePg=p;renderLore();$('loreDlg').hidden=false}
-function renderLore(){const L=LORE[lorePg];$('loreTag').textContent=L.tag;$('lorePg').textContent=`${lorePg+1} / ${LORE.length}`;$('loreTitle').textContent=L.t;
+const LORE2=[
+  {tag:'Chapitre 2 · Sous la glace',t:'La trappe',x:['Les terminaux d\'Atlas s\'ouvrent sur un dernier fichier, verrouillé tant que toutes les recherches n\'étaient pas terminées.','Coordonnées : 40 mètres sous le labo. Une trappe, scellée de l\'intérieur.','Tu forces le sceau. Un escalier de glace descend vers une lumière bleue qui pulse… comme une respiration.']},
+  {tag:'Analyse · Cavité sous-glaciaire',t:'Ce qui grattait',x:['Sous la glace s\'étend une ville. Pas une ville de ton espèce : des tours de cristal, des tunnels organiques, des milliers d\'alvéoles.','Une ruche.','La plupart des alvéoles sont vides, brisées de l\'intérieur. Les traces de griffes… tu les connais. Ce sont les mêmes que sur les murs de ton usine, après chaque vague.','Les monstres ne viennent pas de nulle part. Ils viennent d\'ici.']},
+  {tag:'Journal de Gougouz · Entrée 31',t:'« On a réveillé quelque chose »',x:['Le neptunium ne sert pas qu\'à faire des alliages. Ce sont des œufs. Des milliers d\'œufs fossilisés, dans tout le système.','Quand on a lancé les premiers forages, la ruche s\'est réveillée. Les œufs ont commencé à éclore… sur chaque monde où une foreuse touchait le sol.','Atlas veut descendre jusqu\'à la Reine. Moi je veux rentrer. Mais on ne laisse pas un ami seul dans le noir.'],sig:'— Gougouz'},
+  {tag:'Capsule de stase · Niveau -3',t:'Atlas',x:['Au fond de la ruche, une capsule de stase de ton espèce. Givrée. Intacte.','À l\'intérieur : Atlas. Endormi, vivant. Ses constantes sont faibles, mais stables.','Sur la vitre, gravé au couteau : « Gougouz est parti chercher la Reine. Ne me réveillez pas avant son retour. »']},
+  {tag:'Mémoire interne · Unité U-7',t:'Nouvelle directive',x:['Tes créateurs t\'ont envoyé coloniser l\'univers.','Ils ne savaient pas que chaque foreuse réveillait une ruche.','Quelque part sous la glace, la Reine attend. Gougouz est peut-être encore vivant. Et Atlas dort, à quelques mètres de toi.','Directive mise à jour : survivre. Comprendre. Retrouver Gougouz.','…à suivre.']},
+];
+let lorePg=0,LOREBOOK=LORE;
+function openLore(p=0,book=LORE){LOREBOOK=book;lorePg=p;renderLore();$('loreDlg').hidden=false}
+function renderLore(){const LORE=LOREBOOK,L=LORE[lorePg];$('loreTag').textContent=L.tag;$('lorePg').textContent=`${lorePg+1} / ${LORE.length}`;$('loreTitle').textContent=L.t;
   $('loreTxt').innerHTML=L.x.map((t,i)=>`<span class="ln" style="animation-delay:${i*0.45}s">${esc(t)}</span>`).join('\n\n')+(L.sig?`<span class="sig ln" style="animation-delay:${L.x.length*0.45}s">${esc(L.sig)}</span>`:'');
-  $('lorePrev').style.visibility=lorePg?'visible':'hidden';$('loreNext').textContent=lorePg<LORE.length-1?'Suivant →':'🔬 Ouvrir les recherches du labo';}
+  $('lorePrev').style.visibility=lorePg?'visible':'hidden';$('loreNext').textContent=lorePg<LORE.length-1?'Suivant →':LOREBOOK===LORE2?'Fermer':'🔬 Ouvrir les recherches du labo';}
 document.getElementById('lorePrev').onclick=()=>{if(lorePg>0){lorePg--;renderLore()}};
-document.getElementById('loreNext').onclick=()=>{if(lorePg<LORE.length-1){lorePg++;renderLore();return}$('loreDlg').hidden=true;tab='labo';document.querySelectorAll('#tabs button').forEach(q=>q.classList.toggle('on',q.dataset.tab==='labo'));renderPane(true)};
+document.getElementById('loreNext').onclick=()=>{if(lorePg<LOREBOOK.length-1){lorePg++;renderLore();return}$('loreDlg').hidden=true;if(LOREBOOK===LORE2){if(!S.ug.trappe){S.ug.trappe=true;META.ach=META.ach||{};if(!META.ach.glace){META.ach.glace=Date.now();saveMeta();banner('🏆 Succès débloqué : 🧊 Sous la glace',false,5,'pur')}}return}tab='labo';document.querySelectorAll('#tabs button').forEach(q=>q.classList.toggle('on',q.dataset.tab==='labo'));renderPane(true)};
 document.getElementById('loreDlg').addEventListener('mousedown',e=>{if(e.target.id==='loreDlg')$('loreDlg').hidden=true});
 // ----- Ping & chat -----
 function doPing(){if(!S||!coop()){toast('Le ping sert en partie multi (Alt + clic ou G)');return}if(!mouse.inside)return;act('ping',+mouse.wx.toFixed(1),+mouse.wy.toFixed(1))}
@@ -2585,7 +2666,7 @@ function bInfo(b,isSel){
   if(b.type==='coffre_partage')h+='<p class="okc">🤝 Partagé : tout le monde peut y déposer et y puiser</p>';
   if(b.type==='coffre'||b.type==='coffre_partage'){if(guest)h+=`<p>Rempli : ${Math.round((b.used||0))} / ${d.cap}</p>`;else{const ks=Object.keys(b.store).filter(k=>b.store[k]>0);h+=`<p>Rempli : ${b.used} / ${d.cap}</p><div class="inv">${ks.map(k=>`<div class="it">${sw(k)}<span>${ITEMS[k].n}</span><span class="n">${b.store[k]}</span></div>`).join('')||'<span class="mut">Vide</span>'}</div>`}}
   if(GENS.has(b.type)){const fu=ITEMS[d.fuel||'petrole'].n;h+=(guest?'':`<p>${fu} en réserve : ${b.fuel}</p>`)+(b.burn>0?`<p class="okc">En marche (+${d.pw} énergie)</p>`:`<p class="bad">À l'arrêt — amène du ${fu.toLowerCase()} par tapis</p>`)}
-  if(TURRETS.has(b.type)){h+=`<p>Portée ${d.range} · Dégâts ${Math.round(d.dmg*mArm(b.owner))}${d.splash?' (zone)':''}${d.chain?` (${d.chain} rebonds)`:''} · ${d.rate} tirs/s</p>`;if(d.ammo&&mine)h+=`<p>Munitions en stock : ${Math.floor(total('munitions'))}</p>`}
+  if(TURRETS.has(b.type)){h+=`<p>Portée ${d.range} · Dégâts ${Math.round(d.dmg*mArm(b.owner)*lvMul(b.owner))} <span class="pur">(×${lvMul(b.owner)} niveau)</span>${d.splash?' (zone)':''}${d.chain?` (${d.chain} rebonds)`:''} · ${d.rate} tirs/s</p>`;if(d.ammo&&mine)h+=`<p>Munitions en stock : ${Math.floor(total('munitions'))}</p>`}
   if(d.pw<0){const p=P(b.owner);h+=`<p class="${p.pr<1?'bad':'mut'}">Consomme ${-d.pw} énergie${p.pr<1?` — tourne à ${Math.round(p.pr*100)} %`:''}</p>`}
   if(d.pw>0&&kind(b.type)==='solaire')h+=`<p class="mut">+${d.pw} énergie</p>`;
   if(isSel&&mine)h+=`<div class="btnrow">${ROTATABLE.has(b.type)?'<button data-act="rot">Tourner (R)</button>':''}<button data-act="del" class="danger">Démolir</button></div>`;
@@ -3493,7 +3574,7 @@ function bindRemote(room){
     if(NET.mo.parts.filter(x=>x!=null).length===d.n){guestApplyMonsters(NET.mo.parts.join(''),d.ts);NET.mo.parts=[]}});
   room.on('fx',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||!Array.isArray(d.f))return;if(typeof d.ts==='number')netClock(d.ts);for(const a of d.f)if(Array.isArray(a))NET.fxQ.push(a)});
   room.on('bi',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;NET.bi.parts=NET.bi.n===d.n&&NET.bi.parts?NET.bi.parts:[];NET.bi.n=d.n;NET.bi.parts[d.i]=d.d;if(NET.bi.parts.filter(x=>x!=null).length===d.n){guestApplyBelts(NET.bi.parts.join(''));NET.bi.parts=null}});
-  room.on('ug',m=>{if(m.isMe||!S)return;const d=m.data||{};ensureLayers();if(typeof d.d==='string')bitsDec(d.d,UGD);if(typeof d.s==='string')bitsDec(d.s,UGS);if(d.w&&typeof d.w==='object')for(const w of WORLD_IDS)if(Array.isArray(d.w[w]))S.wb[w]=d.w[w].filter(b=>b&&WB[b.t]).map(b=>({t:b.t,x:b.x|0,y:b.y|0,o:b.o|0,tm:0}));if(d.f)S.ug.found=Object.assign({},d.f);if(d.lb)S.ug.lab=true;if(Array.isArray(d.md))S.ug.maxD=d.md;UGV++;renderLayers()});
+  room.on('ug',m=>{if(m.isMe||!S)return;const d=m.data||{};ensureLayers();{const o1=UGD.slice(),o2=UGS.slice();if(typeof d.d==='string')bitsDec(d.d,UGD);if(typeof d.s==='string')bitsDec(d.s,UGS);for(let i=0;i<UGD.length;i++)if(o1[i]!==UGD[i]||o2[i]!==UGS[i])ugMark(i)}if(d.w&&typeof d.w==='object')for(const w of WORLD_IDS)if(Array.isArray(d.w[w]))S.wb[w]=d.w[w].filter(b=>b&&WB[b.t]).map(b=>({t:b.t,x:b.x|0,y:b.y|0,o:b.o|0,tm:0}));if(d.f)S.ug.found=Object.assign({},d.f);if(d.lb)S.ug.lab=true;if(Array.isArray(d.md))S.ug.maxD=d.md;UGV++;renderLayers()});
   room.on('st',m=>{if(m.isMe||!S)return;const d=m.data||{};if(typeof d.ts==='number'){if(d.ts<(NET.stTs||0))return;NET.stTs=d.ts;netClock(d.ts)}guestApplyState(d)});
 }
 function guestPresence(){

@@ -46,6 +46,12 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 - **Biomes** (nouvelles parties) : lave qui abîme les bâtiments et brûle les monstres, glace où les tapis vont 60 % plus vite, eau infranchissable pour les monstres terrestres.
 - **Personnalisation** : couleur de ton noyau et skins de tourelles, débloqués par les renaissances et les succès.
 
+## Puissance & chapitre 2
+- Toutes les tourelles infligent ×(dizaine du niveau du poseur + 1) : niveau 1-9 ×1, 30-39 ×4, 100 ×11.
+- Le canon Garik tue d'un coup tous les monstres non-boss.
+- Chapitre 2 « Sous la glace » : termine les 5 recherches du labo extraterrestre puis clique la trappe sur Neptune.
+- Nouvelles textures pour le souterrain, la Lune, Mars, Europe et Neptune.
+
 ## Commandes
 
 | Action | Touche |
