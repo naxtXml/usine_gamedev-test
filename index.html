@@ -514,14 +514,14 @@ Object.assign(MT,{
   larve:{n:'Larve',hp:45,sp:2.5,dmg:8,r:0.18,col:'#f3e3b0',xp:3,hive:true},
   soldat_ruche:{n:'Soldat de la ruche',hp:900,sp:0.75,dmg:110,r:0.46,col:'#b8742a',xp:60,armor:25,hive:true},
   cracheur:{n:'Cracheur d\'acide',hp:260,sp:0.9,dmg:70,r:0.34,col:'#8fd63a',xp:35,spit:3.2,hive:true},
-  imperatrice:{n:'Reine de la Ruche',hp:30000,sp:0.55,dmg:900,r:1.2,col:'#ffb020',xp:30000,boss:true,armor:30,hive:true,gcap:0.004,phases:true},
+  imperatrice:{n:'Reine de la Ruche',hp:30000,sp:0.55,dmg:900,r:1.2,col:'#ffb020',xp:30000,boss:true,armor:30,hive:true,gcap:0.0009,phases:true},
   chimere:{n:'Chimère',hp:420,sp:2.0,dmg:60,r:0.32,col:'#c23cff',xp:40,fly:true,hive:true},
   drone_sentinelle:{n:'Drone sentinelle',hp:800,sp:1.4,dmg:90,r:0.34,col:'#cfd8e8',xp:55,fly:true,armor:20},
   pilote_ruche:{n:'Pilote-kamikaze',hp:300,sp:2.3,dmg:400,r:0.3,col:'#ff8a3d',xp:30,fly:true,hive:true},
-  essaim_mere:{n:'Essaim-Mère',hp:40000,sp:0.5,dmg:1200,r:1.45,col:'#c23cff',xp:50000,boss:true,fly:true,c4boss:true,phases:true,gcap:0.004,hive:true},
-  ancienne:{n:'L\'Ancienne de la Ruche',hp:45000,sp:0.45,dmg:1400,r:1.35,col:'#8a6a28',xp:50000,boss:true,armor:40,c4boss:true,phases:true,gcap:0.004,hive:true},
-  helion:{n:'Croiseur Hélion',hp:42000,sp:0.5,dmg:1300,r:1.35,col:'#dfe6ff',xp:50000,boss:true,fly:true,armor:35,c4boss:true,phases:true,gcap:0.004},
-  leviathan:{n:'Léviathan-ruche',hp:48000,sp:0.42,dmg:1500,r:1.55,col:'#2f8a9a',xp:50000,boss:true,fly:true,c4boss:true,phases:true,gcap:0.004,hive:true},
+  essaim_mere:{n:'Essaim-Mère',hp:40000,sp:0.5,dmg:1200,r:1.45,col:'#c23cff',xp:50000,boss:true,fly:true,c4boss:true,phases:true,gcap:0.0009,hive:true},
+  ancienne:{n:'L\'Ancienne de la Ruche',hp:45000,sp:0.45,dmg:1400,r:1.35,col:'#8a6a28',xp:50000,boss:true,armor:40,c4boss:true,phases:true,gcap:0.0009,hive:true},
+  helion:{n:'Croiseur Hélion',hp:42000,sp:0.5,dmg:1300,r:1.35,col:'#dfe6ff',xp:50000,boss:true,fly:true,armor:35,c4boss:true,phases:true,gcap:0.0009},
+  leviathan:{n:'Léviathan-ruche',hp:48000,sp:0.42,dmg:1500,r:1.55,col:'#2f8a9a',xp:50000,boss:true,fly:true,c4boss:true,phases:true,gcap:0.0009,hive:true},
 });
 const GUARD={imperatrice:['soldat_ruche','cracheur'],essaim_mere:['chimere','soldat_ruche'],ancienne:['soldat_ruche','cracheur'],helion:['drone_sentinelle','drone_sentinelle'],leviathan:['pilote_ruche','chimere']};
 const BOSS_CYCLE=['titan','reine','golem','dragon','hydre','liche'];
@@ -1071,7 +1071,7 @@ const ACT={
     return null},
   c4boss(o){ensureLayers();const c=S.ch4;if(!c.pick||c.step<4||c.bossOn||c.done)return null;const bt=c4bossType();c.bossOn=true;UGV++;
     const n=Math.max(S.wave,60),cm=coop()?1+0.5*(NP()-1):1,hm=Math.pow(1.24,9)*Math.pow(1.15,Math.max(0,n-10)),ed=(Math.random()*4)|0,g=GUARD[bt];
-    spawnQ.push({t:5,type:bt,edge:ed,hpMul:2.5e6*cm/MT[bt].hp,wMul:hm,dmgMul:(1+0.1*(n/10-1))*2,tier:0});
+    spawnQ.push({t:5,type:bt,edge:ed,hpMul:1e7*cm/MT[bt].hp,wMul:hm,dmgMul:(1+0.1*(n/10-1))*2,tier:0});
     for(let j=0;j<12;j++)spawnQ.push({t:5.5+j*0.3,type:g[j%2],edge:ed,hpMul:hm,dmgMul:1+0.08*(n-1),elite:true});
     const txt=`☠ ${MT[bt].n.toUpperCase()} arrive ! Protège ton noyau !`;for(let k=0;k<NP();k++){if(k===ME)banner(txt,true,6);else if(NET.role==='host')NET.msgOut.push('!'+txt)}sfx('wave');return null},
   trappe(o){ensureLayers();if(!S.ug.lab||S.ug.trappe)return null;if(!alienDone(o))return 'Termine d\'abord toutes les recherches du labo extraterrestre';S.ug.trappe=true;S.ug.found.ruche=true;UGV++;for(let k=0;k<NP();k++)if(k!==o)notify(k,`🐝 ${playerName(o)} a ouvert la trappe sous le labo : la Ruche est accessible !`);return null},
@@ -1083,7 +1083,7 @@ const ACT={
     return null},
   reine(o){ensureLayers();if(!S.ug.atlas||nidsDone()<5||S.ug.reine||S.ug.reineOn)return null;S.ug.reineOn=true;UGV++;
     const n=Math.max(S.wave,60),cm=coop()?1+0.5*(NP()-1):1,hm=Math.pow(1.24,9)*Math.pow(1.15,Math.max(0,n-10)),ed=(Math.random()*4)|0;
-    spawnQ.push({t:5,type:'imperatrice',edge:ed,hpMul:2.5e6*cm/MT.imperatrice.hp,wMul:hm,dmgMul:(1+0.1*(n/10-1))*2,tier:0});
+    spawnQ.push({t:5,type:'imperatrice',edge:ed,hpMul:1e7*cm/MT.imperatrice.hp,wMul:hm,dmgMul:(1+0.1*(n/10-1))*2,tier:0});
     for(let j=0;j<10;j++)spawnQ.push({t:5.5+j*0.3,type:'soldat_ruche',edge:ed,hpMul:hm,dmgMul:1+0.08*(n-1),elite:true});
     const txt='👑 LA REINE DE LA RUCHE remonte à la surface ! Protège ton noyau !';for(let k=0;k<NP();k++){if(k===ME)banner(txt,true,6);else if(NET.role==='host')NET.msgOut.push('!'+txt)}sfx('wave');return null},
   lab(o){if(!S.ug.found.neptune)return null;if(!S.ug.lab){S.ug.lab=true;UGV++;for(let k=0;k<NP();k++)if(k!==o)notify(k,`👽 ${playerName(o)} a découvert un laboratoire extraterrestre sur Neptune !`)}return null},
@@ -2810,7 +2810,7 @@ function hivePanel(){
   const u=S.ug,nd=nidsDone();let h=`<div style="min-width:220px"><b>🐝 Chapitre 3 · La Ruche</b><div class="mut" style="font-size:12px">${u.atlas?'✅':'⬜'} Atlas réveillé · ${nd===5?'✅':'⬜'} Nids ${nd}/5 · ${u.reine?'✅ Reine vaincue':u.reineOn?'⚔ Reine à la surface':'⬜ Reine'}</div>`;
   if(HSEL&&HSEL.k==='caps'){h+=u.atlas?'<div class="mut" style="font-size:12px">Atlas est réveillé : +20 % de dégâts pour toutes les tourelles, brouilleur phéromonal débloqué.</div>':`<div class="mut" style="font-size:12px">Réveiller Atlas : ${costTxt(ATLAS_COST)}</div><button data-hv="atlas" class="${costOk(ATLAS_COST)?'prim':''}">🧑‍🚀 Réveiller Atlas</button>`}
   else if(HSEL&&HSEL.k==='nid'&&!u.nids[HSEL.i]){const c=nidCost(nd);h+=`<div class="mut" style="font-size:12px">Charge thermique : ${costTxt(c)}. Attention : la ruche contre-attaquera à la surface !</div><button data-hv="nid:${HSEL.i}" class="${costOk(c)?'warn':''}">🔥 Brûler le nid ${HSEL.i+1}</button>`}
-  else if(HSEL&&HSEL.k==='trone'){if(u.reine)h+='<div class="mut" style="font-size:12px">La Reine est morte. Gougouz est libre.</div>';else if(u.reineOn)h+='<div class="mut" style="font-size:12px">La Reine attaque ton usine. Défends-toi !</div>';else if(!u.atlas||nd<5)h+='<div class="mut" style="font-size:12px">Le trône est scellé : réveille Atlas et brûle les 5 nids.</div>';else h+='<div class="mut" style="font-size:12px">Elle remontera à la surface avec sa garde. Bouclier à 66 % et 33 % de PV, rage sous 20 %. Le canon Garik ne lui retire que 0,4 % de ses PV par tir.</div><button data-hv="reine" class="danger">👑 Défier la Reine</button>'}
+  else if(HSEL&&HSEL.k==='trone'){if(u.reine)h+='<div class="mut" style="font-size:12px">La Reine est morte. Gougouz est libre.</div>';else if(u.reineOn)h+='<div class="mut" style="font-size:12px">La Reine attaque ton usine. Défends-toi !</div>';else if(!u.atlas||nd<5)h+='<div class="mut" style="font-size:12px">Le trône est scellé : réveille Atlas et brûle les 5 nids.</div>';else h+='<div class="mut" style="font-size:12px">Elle remontera à la surface avec sa garde. Bouclier à 66 % et 33 % de PV, rage sous 20 %. Le canon Garik ne lui retire que 0,09 % de ses PV par tir.</div><button data-hv="reine" class="danger">👑 Défier la Reine</button>'}
   else h+='<div class="mut" style="font-size:12px">Clique sur la capsule, un nid ou le trône.</div>';
   return h+'</div>'}
 function worldCanPlace(w,t,x,y,o){

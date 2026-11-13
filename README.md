@@ -70,7 +70,7 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - Chaque fin terminée est verrouillée (les Créateurs ont 2 fins : obéir / protéger).
 - Après une fin : « Chapitre 5 (bientôt) » ou « ↩ Revenir avant le choix du chapitre 4 ». Avec les 4 fins : « ✨ Vraie suite ».
 - Chaque fin donne un Fragment temporel ; les 4 permettent de construire la Machine temporelle (vers la future Surface futuriste).
-- Boss des chapitres 3 et 4 : 2,5 M de PV.
+- Boss des chapitres 3 et 4 : 10 M de PV (combat d'environ 3 min avec 3 canons Garik).
 - 17 nouveaux bâtiments (logistique, production, énergie, défense, pièges), dont 12 réservés à une fin précise. Succès « Vers le 100 %, joueur d'élite ».
 
 ## Commandes
