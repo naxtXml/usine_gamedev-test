@@ -73,6 +73,14 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - Boss des chapitres 3 et 4 : 10 M de PV (combat d'environ 3 min avec 3 canons Garik).
 - 17 nouveaux bâtiments (logistique, production, énergie, défense, pièges), dont 12 réservés à une fin précise. Succès « Vers le 100 %, joueur d'élite ».
 
+## Chapitre 5 — Phase 1 : le Futur
+- Clique sur la Machine temporelle → « Voyager vers le futur ». Deux boutons à gauche : ⏳ Présent / 🌐 Futur.
+- Le futur a sa propre carte (6 biomes : Néo-plaines, Mégapole effondrée, Désert de verre, Marais de nanites, Forêt bioluminescente, Cratère de singularité), son stock, son niveau (repart à 1) et ses vagues.
+- Les deux époques sont attaquées en même temps.
+- Énergie par réseau : pylônes (6 cases d'alimentation, 10 de liaison) et pylônes haute tension. Un bâtiment non raccordé ne fonctionne pas (⚡ rouge).
+- 23 bâtiments du futur, 7 machines ennemies (boss : Colosse-Forge), 10 objectifs du futur, 3 succès.
+- Conduit temporel (dans le Présent) : envoie minerai de fer, lingots de fer, acier, silicium et cuivre vers ton stock du futur.
+
 ## Commandes
 
 | Action | Touche |
