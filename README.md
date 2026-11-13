@@ -59,6 +59,20 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 - Défie la Reine de la Ruche (bouclier à 66 % et 33 %, rage sous 20 %) : Gougouz libéré, Cantine de Gougouz, +15 % de dégâts.
 - Nouveaux monstres : larve, soldat de la ruche, cracheur d'acide. 8 nouveaux succès.
 
+## Chapitre 4 : trois histoires au choix
+Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain chapitre ». En multi, chaque joueur vote (majorité, l'hôte départage ou valide).
+- 🪐 L'Essaim-Mère : Brise-Ruche, 3 Cœurs, Tour d'écho psionique, boss Essaim-Mère.
+- 🛸 L'arrivée des Créateurs : Directrice Vael, choix obéir / protéger la ruche, Canon des Créateurs, boss l'Ancienne ou le croiseur Hélion.
+- 🛰 La Station orbitale : bouclier planétaire (−30 % dégâts noyau), Relais orbital, frappes orbitales, boss Léviathan-ruche.
+4 fins, 3 nouvelles dimensions, 7 nouveaux monstres, 6 succès.
+
+## Fins, Vraie suite et Machine temporelle
+- Chaque fin terminée est verrouillée (les Créateurs ont 2 fins : obéir / protéger).
+- Après une fin : « Chapitre 5 (bientôt) » ou « ↩ Revenir avant le choix du chapitre 4 ». Avec les 4 fins : « ✨ Vraie suite ».
+- Chaque fin donne un Fragment temporel ; les 4 permettent de construire la Machine temporelle (vers la future Surface futuriste).
+- Boss des chapitres 3 et 4 : 2,5 M de PV.
+- 17 nouveaux bâtiments (logistique, production, énergie, défense, pièges), dont 12 réservés à une fin précise. Succès « Vers le 100 %, joueur d'élite ».
+
 ## Commandes
 
 | Action | Touche |
