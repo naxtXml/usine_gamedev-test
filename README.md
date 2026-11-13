@@ -157,6 +157,12 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - Pénalité : −20 % des ressources minables (minerais, pétrole, ressources des autres mondes, du futur et de l'Origine), dans les stocks et les coffres. Les objets fabriqués et spéciaux (cœurs de canon de Garik, jetons, fragments…) ne sont pas touchés.
 - Correctif solo : si la base du futur tombait pendant le combat contre l'Omnicerveau, on ne pouvait plus le relancer.
 
+## Coop+ et stock fusionné (v49)
+- Nouvel onglet **⚙ Param.** (visible en multijoueur, mode coopératif).
+- Case à cocher « Les autres joueurs peuvent modifier mes installations » : ils peuvent alors supprimer, tourner, régler (recettes, filtres, trains…) et connecter des choses sur tes bâtiments.
+- Quand **tous** les joueurs (2, 3 ou 4) ont coché la case, le jeu annonce « 🤝 Le monde est en coop+ ».
+- **Fusion des stocks** : un joueur propose, tous les autres doivent accepter. Ensuite tous les noyaux et tous les coffres puisent dans un seul stock commun (Présent et Futur). Bouton « Séparer les stocks » pour revenir en arrière (partage à parts égales).
+
 ## Commandes
 
 | Action | Touche |
