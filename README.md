@@ -150,6 +150,13 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - **Histoire** : 10 nouvelles pages (U-1, la Graine, la boucle), ajoutées au Journal. Succès : Premier pas, La boucle, Chercheur d'éclats, Nomade.
 - Multijoueur : l'expédition est commune ; chaque joueur a sa citadelle. Une expédition en cours n'est pas sauvegardée.
 
+## Multijoueur : réapparition au lieu du game over (v48)
+- En multijoueur, quand toute l'équipe est tombée, la partie ne recommence plus du début : tout le monde réapparaît, noyaux à 50 %.
+- La vague en cours est annulée (elle sera relancée, même numéro) ; la prochaine attaque arrive dans au moins 3 minutes.
+- Un boss d'histoire en cours (Reine de la Ruche, boss du chapitre 4, Omnicerveau) est annulé comme s'il n'avait jamais été lancé : on peut le relancer quand on veut (la charge de rupture de l'Omnicerveau est remboursée).
+- Pénalité : −20 % des ressources minables (minerais, pétrole, ressources des autres mondes, du futur et de l'Origine), dans les stocks et les coffres. Les objets fabriqués et spéciaux (cœurs de canon de Garik, jetons, fragments…) ne sont pas touchés.
+- Correctif solo : si la base du futur tombait pendant le combat contre l'Omnicerveau, on ne pouvait plus le relancer.
+
 ## Commandes
 
 | Action | Touche |

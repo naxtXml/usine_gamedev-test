@@ -1273,7 +1273,22 @@ function setEra(e){
 function updateAll(dt){update(dt);for(const o of ['present','futur','origine'])if(o!==ERA&&CTX[o])withEra(o,()=>update(dt));oriCheckEnd()}
 function netTickAll(now){hostNetTick(now);if(NET.role!=='host')return;for(const o of ['present','futur','origine'])if(o!==ERA&&CTX[o])withEra(o,()=>hostNetTick(now))}
 const ET=()=>RUN==='futur'?'f':RUN==='origine'?'o':0,ERX=d=>d&&d.e==='f'?'futur':d&&d.e==='o'?'origine':'present';
-function futFall(){monsters=[];spawnQ=[];for(const p of S.players){p.dead=false;p.coreHp=p.coreMax*0.5}S.waveTimer=Math.max(S.waveTimer,300);flowDirty=true;for(let o=0;o<NP();o++)notify(o,'🌐 Ta base du futur est tombée… Les noyaux redémarrent à 50 %. Prochaine vague du futur dans 5 min.')}
+
+// ===== Multijoueur : toute l'équipe tombe → réapparition (pas de game over) =====
+let MINABLE=null;const minable=()=>MINABLE||(MINABLE=new Set([...Object.keys(DEP),...Object.values(WORLDS).flatMap(w=>w.ores||[])]));
+function teamWipe(){const bosses=[];const c=S.ch4,u=S.ug;
+  if(c&&c.bossOn&&!c.done){c.bossOn=false;bosses.push(MT[c4bossType()].n)}
+  if(u&&u.reineOn&&!u.reine){u.reineOn=false;bosses.push(MT.imperatrice.n)}
+  if(S.era==='futur'&&S.omniOn&&!S.omni){S.omniOn=0;S.emp=0;refund(COEUR_COST,S.omniPay||0);bosses.push('l’Omnicerveau')}
+  const story=new Set(['imperatrice','omnicerveau']);const wave=spawnQ.some(q=>!MT[q.type].c4boss&&!story.has(q.type))||monsters.some(m=>m.hp>0&&!MT[m.type].c4boss&&!story.has(m.type));
+  monsters=[];spawnQ=[];let wv=0;if(wave&&S.wave>0){wv=S.wave;S.wave--}S.waveTimer=Math.max(S.waveTimer||0,180);S.votes=Array(NP()).fill(false);
+  const M=minable();const sh=new Set();
+  for(let o=0;o<S.players.length;o++){const p=P(o);for(const k in p.inv)if(M.has(k)&&p.inv[k]>0)p.inv[k]=Math.floor(p.inv[k]*0.8);p.dead=false;p.coreHp=p.coreMax*0.5}
+  for(const ch of chests){if(sh.has(ch))continue;sh.add(ch);for(const k in ch.store)if(M.has(k)&&ch.store[k]>0){const n=Math.ceil(ch.store[k]*0.2);ch.store[k]-=n;ch.used-=n}}
+  flowDirty=true;UGV++;NET.bver++;
+  const txt=`💀 Toute l’équipe est tombée… Vous réapparaissez (noyaux à 50 %). ${wv?`La vague ${wv} est annulée`:'L’attaque est annulée'}${bosses.length?`, le combat contre ${bosses.join(' et ')} aussi (relançable quand vous voulez)`:''}. −20 % de vos minerais. Prochaine vague dans ${Math.ceil(S.waveTimer/60)} min.`;
+  for(let o=0;o<S.players.length;o++)notify(o,txt);sfx('wave')}
+function futFall(){if(S.omniOn&&!S.omni){S.omniOn=0;S.emp=0;refund(COEUR_COST,S.omniPay||0)}monsters=[];spawnQ=[];for(const p of S.players){p.dead=false;p.coreHp=p.coreMax*0.5}S.waveTimer=Math.max(S.waveTimer,300);flowDirty=true;for(let o=0;o<NP();o++)notify(o,'🌐 Ta base du futur est tombée… Les noyaux redémarrent à 50 %. Prochaine vague du futur dans 5 min.')}
 function gridTopo(){
   const nodes=[];for(const c of cores)if(!P(c.owner)||!P(c.owner).dead)nodes.push({x:c.x+1.5,y:c.y+1.5,r:5,l:9});
   for(const b of buildings){const d=B[b.type];if(d.node)nodes.push({x:b.x+0.5,y:b.y+0.5,r:d.node,l:d.link,b})}
@@ -1570,7 +1585,7 @@ const ACT={
     if(ok){S.bk[i]=1;for(let k=0;k<NP();k++){for(const it in D.loot)addInv(k,it,D.loot[it]);notify(k,`📻 ${D.n} connecté ! ${D.rw}`)}gainXp(300*D.tier);if(S.bk.every(x=>x)){for(let k=0;k<NP();k++)notify(k,'📻 Les 8 bunkers sont connectés : le réseau des survivants est rétabli !')}}
     else{S.bkcd[i]=S.t+45;const n=Math.max(S.wave,1),hm=Math.pow(1.24,Math.min(n,10)-1)*Math.pow(1.15,Math.max(0,n-10)),b=BUNKS[i];for(let j=0;j<3+3*D.tier;j++)spawnMonster({type:j%3?'drone_rouge':'chasseur_ia',hpMul:hm,dmgMul:1+0.08*(n-1)},b.x+0.5+(Math.random()-0.5)*3,b.y+0.5+(Math.random()-0.5)*3);for(let k=0;k<NP();k++)notify(k,`⚡ Connexion ratée avec ${D.n} : l\'Omnicerveau a repéré le signal et envoie ses machines !`)}
     return null},
-  coeur(o){if(S.era!=='futur'||S.omni||S.omniOn||!COEUR)return null;if(!coeurReq(o).every(x=>x[1]))return 'Conditions non remplies';pay(COEUR_COST,o);S.omniOn=1;
+  coeur(o){if(S.era!=='futur'||S.omni||S.omniOn||!COEUR)return null;if(!coeurReq(o).every(x=>x[1]))return 'Conditions non remplies';pay(COEUR_COST,o);S.omniOn=1;S.omniPay=o;
     const cm=coop()?1+0.5*(NP()-1):1,n=Math.max(S.wave,20),hm=Math.pow(1.24,9)*Math.pow(1.15,Math.max(0,n-10))*0.5;
     spawnMonster({type:'omnicerveau',hpMul:1.4e6*cm/MT.omnicerveau.hp,wMul:hm,dmgMul:1+0.05*n,tier:0},COEUR.x+0.5,COEUR.y+0.5);
     for(let j=0;j<10;j++)spawnMonster({type:j%2?'blinde_ia':'hacker',hpMul:hm,dmgMul:1+0.05*n,elite:true},COEUR.x+0.5+(Math.random()-0.5)*4,COEUR.y+0.5+(Math.random()-0.5)*4);
@@ -2339,7 +2354,7 @@ function update(dt){
   goalAcc+=dt;
   if(goalAcc>0.5&&S.era==='origine')goalAcc=0;
   if(goalAcc>0.5){goalAcc=0;for(let o=0;o<S.players.length;o++){const p=P(o);(S.era==='futur'?FGOALS:GOALS).forEach((g,i)=>{if(!p.goalsDone.includes(i)&&g[1](o,p)){p.goalsDone.push(i);const q=p;if(q.level<capOf(o))q.xp+=60*mXp(o);while(q.level<capOf(o)&&q.xp>=xpNeed(q.level)){q.xp-=xpNeed(q.level);q.level++;if(o===ME)levelUpFx(q.level)}}})}}
-  if(S.players.every(p=>p.dead)){if(S.era==='origine')oriFail();else if(S.era==='futur')futFall();else{S.over=true;showGameOver();save()}}
+  if(S.players.every(p=>p.dead)){if(S.era==='origine')oriFail();else if(coop()&&NP()>1)teamWipe();else if(S.era==='futur')futFall();else{S.over=true;showGameOver();save()}}
 }
 
 
