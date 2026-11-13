@@ -1519,13 +1519,13 @@ const ACT={
     const e=canPlace(t,x,y,o);if(e)return e;
     pay(B[t].cost,o);{const nb=placeB(t,x,y,r,o);if(nb&&kind(t)==='gare'){S.gseq=(S.gseq||0)+1;nb.gid=S.gseq}}P(o).fresh=false;return null;
   },
-  devboss(o,type,hp,xp,x,y){const adm=o===0?isAdminMe()&&NET.hostName===ADMIN:[...NET.guests.values()].some(g=>g.slot===o&&g.admin);if(NET.role==='solo'||!adm)return 'Réservé au développeur';
+  devboss(o,type,hp,xp,x,y){const adm=ADM_OVR||(o===0?isAdminMe()&&NET.hostName===ADMIN:[...NET.guests.values()].some(g=>g.slot===o&&g.admin));if((NET.role==='solo'&&!ADM_OVR)||!adm)return 'Réservé au développeur';
     if(!MT[type])return 'Monstre inconnu';if(S.devEv)return 'Un boss event est déjà en cours';hp=clamp(+hp||MT[type].hp,1,1e12);xp=clamp(+xp||0,0,1e9);x=clamp(x|0,1,W-2);y=clamp(y|0,1,H-2);
     spawnMonster({type,hpMul:hp/MT[type].hp,dmgMul:1+0.05*Math.max(0,S.wave-1),wMul:1,tier:0},x+0.5,y+0.5);const m=monsters[monsters.length-1];if(!m)return 'Impossible de faire apparaître le boss';m.devEv=1;m.devXp=xp;m.hp=m.maxhp=hp;
     S.devEv={n:MT[type].n,id:m.id,x,y};const txt=`⚡ BOSS EVENT EXCLUSIF : ${MT[type].n} apparaît (${Math.round(hp).toLocaleString('fr-FR')} PV) ! La vague est en pause.`;sfx('wave');for(let o2=0;o2<S.players.length;o2++){if(o2===ME)banner(txt,true,5);else if(NET.role==='host')NET.msgOut.push('!'+txt);notify(o2,txt)}return null},
-  devcancel(o){const adm=o===0?isAdminMe()&&NET.hostName===ADMIN:[...NET.guests.values()].some(g=>g.slot===o&&g.admin);if(!adm||!S.devEv)return null;monsters=monsters.filter(m=>!m.devEv);S.devEv=null;for(let o2=0;o2<S.players.length;o2++)notify(o2,'⚡ Boss event annulé par le développeur.');return null},
+  devcancel(o){const adm=ADM_OVR||(o===0?isAdminMe()&&NET.hostName===ADMIN:[...NET.guests.values()].some(g=>g.slot===o&&g.admin));if(!adm||!S.devEv)return null;monsters=monsters.filter(m=>!m.devEv);S.devEv=null;for(let o2=0;o2<S.players.length;o2++)notify(o2,'⚡ Boss event annulé par le développeur.');return null},
   shareE(o,v){if(!coop())return null;P(o).shareE=!!v;for(let q=0;q<S.players.length;q++)if(q!==o)notify(q,`⚡ ${playerName(o)} ${v?'partage':'ne partage plus'} son énergie avec l’équipe.`);NET.bver++;return null},
-  agive(o,to,item,n){const adm=o===0?isAdminMe()&&NET.hostName===ADMIN:[...NET.guests.values()].some(g=>g.slot===o&&g.admin);if(NET.role==='solo'||!adm)return 'Réservé à '+ADMIN+' (mot de passe vérifié)';to=to|0;if(!S.players[to]||!ITEMS[item])return null;n=clamp(Math.floor(+n||0),1,1000000);addInv(to,item,n);notify(to,`🎁 ${ADMIN} t’a donné ${n} ${ITEMS[item].n}`);if(to!==o)notify(o,`🎁 ${n} ${ITEMS[item].n} donnés à ${playerName(to)}`);return null},
+  agive(o,to,item,n){const adm=ADM_OVR||(o===0?isAdminMe()&&NET.hostName===ADMIN:[...NET.guests.values()].some(g=>g.slot===o&&g.admin));if((NET.role==='solo'&&!ADM_OVR)||!adm)return 'Réservé à '+ADMIN+' (mot de passe vérifié)';to=to|0;if(!S.players[to]||!ITEMS[item])return null;n=clamp(Math.floor(+n||0),1,1000000);addInv(to,item,n);notify(to,`🎁 ${ADMIN} t’a donné ${n} ${ITEMS[item].n}`);if(to!==o&&o>=0)notify(o,`🎁 ${n} ${ITEMS[item].n} donnés à ${playerName(to)}`);return null},
   allowEdit(o,v){if(!coop())return null;const was=coopPlus();P(o).allowEdit=!!v;const now2=coopPlus();for(let q=0;q<S.players.length;q++){if(now2&&!was)notify(q,'🤝 Le monde est en coop+ : tout le monde peut modifier les installations de tout le monde !');else if(was&&!now2)notify(q,'Le monde n’est plus en coop+.');else if(q!==o)notify(q,`${playerName(o)} ${v?'autorise':'n’autorise plus'} les autres à modifier ses installations.`)}NET.bver++;return null},
   poolask(o){if(!coop()||S.players.length<2||S.pool)return null;S.poolReq={from:o,yes:[o]};for(let q=0;q<S.players.length;q++)if(q!==o)notify(q,`📦 ${playerName(o)} propose de fusionner les stocks des noyaux : réponds dans l’onglet ⚙ Param.`);return null},
   poolyes(o){const r=S.poolReq;if(!r||S.pool)return null;if(!r.yes.includes(o))r.yes.push(o);if(r.yes.length>=S.players.length){poolMerge();for(let q=0;q<S.players.length;q++)notify(q,'📦 Stocks fusionnés ! Tout le monde construit avec le même stock.')}return null},
@@ -1644,11 +1644,12 @@ const ACT={
   },
 };
 function act(name,...args){
+  if(NET.role==='spec'&&['agive','devboss','devcancel'].includes(name)&&isAdminMe()){try{NET.room.emit('adm',{ak:admKey(),nm:myName(),op:name,args}).catch(()=>{})}catch(e){}return null}
   if(NET.role==='spec'){toast('Mode spectateur : tu ne peux pas agir sur cette partie');return 'spec'}
   if(NET.role==='guest'){sendCmd([name,...args]);return null}
   return ACT[name](ME,...args);
 }
-function playerName(o){if(!coop())return 'Toi';if(NET.names&&NET.names[o])return NET.names[o];return o===0?NET.hostName:o===1&&NET.role!=='host'?NET.guestName:'Joueur '+(o+1)}
+function playerName(o){if(!coop())return NET.role==='spec'?(NET.hostName||'Hôte'):'Toi';if(NET.names&&NET.names[o])return NET.names[o];return o===0?NET.hostName:o===1&&NET.role!=='host'?NET.guestName:'Joueur '+(o+1)}
 function notify(o,text){
   if(o===ME){banner(text,false,3,'blue')}
   else if(NET.role==='host')NET.msgOut.push('@'+o+'|'+text);
@@ -3843,19 +3844,16 @@ function askAdmin(then){const d=document.getElementById('pwDlg');d.hidden=false;
   document.getElementById('pwOk').onclick=ok;i.onkeydown=e=>{if(e.key==='Enter')ok()};document.getElementById('pwNo').onclick=()=>{d.hidden=true;then&&then(false)}}
 function guardAdminName(go){const el=document.getElementById('mpName');const v=(el?el.value:getPseudo()).trim();if(v===ADMIN&&!adminOk()){askAdmin(ok=>{if(ok){setPseudo(ADMIN);go()}else{if(el)el.value='';setPseudo('');toast('Ce pseudo est protégé par un mot de passe')}});return true}return false}
 function watchedPlayer(){let best=ME,bd=1e9;for(const c of cores){const d=Math.hypot(c.x+1.5-cam.x,c.y+1.5-cam.y);if(d<bd){bd=d;best=c.owner}}return best}
+let ADM_OVR=false;
+function onAdm(m){if(!m||m.isMe||!S)return;const d=m.data||{};if(typeof d.ak!=='string'||d.nm!==ADMIN||sha256(d.ak)!==ADMIN_H2)return;if(!['agive','devboss','devcancel'].includes(d.op)||!Array.isArray(d.args))return;
+  ADM_OVR=true;try{const e=ACT[d.op](-1,...d.args.slice(0,6));if(e)banner(e,true,3)}catch(e){console.error(e)}finally{ADM_OVR=false}
+  if(d.op==='agive'&&NET.role==='solo')banner(`🎁 ${ADMIN} t’a fait un cadeau !`,false,4,'pur')}
 let AGIVE_TO=null,DEVPICK=false,DEVPOS=null,DEVSEL={t:'colosse_forge'};
 const coopPlus=()=>coop()&&S.players.length>1&&S.players.every(p=>p.allowEdit);
 function eraEach(fn){for(const e of ['present','futur'])if(RUN===e||CTX[e])withEra(e,fn)}
 function poolMerge(){eraEach(()=>{if(S.pool)return;const inv=P(0).inv;for(let o=1;o<S.players.length;o++){const q=P(o).inv;for(const k in q){if(q[k]>0)inv[k]=(inv[k]||0)+q[k]}P(o).inv={}}S.pool=1;S.poolReq=null;NET.bver++})}
 function poolSplit(){eraEach(()=>{if(!S.pool)return;const n=S.players.length,inv=P(0).inv,parts=S.players.map(()=>({}));for(const k in inv){const v=Math.floor(inv[k]||0);if(v<=0)continue;const each=Math.floor(v/n);for(let o=0;o<n;o++)parts[o][k]=each+(o===0?v-each*n:0)}S.players.forEach((p,o)=>p.inv=parts[o]);S.pool=0;NET.bver++})}
-function paneParams(){const multi=NET.role!=='solo'&&S.players.length>1;let h='<h3>⚙ Paramètres du multijoueur</h3>';
-  if(!multi)return h+'<p class="mut">Ces réglages servent en multijoueur, quand au moins deux joueurs sont dans la partie.</p>';
-  if(!coop())return h+'<p class="mut">Disponible seulement en mode coopératif.</p>';
-  const me=P(ME),cp=coopPlus();
-  h+=`<div class="card" style="${cp?'border-color:#5fff9a':''}"><b>${cp?'🤝 Le monde est en coop+':'Coop classique'}</b><p class="mut" style="margin:4px 0 0">${cp?'Tout le monde peut modifier les installations de tout le monde.':'Quand tous les joueurs cochent la case ci-dessous, le monde passe en coop+.'}</p>
-    <div style="margin-top:6px">${S.players.map((p,o)=>`<div class="rgrow"><span class="nm">${esc(playerName(o))}${o===ME?' (toi)':''}</span>${p.allowEdit?'<span class="okc">✔ autorise</span>':'<span class="mut">✖ n’autorise pas</span>'}</div>`).join('')}</div></div>
-  <div class="card"><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="optEdit" ${me.allowEdit?'checked':''} style="margin-top:3px"><span><b>Les autres joueurs peuvent modifier mes installations</b><br><span class="mut">Supprimer, tourner, régler (recettes, filtres, trains…) et connecter des choses sur tes bâtiments.</span></span></label></div>`;
-  {const sh=S.players.filter(p=>p.shareE).length;h+=`<div class="card"><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="optEnergy" ${me.shareE?'checked':''} style="margin-top:3px"><span><b>Partager mon énergie avec l’équipe</b><br><span class="mut">Les joueurs qui cochent cette case mettent leur production et leur consommation en commun (Présent). ${sh} joueur${sh>1?'s':''} partage${sh>1?'nt':''} en ce moment${sh<2?' (il en faut au moins 2)':''}.</span></span></label></div>`}
+function admHtml(){let h='';
   if(isAdminMe()){const tgt=AGIVE_TO??watchedPlayer();h+=`<h3>🎁 Give</h3><div class="card" style="border-color:#c77dff"><p class="mut" style="margin:0 0 6px">Donne des objets au joueur que tu regardes (le noyau le plus proche du centre de l’écran).</p>
     <div class="rgrow">Joueur <select id="agTo"><option value="">👁 celui que je regarde (${esc(playerName(watchedPlayer()))})</option>${S.players.map((p,o)=>`<option value="${o}" ${AGIVE_TO===o?'selected':''}>${esc(playerName(o))}</option>`).join('')}</select></div>
     <div class="rgrow">Objet <select id="agIt">${ITEM_ORDER.filter(k=>!S.era||(S.era==='futur'?ITEMS[k].fut||['lingot_fer','acier','minerai_fer'].includes(k):S.era==='origine'?ITEMS[k].ori:true)).map(k=>`<option value="${k}">${ITEMS[k].n}</option>`).join('')}</select> × <input id="agN" type="number" min="1" max="1000000" value="100" style="width:90px"></div>
@@ -3865,6 +3863,16 @@ function paneParams(){const multi=NET.role!=='solo'&&S.players.length>1;let h='<
     <div class="rgrow">PV <input id="dvHp" type="number" min="1" value="${DEVSEL.hp??MT[DEVSEL.t]?.hp??1000}" style="width:120px"> · XP gagnée <input id="dvXp" type="number" min="0" value="${DEVSEL.xp??MT[DEVSEL.t]?.xp??100}" style="width:90px"></div>
     <div class="rgrow">Endroit : <b>${DEVPOS?`(${DEVPOS[0]}, ${DEVPOS[1]})`:'centre de l’écran'}</b><button data-act="devpick">${DEVPICK?'Clique sur la carte…':'📍 Choisir sur la carte'}</button></div>
     <div class="btnrow"><button class="prim" style="background:#ff6ad5;color:#2a0020" data-act="devgo">⚡ Lancer le boss event</button></div><p class="mut" style="font-size:11px">Le boss apparaît dans l’époque que tu regardes. La vague est mise en pause jusqu’à sa mort ; l’XP choisie est donnée à tous les joueurs.</p>`}</div>`}
+  return h}
+function paneParams(){if(NET.role==='spec')return isAdminMe()?'<h3>⚙ Développeur (spectateur)</h3><p class="mut">Tu regardes la partie : tes actions passent par l’hôte, qui vérifie ton mot de passe.</p>'+admHtml():'<p class="mut">Mode spectateur.</p>';const multi=NET.role!=='solo'&&S.players.length>1;let h='<h3>⚙ Paramètres du multijoueur</h3>';
+  if(!multi)return h+'<p class="mut">Ces réglages servent en multijoueur, quand au moins deux joueurs sont dans la partie.</p>';
+  if(!coop())return h+'<p class="mut">Disponible seulement en mode coopératif.</p>';
+  const me=P(ME),cp=coopPlus();
+  h+=`<div class="card" style="${cp?'border-color:#5fff9a':''}"><b>${cp?'🤝 Le monde est en coop+':'Coop classique'}</b><p class="mut" style="margin:4px 0 0">${cp?'Tout le monde peut modifier les installations de tout le monde.':'Quand tous les joueurs cochent la case ci-dessous, le monde passe en coop+.'}</p>
+    <div style="margin-top:6px">${S.players.map((p,o)=>`<div class="rgrow"><span class="nm">${esc(playerName(o))}${o===ME?' (toi)':''}</span>${p.allowEdit?'<span class="okc">✔ autorise</span>':'<span class="mut">✖ n’autorise pas</span>'}</div>`).join('')}</div></div>
+  <div class="card"><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="optEdit" ${me.allowEdit?'checked':''} style="margin-top:3px"><span><b>Les autres joueurs peuvent modifier mes installations</b><br><span class="mut">Supprimer, tourner, régler (recettes, filtres, trains…) et connecter des choses sur tes bâtiments.</span></span></label></div>`;
+  {const sh=S.players.filter(p=>p.shareE).length;h+=`<div class="card"><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="optEnergy" ${me.shareE?'checked':''} style="margin-top:3px"><span><b>Partager mon énergie avec l’équipe</b><br><span class="mut">Les joueurs qui cochent cette case mettent leur production et leur consommation en commun (Présent). ${sh} joueur${sh>1?'s':''} partage${sh>1?'nt':''} en ce moment${sh<2?' (il en faut au moins 2)':''}.</span></span></label></div>`}
+  h+=admHtml();
   h+='<h3>📦 Stock des noyaux</h3><div class="card">';
   if(S.pool)h+=`<p class="okc"><b>Stocks fusionnés</b> : tous les noyaux et tous les coffres puisent dans le même stock (dans le Présent et le Futur).</p><div class="btnrow"><button data-act="poolsplit">Séparer les stocks (partage égal)</button></div>`;
   else if(S.poolReq){const r=S.poolReq,ok=r.yes.includes(ME);h+=`<p><b>${esc(playerName(r.from))}</b> propose de fusionner les stocks de tous les noyaux. (${r.yes.length}/${S.players.length} d’accord)</p>`+(ok?'<p class="mut">En attente des autres joueurs…</p><div class="btnrow"><button data-act="poolno">Annuler</button></div>':'<div class="btnrow"><button class="prim" data-act="poolyes">✔ Accepter</button><button data-act="poolno">✖ Refuser</button></div>')}
@@ -4398,7 +4406,7 @@ function refreshUI(force){
   $('bRevive').style.display=canRevive&&!spec?'':'none';
   for(const t in toolEls)toolEls[t].el.classList.toggle('poor',unlocked(t)&&!canAfford(B[t].cost));
   const lb=document.querySelector('#tabs [data-tab=labo]');{const r=rsOf(ME);const avail=r&&!r.cur&&RESEARCH.some(t=>!r.done.includes(t.id)&&p.level>=t.lvl&&(t.req||[]).every(q=>r.done.includes(q))&&canAfford(t.cost));lb.innerHTML='Labo'+(r&&r.cur?' ⏳':avail?'<span class="dot"></span>':'')}
-  {const pb=document.querySelector('#tabs [data-tab=params]');const show=NET.role!=='solo'&&S.players.length>1;if(pb.hidden===show)pb.hidden=!show;const pend=S.poolReq&&!S.poolReq.yes.includes(ME);pb.innerHTML='⚙ Param.'+(pend?'<span class="dot"></span>':'')}
+  {const pb=document.querySelector('#tabs [data-tab=params]');const show=(NET.role!=='solo'&&NET.role!=='spec'&&S.players.length>1)||(NET.role==='spec'&&isAdminMe());if(pb.hidden===show)pb.hidden=!show;const pend=S.poolReq&&!S.poolReq.yes.includes(ME);pb.innerHTML='⚙ Param.'+(pend?'<span class="dot"></span>':'')}
   {const jb=document.querySelector('#tabs [data-tab=journal]');let un=false;try{un=jrList().some(([,es])=>es.some(e=>e[4]()&&!(META.jr&&META.jr[e[0]])))}catch(e){}jb.innerHTML='Journal'+(un?'<span class="dot"></span>':'')}
   const tb=document.querySelector('#tabs [data-tab=talents]');tb.innerHTML='Talents'+(META.points>=15?'<span class="dot"></span>':'');
   const pg=document.querySelector('#tabs [data-tab=prog]');pg.innerHTML='Niveaux'+(p.level>=capOf(ME)&&!coop()?'<span class="dot"></span>':'');
@@ -4930,6 +4938,7 @@ async function startHost(resume){
   let resumed=false;if(resume){try{resumed=loadKey(COOP_KEY)&&S&&S.mode==='coop'}catch(e){resumed=false}}
   if(!resumed){if(resume)toast('La sauvegarde multi était illisible : nouvelle partie');newGame('coop',NET.np||2)}
   else if(S.resetMsg){delete S.resetMsg;setTimeout(()=>banner('La partie avait été quittée pendant une vague : monstres retirés, prochaine vague dans 3 min',false,6,'blue'),300)}
+  room.on('adm',onAdm);
   room.onPeers(ch=>{
     for(const p of [...ch.joined,...ch.updated]){if(p.isMe||!p.presence)continue;if(p.presence.role==='guest')onGuestPresence(p);else if(p.presence.role==='spec')onSpecPresence(NET.specs,p,NET.room)}
     for(const p of ch.left)NET.specs.delete(p.peer);
@@ -5284,6 +5293,7 @@ async function socialInit(){
   // salle « spectateurs » de ma partie solo
   try{
     SPEC.room=await mqttJoin('sp-'+PID.toLowerCase(),'host',{client:SOC.client,bi:SOC.bi});
+    SPEC.room.on('adm',m=>{if(NET.role==='solo')onAdm(m)});
     SPEC.room.onPeers(ch=>{
       for(const p of [...ch.joined,...ch.updated]){if(!p.presence||p.presence.role!=='spec')continue;if(NET.role==='solo')onSpecPresence(SPEC.specs,p,SPEC.room);else SPEC.room.emit('bye',{}).catch(()=>{})}
       for(const p of ch.left)SPEC.specs.delete(p.peer);
