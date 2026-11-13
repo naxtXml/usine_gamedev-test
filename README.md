@@ -193,6 +193,7 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 
 ## Objectifs en plein écran (v57)
 - Bouton ⛶ à droite du titre « Objectifs » (onglet Base) : affiche tous les objectifs en plein écran, sur plusieurs colonnes, avec la barre de progression, l'objectif en cours surligné et des filtres Tous / À faire / Faits. Mise à jour en direct ; Échap ou ✕ pour fermer.
+- Correctif (v58) : la liste des objectifs ne bouge plus toute seule. Elle est placée au-dessus des Infos (qui changent de taille quand on survole un bâtiment), elle défile dans son propre cadre, et la position de défilement est conservée quand le panneau se met à jour.
 
 ## Commandes
 

@@ -73,7 +73,7 @@ canvas#c{display:block;cursor:crosshair}
 #gList{flex:1;overflow:auto;columns:3 320px;column-gap:28px;margin:6px 0 0;padding-left:30px;font-size:14.5px}
 #gList li{break-inside:avoid;margin:0 0 9px;color:var(--mut);line-height:1.35}#gList li.done{color:var(--ok);text-decoration:line-through;text-decoration-color:rgba(76,195,138,.5)}
 #gList li.cur{color:#fff;font-weight:700}#gList li.cur::after{content:' ◀ en cours';color:#ffd23f;font-size:11px;font-weight:600}
-ol.goals{padding-left:18px;font-size:12.5px}
+ol.goals{padding-left:18px;font-size:12.5px;max-height:240px;overflow:auto;overflow-anchor:none}#pane{overflow-anchor:none}
 ol.goals li{margin:3px 0;color:var(--mut)}
 ol.goals li.done{color:var(--ok);text-decoration:line-through;text-decoration-color:rgba(76,195,138,.5)}
 ol.goals li.cur{color:var(--txt);font-weight:600}
@@ -4187,9 +4187,9 @@ function paneBase(){
   let h=(S.era==='origine'?oriPanel():'')+`<h3>${coop()?'Ton stock (noyau + coffres)':'Stock (noyau + coffres)'}</h3><div class="inv">`+(S.era==='origine'?ORI_IO:S.era==='futur'?FUT_IO:ITEM_ORDER.filter(k=>!ITEMS[k].ori)).filter((k,i)=>S.era==='origine'||(S.era==='futur'?i<11:i<BASE_ITEMS&&!ITEMS[k].fut)||Math.floor(total(k))>0).map(k=>{const v=Math.floor(total(k));return`<div class="it${v?'':' zero'}">${sw(k)}<span>${ITEMS[k].n}</span><span class="n">${v}</span></div>`}).join('')+'</div>';
  if(spec)h=`<h3>Stock de ${esc(NET.hostName)}</h3>`+h.slice(h.indexOf('</h3>')+5);
   if(coop()&&!spec)h+=`<div class="btnrow"><button class="blue" data-act="give" ${mates().every(o=>P(o).dead)?'disabled':''}>Donner des matériaux${NP()===2?' à '+esc(playerName(mates()[0])):' à un coéquipier'}</button></div>`;
-  h+=`<h3>Infos</h3><div class="card" style="min-height:90px">${infoHtml()}</div>`;
   const GL=S.era==='origine'?[]:S.era==='futur'?FGOALS:GOALS;let cur=-1;for(let i=0;i<GL.length;i++)if(!p.goalsDone.includes(i)){cur=i;break}
   if(GL.length)h+=`<h3 style="display:flex;align-items:center;gap:6px"><span style="flex:1">Objectifs${S.era==='futur'?' du futur':''} (+60 XP chacun)</span><button data-act="goalsFS" title="Afficher les objectifs en plein écran" style="padding:1px 7px;font-size:13px">⛶</button></h3><ol class="goals">`+GL.map((g,i)=>`<li class="${p.goalsDone.includes(i)?'done':i===cur?'cur':''}">${g[0]}</li>`).join('')+'</ol>';
+  h+=`<h3>Infos</h3><div class="card" style="min-height:90px">${infoHtml()}</div>`;
   h+=`<h3>Commandes</h3><div class="help">
     <div><kbd>Clic</kbd> poser · <b>glisser</b> pour une ligne de tapis/murs</div>
     <div><kbd>Clic droit</kbd> démolir (remboursé)${coop()?' · sur le noyau du coéquipier : donner':''}</div>
@@ -4304,7 +4304,7 @@ let lastPane='',rbArm=0;
 function renderPane(force){
   if(!S)return;
   const h=tab==='base'?paneBase():tab==='usine'?paneUsine():tab==='labo'?paneLabo():tab==='prog'?paneProg():tab==='atelier'?paneAtelier():tab==='journal'?paneJournal():tab==='params'?paneParams():paneTalents();
-  if(h!==lastPane||force){$('pane').innerHTML=h;lastPane=h}
+  if(h!==lastPane||force){const pn=$('pane'),st=pn.scrollTop,gl=pn.querySelector('ol.goals'),gs=gl?gl.scrollTop:0;pn.innerHTML=h;lastPane=h;pn.scrollTop=st;const g2=pn.querySelector('ol.goals');if(g2)g2.scrollTop=gs}
 }
 $('pane').addEventListener('change',e=>{if(e.target.id==='dvT'){DEVSEL={t:e.target.value};renderPane(true);return}if(e.target.id==='dvHp'){DEVSEL.hp=+e.target.value;return}if(e.target.id==='dvXp'){DEVSEL.xp=+e.target.value;return}if(e.target.id==='agTo'){AGIVE_TO=e.target.value===''?null:+e.target.value;renderPane(true);return}if(e.target.id==='optEnergy'){const v=e.target.checked;const er=act('shareE',v?1:0);if(er)toast(er);if(NET.role==='guest')P(ME).shareE=v;setTimeout(()=>renderPane(true),150);return}if(e.target.id==='optEdit'){const v=e.target.checked;const er=act('allowEdit',v?1:0);if(er)toast(er);if(NET.role==='guest')P(ME).allowEdit=v;setTimeout(()=>renderPane(true),150)}});
 $('pane').addEventListener('pointerdown',e=>{
@@ -4655,7 +4655,7 @@ let GFILT='all';
 function renderGoalsFS(){if(!S)return;const p=P(ME),GL=S.era==='origine'?[]:S.era==='futur'?FGOALS:GOALS;let cur=-1;for(let i=0;i<GL.length;i++)if(!p.goalsDone.includes(i)){cur=i;break}
   const done=GL.filter((_,i)=>p.goalsDone.includes(i)).length;$('gTitle').textContent=`🎯 Objectifs${S.era==='futur'?' du futur':''} (+60 XP chacun)`;$('gCount').textContent=`${done} / ${GL.length} faits`;$('gBar').style.width=(GL.length?done/GL.length*100:0)+'%';
   $('gFilt').innerHTML=[['all','Tous'],['todo','À faire'],['done','Faits']].map(([k,n])=>`<button data-gf="${k}" class="${GFILT===k?'on':''}">${n}</button>`).join(' ');
-  $('gList').innerHTML=GL.map((g,i)=>{const d=p.goalsDone.includes(i);if(GFILT==='todo'&&d||GFILT==='done'&&!d)return '';return `<li value="${i+1}" class="${d?'done':i===cur?'cur':''}">${g[0]}</li>`}).join('')||'<p class="mut">Rien ici.</p>'}
+  const gH=GL.map((g,i)=>{const d=p.goalsDone.includes(i);if(GFILT==='todo'&&d||GFILT==='done'&&!d)return '';return `<li value="${i+1}" class="${d?'done':i===cur?'cur':''}">${g[0]}</li>`}).join('')||'<p class="mut">Rien ici.</p>';const gl=$('gList');if(gl.dataset.h!==gH){const st=gl.scrollTop;gl.innerHTML=gH;gl.dataset.h=gH;gl.scrollTop=st}}
 function openGoalsFS(){$('goalDlg').hidden=false;renderGoalsFS()}
 $('goalDlg').addEventListener('click',e=>{if(e.target.id==='goalDlg'||e.target.id==='gX'){$('goalDlg').hidden=true;return}const f=e.target.closest('[data-gf]');if(f){GFILT=f.dataset.gf;renderGoalsFS()}});
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('goalDlg').hidden){$('goalDlg').hidden=true;e.stopPropagation()}},true);
