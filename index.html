@@ -251,6 +251,8 @@ function pcol(o){const c=cosOf(o).col;if(c)return c;return coop()?PCOL[o]||'#ccc
 // ================= DATA =================
 const ITEMS={
   neptunium:{n:'Neptunium',c:'#3b7bff',s:'gem'},
+  chitine:{n:'Chitine',c:'#c08a3e',s:'ore'},
+  gelee_royale:{n:'Gelée royale',c:'#ffc93c',s:'gem'},
   palladium:{n:'Palladium',c:'#e6e8f0',s:'ore'},
   iridium:{n:'Iridium',c:'#7fb8a8',s:'ore'},
   orichalque:{n:'Orichalque',c:'#ff9a4a',s:'ore'},
@@ -429,6 +431,9 @@ B.leurre={cat:'trap',n:'Leurre explosif',cost:{acier:6,plastique:4,munitions:30}
 B.leurre_geant={cat:'trap',n:'Leurre géant',cost:{alliage:8,prisme:2,munitions:100},hp:6000,lure:-18,radius:4.5,blast:2500,col:'#c060e0',lvl:40,desc:'Attire les monstres de beaucoup plus loin, encaisse énormément, puis explose violemment.'};
 B.mine={cat:'trap',n:'Mine',cost:{lingot_fer:4,munitions:20},hp:100,walk:true,radius:1.6,blast:250,col:'#5a5f68',lvl:5,desc:'Les monstres marchent dessus sans la voir : elle explose (une seule fois). Ne gêne pas leur passage.'};
 B.pics={cat:'trap',n:'Piège à pics',cost:{acier:3,engrenage:2},hp:400,walk:true,dps:30,col:'#8a8f99',lvl:12,desc:'Blesse et ralentit les monstres qui marchent dessus. Ne gêne pas leur passage. Réutilisable.'};
+B.brouilleur={cat:'def',n:'Brouilleur phéromonal',cost:{chitine:30,module_quantique:2,circuit:20},hp:1500,pw:-60,range:6,col:'#ffb020',lvl:66,req:'atlas',desc:'Technologie d\'Atlas : imite l\'odeur de la Reine. Ralentit de moitié tous les monstres (volants compris) dans un rayon de 6 cases, et les bêtes de la ruche y subissent +50 % de dégâts. Énergie.'};
+B.lance_dard={cat:'def',n:'Lance-dards de chitine',cost:{chitine:40,alliage:10,circuit:12},hp:1400,pw:-50,range:11,rate:0.8,dmg:900,pierce:4,col:'#d9a441',lvl:66,req:'nid',desc:'Un dard de chitine qui transperce jusqu\'à 4 monstres alignés et ignore toute armure. Débloqué en détruisant un nid de la ruche.'};
+B.cantine={cat:'prod',size:2,n:'Cantine de Gougouz',cost:{acier:200,gelee_royale:50,circuit:40},hp:3000,pw:-30,col:'#ff8a3d',lvl:60,req:'reine',desc:'Gougouz est sauvé… et il cuisine ! Consomme 1 gelée royale toutes les 20 s (prise dans ton stock) : tant qu\'elle est nourrie, +30 % d\'XP et +15 % de vitesse des machines pour toi.'};
 B.station={cat:'trap',n:'Station de recharge',size:2,cost:{acier:40,circuit:20,batterie:10},hp:3000,pw:-30,col:'#3a4a5a',lvl:50,desc:'Structure 2×2 où se repose et se recharge un robot gardien.'};
 B.gardien={cat:'trap',unit:true,n:'Robot gardien',cost:{module_quantique:4,lingot_mithril:20,pile_fusion:2},hp:8000,col:'#e04a4a',lvl:50,desc:'Se pose sur une station de recharge. Pendant les vagues, il sort 1 minute : il attire les monstres et leur inflige d\'énormes dégâts, puis revient se recharger.'};
 B.drone={cat:'log',unit:true,n:'Drone collecteur',cost:{lingot_mithril:10,module_quantique:2,batterie:10},hp:3000,col:'#4fd0ff',lvl:45,desc:'Mine 3× plus vite, transporte 40 objets et les envoie par les airs vers un réceptionneur, un coffre ou ton noyau, sans faire d\'allers-retours. Max 5.'};
@@ -441,7 +446,7 @@ const BELT=new Set(['tapis','tapis_rapide','tapis_express']);
 const ROTATABLE=new Set(['pont_entree','pont_sortie','compacteur','synthetiseur','tunnel_entree','tunnel_sortie','extracteur','recepteur','tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
 const MACHINES=new Set(['compacteur','synthetiseur','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','forge','centrifugeuse']);
 const DRILLS=new Set(['foreuse','foreuse_avancee','foreuse_laser','pompe']);
-const TURRETS=new Set(['canon_garik','canon_prisme','mitrailleuse','mitrailleuse_lourde','laser','plasma','tesla','lance_flammes','railgun']);
+const TURRETS=new Set(['lance_dard','canon_garik','canon_prisme','mitrailleuse','mitrailleuse_lourde','laser','plasma','tesla','lance_flammes','railgun']);
 const WALK=new Set(['mine','pics']);
 const GENS=new Set(['generateur','super_generateur','reacteur','reacteur_helium']);
 const MT={
@@ -464,6 +469,12 @@ Object.assign(MT,{
   necro:{n:'Nécromancien',hp:200,sp:0.7,dmg:20,r:0.34,col:'#3f5a3f',xp:30,summon:true},
   hydre:{n:'Hydre',hp:9000,sp:0.35,dmg:600,r:1.0,col:'#2e8b57',xp:2500,boss:true},
   liche:{n:'Liche',hp:7000,sp:0.45,dmg:400,r:0.9,col:'#c8c8ff',xp:3000,boss:true},
+});
+Object.assign(MT,{
+  larve:{n:'Larve',hp:45,sp:2.5,dmg:8,r:0.18,col:'#f3e3b0',xp:3,hive:true},
+  soldat_ruche:{n:'Soldat de la ruche',hp:900,sp:0.75,dmg:110,r:0.46,col:'#b8742a',xp:60,armor:25,hive:true},
+  cracheur:{n:'Cracheur d\'acide',hp:260,sp:0.9,dmg:70,r:0.34,col:'#8fd63a',xp:35,spit:3.2,hive:true},
+  imperatrice:{n:'Reine de la Ruche',hp:30000,sp:0.55,dmg:900,r:1.2,col:'#ffb020',xp:30000,boss:true,armor:30,hive:true},
 });
 const BOSS_CYCLE=['titan','reine','golem','dragon','hydre','liche'];
 // ----- Zones -----
@@ -565,6 +576,14 @@ const GOALS=[
 // ================= SUCCÈS & PERSONNALISATION (permanents) =================
 const myB=()=>buildings.filter(b=>b.owner===ME);
 const ACH=[
+  ['ruche','🐝','Dans la ruche','Descendre dans la ruche sous Neptune',()=>!!(S.ug&&S.ug.found&&S.ug.found.ruche)],
+  ['reveil','🧑‍🚀','Bon réveil, Atlas','Réveiller Atlas de sa capsule de stase',()=>!!(S.ug&&S.ug.atlas)],
+  ['nid1','🔥','Incendiaire','Brûler un nid de la ruche',()=>!!(S.ug&&S.ug.nids&&S.ug.nids.some(x=>x))],
+  ['nids','🌋','Terre brûlée','Brûler les 5 nids de la ruche',()=>!!(S.ug&&S.ug.nids&&S.ug.nids.every(x=>x))],
+  ['regicide','👑','Régicide','Vaincre la Reine de la Ruche',()=>!!(S.ug&&S.ug.reine)],
+  ['cantine','🍲','À table !','Construire la cantine de Gougouz',()=>buildings.some(b=>b.owner===ME&&b.type==='cantine')],
+  ['dard','🏹','Piqûre de rappel','Poser un lance-dards de chitine',()=>buildings.some(b=>b.owner===ME&&b.type==='lance_dard')],
+  ['brouill','📡','Phéromones','Poser un brouilleur phéromonal',()=>buildings.some(b=>b.owner===ME&&b.type==='brouilleur')],
   ['boss1','🐉','Tueur de géants','Vaincre un boss',()=>(S.bossKills||0)>=1],
   ['boss5','👑','Chasseur de légendes','Vaincre 5 boss dans une même partie',()=>(S.bossKills||0)>=5],
   ['k100','⚔','Défenseur','Éliminer 100 monstres (au total)',()=>META.cnt.kills>=100],
@@ -624,7 +643,8 @@ let guestMeta={talents:{}};
 const metaOf=o=>(o===ME&&NET.role!=='spec'?META:o===0?(isRemote()?NET.hostMeta:META):(NET.metas&&NET.metas[o])||(o===1?guestMeta:null))||{talents:{}};
 const cosOf=o=>{if(!S||!coop())return META.cos||{};if(o===ME&&NET.role!=='spec')return META.cos||{};return(NET.cosAll&&NET.cosAll[o])||{}};
 const tl=(id,o=0)=>{const m=metaOf(o);const v=(m.talents||{})[id]|0;const t=TALENTS.find(x=>x.id===id);return clamp(v,0,t?t.max:0)};
-const mMach=o=>1+0.1*tl('machines',o)+rsv('mach',o),mArm=o=>1+0.1*tl('armes',o)+rsv('arm',o),mHp=o=>1+0.15*tl('blindage',o)+rsv('hp',o),mPw=o=>1+0.1*tl('energie',o)+rsv('pw',o),mBelt=o=>1+0.15*tl('tapis',o)+rsv('belt',o),mXp=o=>1+0.15*tl('xp',o)+rsv('xp',o),mRob=o=>1+0.25*tl('robots',o)+rsv('rob',o),mRange=o=>1+rsv('range',o);
+const CANT=[0,0,0,0];const cantOn=o=>S&&CANT[o]>S.t;
+const mMach=o=>1+0.1*tl('machines',o)+rsv('mach',o)+(cantOn(o)?0.15:0),mArm=o=>1+0.1*tl('armes',o)+rsv('arm',o)+(S&&S.ug&&S.ug.atlas?0.2:0)+(S&&S.ug&&S.ug.reine?0.15:0),mHp=o=>1+0.15*tl('blindage',o)+rsv('hp',o),mPw=o=>1+0.1*tl('energie',o)+rsv('pw',o),mBelt=o=>1+0.15*tl('tapis',o)+rsv('belt',o),mXp=o=>1+0.15*tl('xp',o)+rsv('xp',o)+(cantOn(o)?0.3:0),mRob=o=>1+0.25*tl('robots',o)+rsv('rob',o),mRange=o=>1+rsv('range',o);
 const maxHp=b=>B[b.type].hp*mHp(b.owner||0);
 
 // ================= STATE =================
@@ -715,9 +735,14 @@ const WORLDS={
   neptune:{n:'Neptune',ic:'🔵',col:'#4a7dff',bg:[22,40,98],ores:['neptunium','exotique'],far:true,d:'Neptunium (pour les recherches du labo extraterrestre) et Matière exotique. Un étrange laboratoire se cache quelque part sur la carte…'},
   europe:{n:'Europe',ic:'🧊',col:'#8fd3ff',bg:[120,150,172],ores:['glace_cosmique','exotique'],d:'Glace cosmique (→ uranium enrichi) et Matière exotique (→ modules quantiques).'},
 };
-const WORLD_IDS=['lune','mars','europe','neptune'];const LAB={x:8,y:6};
+WORLDS.ruche={n:'Ruche',ic:'🐝',col:'#ffb020',bg:[60,24,40],ores:['chitine','gelee_royale'],far:true,d:'Sous la glace de Neptune. Chitine (lance-dards) et Gelée royale (réveiller Atlas, nourrir la cantine). Clique sur la capsule, les nids et le trône.'};
+const WORLD_IDS=['lune','mars','europe','neptune','ruche'];const LAB={x:8,y:6};
+const HIVE={caps:{x:7,y:23},nids:[{x:5,y:5},{x:19,y:3},{x:35,y:25},{x:42,y:16},{x:14,y:13}],trone:{x:40,y:5}};
+const nidsDone=()=>S&&S.ug&&S.ug.nids?S.ug.nids.filter(x=>x).length:0;
+const nidCost=k=>({neptunium:100+60*k,pile_fusion:8+4*k,chitine:60+30*k});
+const ATLAS_COST={gelee_royale:150,neptunium:300,module_quantique:20,pile_fusion:20};
 const WW=48,WH=30;let WDEP={},WCV={};
-const ORE_RATE={neptunium:8,regolithe:2.5,helium3:6,oxyde_martien:3,cristal_rouge:7,glace_cosmique:3.5,exotique:10};
+const ORE_RATE={chitine:4,gelee_royale:9,neptunium:8,regolithe:2.5,helium3:6,oxyde_martien:3,cristal_rouge:7,glace_cosmique:3.5,exotique:10};
 const WB={foreuse_spatiale:{n:'Foreuse spatiale',cost:{acier:15,circuit:5,moteur:1},spd:1,look:'foreuse_avancee'},foreuse_quantique:{n:'Foreuse quantique',cost:{alliage:6,circuit:10,batterie:4},spd:2.5,lvl:20,look:'foreuse_laser'}};
 const WB_IDS=Object.keys(WB);
 let LAYER='surface',LTOOL=null;const LCAM={};
@@ -746,13 +771,15 @@ function genWorlds(seed){
   WDEP={};
   WORLD_IDS.forEach((w,wi)=>{const r=rng((seed^(0x51ab+wi*7919))>>>0);const d=Array.from({length:WH},()=>Array(WW).fill(null));const W2=WORLDS[w];
     const blob=(it,n,mn,mx)=>{for(let k=0;k<n;k++){let x=2+((r()*(WW-4))|0),y=2+((r()*(WH-4))|0),m=mn+((r()*(mx-mn+1))|0);for(let j=0;j<m;j++){if(Math.abs(x-WW/2)>4||Math.abs(y-WH/2)>3)d[y][x]=it;const [dx,dy]=DIRS[(r()*4)|0];x=clamp(x+dx,1,WW-2);y=clamp(y+dy,1,WH-2)}}};
-    blob(W2.ores[0],11,6,11);blob(W2.ores[1],6,3,6);if(w==='neptune'){for(let y=LAB.y-2;y<=LAB.y+3;y++)for(let x=LAB.x-2;x<=LAB.x+3;x++)if(d[y]&&x>=0&&x<WW)d[y][x]=null;for(let y=9-1;y<=9+1;y++)for(let x=12-1;x<=12+1;x++)if(d[y])d[y][x]=null}WDEP[w]=d});
+    blob(W2.ores[0],11,6,11);blob(W2.ores[1],6,3,6);if(w==='neptune'){for(let y=LAB.y-2;y<=LAB.y+3;y++)for(let x=LAB.x-2;x<=LAB.x+3;x++)if(d[y]&&x>=0&&x<WW)d[y][x]=null;for(let y=9-1;y<=9+1;y++)for(let x=12-1;x<=12+1;x++)if(d[y])d[y][x]=null}
+    if(w==='ruche'){for(const o of[HIVE.caps,HIVE.trone,...HIVE.nids])for(let y=o.y-2;y<=o.y+2;y++)for(let x=o.x-2;x<=o.x+2;x++)if(d[y]&&x>=0&&x<WW)d[y][x]=null}
+    WDEP[w]=d});
   WCV={};
 }
 // ---- encodage des cartes de bits (sauvegarde / réseau)
 function bitsEnc(a){const u=new Uint8Array(Math.ceil(a.length/8));for(let i=0;i<a.length;i++)if(a[i])u[i>>3]|=1<<(i&7);return b64(u)}
 function bitsDec(s,a){try{const u=unb64(s);a.fill(0);for(let i=0;i<a.length;i++)a[i]=(u[i>>3]>>(i&7))&1}catch(e){}}
-function ensureLayers(){S.ug=S.ug||{found:{},maxD:[0,0,0,0]};S.ug.found=S.ug.found||{};S.ug.maxD=S.ug.maxD||[0,0,0,0];S.probes=S.probes||[];S.wb=S.wb||{};for(const w of WORLD_IDS)S.wb[w]=S.wb[w]||[]}
+function ensureLayers(){S.ug=S.ug||{found:{},maxD:[0,0,0,0]};S.ug.found=S.ug.found||{};S.ug.maxD=S.ug.maxD||[0,0,0,0];S.probes=S.probes||[];S.wb=S.wb||{};for(const w of WORLD_IDS)S.wb[w]=S.wb[w]||[];if(S.ug.trappe)S.ug.found.ruche=true;if(!Array.isArray(S.ug.nids)||S.ug.nids.length!==5)S.ug.nids=[0,0,0,0,0]}
 function loadUGState(){ugFull=true;ensureLayers();if(S.ugD)bitsDec(S.ugD,UGD);if(S.ugS)bitsDec(S.ugS,UGS);for(let x=44;x<=52;x++)for(let y=0;y<=2;y++)UGS[ugIdx(x,y)]=1;UGV++}
 // ---- sonde
 const PMAX=25,pNeed=l=>10+8*l,pSpd=p=>1+0.08*((p.lv||1)-1),pCap=p=>PROBE_CAP+4*((p.lv||1)-1),pRad=p=>(p.lv||1)>=20?2:(p.lv||1)>=10?1:0,pBed=p=>(p.lv||1)>=PMAX;
@@ -797,6 +824,7 @@ function updUG(dt){
 }
 function updWorlds(dt){
   ensureLayers();
+  if(S.ug.reineOn&&!S.ug.reine&&!monsters.some(m=>m.type==='imperatrice')&&!spawnQ.some(q=>q.type==='imperatrice')){S.ug.reineOn=false;UGV++;for(let o=0;o<NP();o++)notify(o,'🐝 La Reine de la Ruche s\'est retirée dans son trône… Tu pourras la défier à nouveau.')}
   for(const w of WORLD_IDS)for(const b of S.wb[w]){const it=WDEP[w]&&WDEP[w][b.y]&&WDEP[w][b.y][b.x];if(!it)continue;b.tm=(b.tm||0)+dt*WB[b.t].spd*mMach(b.o);const rate=ORE_RATE[it]||5;if(b.tm>=rate){b.tm-=rate;addInv(b.o,it,1);stat(b.o,'p',it);stat(b.o,'n',it)}}
 }
 
@@ -840,7 +868,9 @@ function take(k,n,o){const p=P(o);let r=n;const a=Math.min(p.inv[k]||0,r);p.inv[
 function pay(cost,o,mul=1){for(const k in cost)take(k,cost[k]*mul,o)}
 function addInv(o,k,n){const p=P(o);p.inv[k]=(p.inv[k]||0)+n}
 function refund(cost,o){for(const k in cost)addInv(o,k,cost[k])}
-const unlocked=(t,o=ME)=>P(o).level>=B[t].lvl;
+const hiveReq=r=>{const u=S&&S.ug;if(!u)return false;return r==='atlas'?!!u.atlas:r==='nid'?!!(u.nids&&u.nids.some(x=>x)):r==='reine'?!!u.reine:true};
+const REQMSG={atlas:'Réveille d\'abord Atlas (dans la Ruche, sous Neptune)',nid:'Détruis d\'abord un nid de la Ruche',reine:'Vaincs d\'abord la Reine de la Ruche'};
+const unlocked=(t,o=ME)=>P(o).level>=B[t].lvl&&(!B[t].req||hiveReq(B[t].req));
 const recUnlocked=(r,o=ME)=>P(o).level>=r.lvl;
 
 // ================= BUILDINGS =================
@@ -880,7 +910,7 @@ function monsterOn(x,y){return monsters.some(m=>Math.floor(m.x)===x&&Math.floor(
 function canPlace(type,x,y,o=ME){
   if(!B[type])return 'Inconnu';
   if(P(o).dead)return 'Ton noyau est détruit : attends d\'être réanimé';
-  if(!unlocked(type,o))return `Débloqué au niveau ${B[type].lvl}`;
+  if(!unlocked(type,o))return P(o).level<B[type].lvl?`Débloqué au niveau ${B[type].lvl}`:REQMSG[B[type].req];
   if(x<0||y<0||x>=W||y>=H)return 'Hors de la carte';
   if(DOCKED.has(type)){const st=at(x,y);if(!st||st.type!=='station'||st.owner!==o)return `Pose le ${B[type].n.toLowerCase()} sur ta station de recharge`;if(robots.some(r=>DOCKED.has(r.kind)&&r.st&&r.st[0]===st.x&&r.st[1]===st.y))return 'Cette station est déjà occupée (une station = un robot)';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
   if(B[type].unit){if(terAt(x,y)===3)return 'Impossible de poser un robot sur l\'eau';if(!zoneOpen(x,y,o))return 'Zone verrouillée';if(robots.filter(r=>r.owner===o&&(r.kind||'robot')===type).length>=MAX_ROBOTS)return `Maximum ${MAX_ROBOTS} ${B[type].n.toLowerCase()}s`;if(grid[y][x])return 'Case occupée';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
@@ -955,6 +985,18 @@ const ACT={
   pstop(o){const p=probeOf(o);if(p)p.path=[];return null},
   precall(o){const p=probeOf(o);if(!p)return null;p.path=ugPath(Math.floor(p.x),Math.floor(p.y),48,0,pBed(p))||[];p.ret=true;return null},
   wplace(o,w,t,x,y){if(!WORLDS[w]||!WB[t])return null;ensureLayers();x=x|0;y=y|0;const e=worldCanPlace(w,t,x,y,o);if(e)return e;pay(WB[t].cost,o);S.wb[w].push({t,x,y,o,tm:0});WBV++;return null},
+  trappe(o){ensureLayers();if(!S.ug.lab||S.ug.trappe)return null;if(!alienDone(o))return 'Termine d\'abord toutes les recherches du labo extraterrestre';S.ug.trappe=true;S.ug.found.ruche=true;UGV++;for(let k=0;k<NP();k++)if(k!==o)notify(k,`🐝 ${playerName(o)} a ouvert la trappe sous le labo : la Ruche est accessible !`);return null},
+  atlas(o){ensureLayers();if(!S.ug.found.ruche||S.ug.atlas)return null;if(!canAfford(ATLAS_COST,o))return 'Il manque des ressources pour réveiller Atlas';pay(ATLAS_COST,o);S.ug.atlas=true;UGV++;gainXp(20000);for(let k=0;k<NP();k++)notify(k,`🧑‍🚀 Atlas est réveillé ! +20 % de dégâts pour toutes les tourelles, brouilleur phéromonal débloqué.`);return null},
+  nid(o,i){ensureLayers();i=i|0;if(!S.ug.found.ruche||i<0||i>4||S.ug.nids[i])return null;const c=nidCost(nidsDone());if(!canAfford(c,o))return 'Il manque des ressources pour la charge thermique';pay(c,o);S.ug.nids[i]=1;UGV++;gainXp(8000);
+    for(let k=0;k<NP();k++){addInv(k,'gelee_royale',40);notify(k,`🔥 ${playerName(o)} a brûlé un nid (${nidsDone()}/5) : vagues plus petites, +40 gelée royale. La ruche contre-attaque à la surface !`)}
+    const n=Math.max(S.wave,10),hm=Math.pow(1.24,9)*Math.pow(1.15,Math.max(0,n-10))*0.6,dm=1+0.08*(n-1),ed=(Math.random()*4)|0,cnt=12+6*nidsDone();
+    for(let j=0;j<cnt;j++){const r=Math.random();spawnQ.push({t:2+j*0.25,type:r<0.55?'larve':r<0.8?'cracheur':'soldat_ruche',edge:ed,hpMul:hm,dmgMul:dm})}
+    return null},
+  reine(o){ensureLayers();if(!S.ug.atlas||nidsDone()<5||S.ug.reine||S.ug.reineOn)return null;S.ug.reineOn=true;UGV++;
+    const n=Math.max(S.wave,60),cm=coop()?1+0.5*(NP()-1):1,hm=Math.pow(1.24,9)*Math.pow(1.15,Math.max(0,n-10)),ed=(Math.random()*4)|0;
+    spawnQ.push({t:5,type:'imperatrice',edge:ed,hpMul:Math.pow(1+n/10,2.2)*cm*3,wMul:hm,dmgMul:(1+0.1*(n/10-1))*2,tier:0});
+    for(let j=0;j<10;j++)spawnQ.push({t:5.5+j*0.3,type:'soldat_ruche',edge:ed,hpMul:hm,dmgMul:1+0.08*(n-1),elite:true});
+    const txt='👑 LA REINE DE LA RUCHE remonte à la surface ! Protège ton noyau !';for(let k=0;k<NP();k++){if(k===ME)banner(txt,true,6);else if(NET.role==='host')NET.msgOut.push('!'+txt)}sfx('wave');return null},
   lab(o){if(!S.ug.found.neptune)return null;if(!S.ug.lab){S.ug.lab=true;UGV++;for(let k=0;k<NP();k++)if(k!==o)notify(k,`👽 ${playerName(o)} a découvert un laboratoire extraterrestre sur Neptune !`)}return null},
   launch(o,x,y){const b=at(x,y);if(!b||b.type!=='rampe'||!takeOver(o,b.owner))return null;ensureLayers();if(S.ug.found.neptune)return null;const cost={helium3:100,pile_fusion:10};if(!canAfford(cost,o))return 'Carburant insuffisant : 100 hélium-3 et 10 piles à fusion';pay(cost,o);b.launchT=4;S.ug.found.neptune=true;UGV++;fx({k:'boom',x:b.x+1.5,y:b.y+1.5,r:3,col:'255,200,120',t:1.5,max:1.5});for(let k=0;k<NP();k++)notify(k,`🚀 ${playerName(o)} a lancé la fusée : Neptune est atteinte ! (onglet 🔵 Neptune en haut)`);return null},
   wdel(o,w,x,y){if(!WORLDS[w])return null;ensureLayers();const b=S.wb[w].find(q=>q.x===x&&q.y===y);if(!b)return null;if(!takeOver(o,b.o))return 'Cette foreuse appartient à un coéquipier';refund(WB[b.t].cost,o);S.wb[w]=S.wb[w].filter(q=>q!==b);WBV++;return null},
@@ -1109,6 +1151,8 @@ function updB(b,dt){
     return;
   }
   if(t==='cryo'){b.active=false;const R2=d.range*d.range;if(pr>0.3)for(const m of monsters){if((m.x-b.x-0.5)**2+(m.y-b.y-0.5)**2<=R2){m.slow=0.3;b.active=true}}return}
+  if(t==='brouilleur'){b.active=false;const R2=d.range*d.range;if(pr>0.3)for(const m of monsters){if((m.x-b.x-0.5)**2+(m.y-b.y-0.5)**2<=R2){m.slow=0.3;m.jam=0.3;b.active=true}}return}
+  if(t==='cantine'){b.tm=(b.tm||0)-dt;if(b.tm<=0){if(total('gelee_royale',o)>=1){take('gelee_royale',1,o);stat(o,'c','gelee_royale');b.fed=true;CANT[o]=Math.max(CANT[o],S.t+21)}else b.fed=false;b.tm=20}if(cantOn(o))b.fed=true;return}
   if(t==='bouclier')return;
   if(t==='reparateur'){
     b.healing=false;const R2=d.range*d.range,amt=d.heal*dt*pr;
@@ -1141,10 +1185,16 @@ function updB(b,dt){
     }else if(t==='canon_garik'){
       const ux=Math.cos(b.angle),uy=Math.sin(b.angle);
       // les boss d'avant la vague 60 sont pulvérisés d'un tir ; à partir de la vague 60 : 8 % de leurs PV par tir, puis de moins en moins (3 % minimum)
-      const gk=(m,d2)=>{const mt=MT[m.type];if(!mt.boss){hurt(m,Math.max(d2,m.hp+1),999);return}if(mt.boss){const tr=m.tier||bossTier(S.wave);if(tr>0)hurt(m,Math.min(d2,m.maxhp*Math.max(0.03,0.08-0.01*(tr-1))),999);else hurt(m,m.hp+1,999)}else hurt(m,d2,999)};
+      const gk=(m,d2)=>{const mt=MT[m.type];if(!mt.boss){hurt(m,Math.max(d2,m.hp+1),999);return}if(m.type==='imperatrice'){hurt(m,Math.min(d2,m.maxhp*0.004),999);return}if(mt.boss){const tr=m.tier||bossTier(S.wave);if(tr>0)hurt(m,Math.min(d2,m.maxhp*Math.max(0.03,0.08-0.01*(tr-1))),999);else hurt(m,m.hp+1,999)}else hurt(m,d2,999)};
       for(const m of monsters){if(m.hp<=0)continue;const dx=m.x-cx,dy=m.y-cy,along=dx*ux+dy*uy;if(along<0||along>rng)continue;if(Math.abs(dx*uy-dy*ux)<=0.9+MT[m.type].r)gk(m,dmg)}
       const ex=cx+ux*Math.min(rng,Math.sqrt(bd)),ey=cy+uy*Math.min(rng,Math.sqrt(bd));for(const m of monsters)if(m.hp>0&&(m.x-ex)**2+(m.y-ey)**2<=3*3)gk(m,dmg*0.6);
       fx({k:'shot',x1:cx+ux*1.1,y1:cy+uy*1.1,x2:cx+ux*rng,y2:cy+uy*rng,col:'#ff3df5',w:0.55,t:0.4,max:0.4});fx({k:'shot',x1:cx+ux*1.1,y1:cy+uy*1.1,x2:cx+ux*rng,y2:cy+uy*rng,col:'#ffffff',w:0.18,t:0.4,max:0.4});fx({k:'boom',x:ex,y:ey,r:2.5,col:'255,61,245',t:0.6,max:0.6});b.fire=0.4;
+    }else if(t==='lance_dard'){
+      const ux=Math.cos(b.angle),uy=Math.sin(b.angle),hit=[];
+      for(const m of monsters){if(m.hp<=0)continue;const dx=m.x-cx,dy=m.y-cy,al=dx*ux+dy*uy;if(al<0||al>rng)continue;if(Math.abs(dx*uy-dy*ux)<=0.35+MT[m.type].r)hit.push([al,m])}
+      hit.sort((a,b2)=>a[0]-b2[0]);for(const [,m] of hit.slice(0,d.pierce))hurt(m,dmg,999);
+      const L=hit.length?Math.min(rng,hit[Math.min(hit.length,d.pierce)-1][0]+0.5):Math.sqrt(bd);
+      fx({k:'shot',x1:cx+ux*0.5,y1:cy+uy*0.5,x2:cx+ux*L,y2:cy+uy*L,col:'#ffd27a',w:0.1,t:0.12,max:0.12});
     }else if(t==='canon_prisme'){
       const hitL=[best];for(const m of monsters){if(hitL.length>=d.split)break;if(m!==best&&m.hp>0&&(m.x-cx)**2+(m.y-cy)**2<=rng*rng)hitL.push(m)}
       for(const m of hitL){hurt(m,dmg);fx({k:'shot',x1:cx,y1:cy,x2:m.x,y2:m.y,col:'#e6d2ff',w:0.14,t:0.25,max:0.25})}
@@ -1237,7 +1287,7 @@ function updDestr(r,dt){
     r.cd=(r.cd||0)-dt;r.frzT=(r.frzT??0)-dt;
     if(Math.sqrt(bd)<=4){
       if(r.cd<=0){r.cd=1/B.canon_garik.rate;const dmg=B.canon_garik.dmg*mArm(o)*lvMul(o),tr=best.tier||bossTier(S.wave);
-        if(tr>0)hurt(best,Math.min(dmg,best.maxhp*Math.max(0.03,0.08-0.01*(tr-1))),999);else hurt(best,best.hp+1,999);
+        if(best.type==='imperatrice')hurt(best,Math.min(dmg,best.maxhp*0.006),999);else if(tr>0)hurt(best,Math.min(dmg,best.maxhp*Math.max(0.03,0.08-0.01*(tr-1))),999);else hurt(best,best.hp+1,999);
         fx({k:'shot',x1:r.x,y1:r.y,x2:best.x,y2:best.y,col:'#b46bff',w:0.35,t:0.25,max:0.25});fx({k:'shot',x1:r.x,y1:r.y,x2:best.x,y2:best.y,col:'#ffffff',w:0.1,t:0.25,max:0.25})}
       if(r.frzT<=0&&best.hp>0){r.frzT=10;best.frz=2.5;fx({k:'boom',x:best.x,y:best.y,r:MT[best.type].r*2.5,col:'150,220,255',t:0.8,max:0.8});if(o===ME)toast('❄ Boss gelé !',true)}
     }
@@ -1322,6 +1372,8 @@ function computeFlow(){
 }
 function hurt(m,d,pierce=0){
   if(m.hp<=0)return;
+  if(m.shield>0){m.flash=0.04;return}
+  if(m.jam>0&&MT[m.type].hive)d*=1.5;
   const ar=MT[m.type].armor||0;if(ar)d=Math.max(1,d-Math.max(0,ar-pierce));
   m.hp-=d;m.flash=0.08;
   if(d>=10)spawnNum(m.x,m.y-MT[m.type].r,d);
@@ -1331,6 +1383,7 @@ function hurt(m,d,pierce=0){
     fx({k:'boom',x:m.x,y:m.y,r:t.r*1.8,col:t.boss?'200,120,255':'160,220,90',t:t.boss?1:0.3,max:t.boss?1:0.3});
     if(m.type==='hydre')for(let i=0;i<3;i++)spawnMonster({type:'colosse',hpMul:(m.wMul||1)*2,dmgMul:m.dmgMul},m.x+(Math.random()-0.5)*2,m.y+(Math.random()-0.5)*2);
     if(t.boss&&S.wave>=60&&S.wave%60===0){for(let o2=0;o2<S.players.length;o2++){addInv(o2,'titan_token',1);notify(o2,'🏅 Le boss de la vague 60 lâche un Jeton du Titan !')}}
+    if(m.type==='imperatrice'&&S.ug){S.ug.reine=true;S.ug.reineOn=false;UGV++;for(let o2=0;o2<S.players.length;o2++){addInv(o2,'titan_token',3);addInv(o2,'gelee_royale',300);notify(o2,'👑 La Reine de la Ruche est vaincue ! Gougouz est libre. +3 Jetons du Titan, +300 gelée royale')}}
     if(t.boss){S.bossKills=(S.bossKills||0)+1;for(let o=0;o<S.players.length;o++)notify(o,`${t.n} est vaincu ! +${t.xp} XP`)}
   }
 }
@@ -1354,14 +1407,14 @@ const MAX_WAVE=220,MAX_ALIVE=320;
 const bossTier=n=>n>=60?Math.floor((n-50)/10):0;
 function startWave(){
   S.wave++;S.waveTimer=S.interval;S.warned=0;S.votes=Array(NP()).fill(false);
-  const n=S.wave,cm=coop()?1+0.5*(NP()-1):1,raw=(6+n*4+n*n*0.5)*cm,count=Math.round(Math.min(raw,MAX_WAVE*cm));
+  const n=S.wave,cm=coop()?1+0.5*(NP()-1):1,hv=S.ug?(1-0.06*nidsDone())*(S.ug.reine?0.8:1):1,raw=(6+n*4+n*n*0.5)*cm*hv,count=Math.round(Math.min(raw,MAX_WAVE*cm));
   // au-delà de MAX_WAVE monstres, on garde la même difficulté en rendant chaque monstre plus résistant (moins d'entités = pas de lag)
   const hpMul=Math.pow(1.24,Math.min(n,10)-1)*Math.pow(1.15,Math.max(0,n-10))*(raw/count),dmgMul=(1+0.08*(n-1))*Math.sqrt(raw/count);
   const nEdges=1+(n>=3?1:0)+(n>=6?1:0)+(n>=9?1:0);
   const edges=[0,1,2,3].sort(()=>Math.random()-0.5).slice(0,nEdges);
   for(let i=0;i<count;i++){
     let type='rampant',r=Math.random();
-    const W8=[['colosse',n>=3?Math.min(0.18,0.03*n):0],['volant',n>=4?0.12:0],['explosif',n>=7?0.1:0],['blinde',n>=11?0.12:0],['guerisseur',n>=16?0.06:0],['araignee',n>=22?0.15:0],['spectre',n>=26?0.08:0],['brute',n>=30?0.08:0],['necro',n>=35?0.04:0],['coureur',0.25]];
+    const W8=[['colosse',n>=3?Math.min(0.18,0.03*n):0],['volant',n>=4?0.12:0],['explosif',n>=7?0.1:0],['blinde',n>=11?0.12:0],['guerisseur',n>=16?0.06:0],['araignee',n>=22?0.15:0],['spectre',n>=26?0.08:0],['brute',n>=30?0.08:0],['necro',n>=35?0.04:0],...(S.ug&&S.ug.trappe&&!S.ug.reine&&n>=30?[['larve',0.14],['soldat_ruche',0.04],['cracheur',0.05]]:[]),['coureur',0.25]];
     for(const [k,w] of W8){if(r<w){type=k;break}r-=w}
     spawnQ.push({t:i*0.6/cm+Math.random()*0.4,type,edge:edges[i%edges.length],hpMul,dmgMul});
   }
@@ -1457,7 +1510,11 @@ function explode(m){
 function updM(m,dt){
   const t=MT[m.type];
   m.cd-=dt;if(m.flash>0)m.flash-=dt;
-  let spd=m.slow>0?0.5:1;if(m.slow>0)m.slow-=dt;
+  let spd=m.slow>0?0.5:1;if(m.slow>0)m.slow-=dt;if(m.jam>0)m.jam-=dt;
+  if(m.type==='imperatrice'){if(m.shield>0)m.shield-=dt;const f=m.hp/m.maxhp,q={hpMul:m.wMul||1,dmgMul:m.dmgMul};
+    const brood=()=>{m.shield=8;fx({k:'boom',x:m.x,y:m.y,r:4,col:'255,190,40',t:1.2,max:1.2});for(let i=0;i<6;i++)spawnMonster(Object.assign({type:'soldat_ruche'},q),m.x+(Math.random()-0.5)*3,m.y+(Math.random()-0.5)*3);for(let i=0;i<3;i++)spawnMonster(Object.assign({type:'cracheur'},q),m.x+(Math.random()-0.5)*3,m.y+(Math.random()-0.5)*3);for(let o2=0;o2<NP();o2++)notify(o2,'🛡 La Reine s\'enferme dans un cocon de chitine et appelle sa garde !')};
+    if(!m.ph1&&f<0.66){m.ph1=1;brood()}else if(!m.ph2&&f<0.33){m.ph2=1;brood()}
+    if(f<0.2){spd*=1.6;if(!m.enr){m.enr=true;for(let o2=0;o2<NP();o2++)notify(o2,'😡 La Reine entre dans une rage folle !')}}}
   if(t.boss&&m.tier>0){m.hp=Math.min(m.maxhp,m.hp+m.maxhp*Math.min(0.03,0.005*m.tier)*dt);if(!m.enr&&m.hp<m.maxhp*0.4){m.enr=true;fx({k:'boom',x:m.x,y:m.y,r:3,col:'255,40,40',t:1,max:1});if(NET.role!=='spec')for(let o2=0;o2<NP();o2++)notify(o2,`😡 ${MT[m.type].n} entre en rage !`)}if(m.enr){spd*=1.6;m.spawnT-=dt}}
   if(t.heal){for(const o of monsters){if(o!==m&&o.hp>0&&o.hp<o.maxhp&&(o.x-m.x)**2+(o.y-m.y)**2<4)o.hp=Math.min(o.maxhp,o.hp+t.heal*(m.wMul||m.hpMul||1)*dt)}}
   if(t.boss){m.spawnT-=dt;if(m.spawnT<=0&&monsters.length>=MAX_ALIVE*0.8){m.spawnT=2}else if(m.spawnT<=0){
@@ -1466,6 +1523,8 @@ function updM(m,dt){
     else if(m.type==='reine'){m.spawnT=5;for(let i=0;i<3;i++)spawnMonster(Object.assign({type:'coureur'},q),m.x+(Math.random()-0.5),m.y+(Math.random()-0.5));spawnMonster(Object.assign({type:'volant'},q),m.x,m.y)}
     else if(m.type==='liche'){m.spawnT=5;for(let i=0;i<4;i++)spawnMonster(Object.assign({type:'araignee'},q),m.x+(Math.random()-0.5),m.y+(Math.random()-0.5));spawnMonster(Object.assign({type:'spectre'},q),m.x,m.y);for(const o2 of monsters)if(o2!==m&&o2.hp>0&&(o2.x-m.x)**2+(o2.y-m.y)**2<16)o2.hp=Math.min(o2.maxhp,o2.hp+o2.maxhp*0.1)}
     else if(m.type==='dragon'){m.spawnT=4;for(const b of [...buildings]){if((b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2<=2.2*2.2){b.hp-=150*m.dmgMul;if(b.hp<=0){if(B[b.type].lure){detonate(b);continue}fx({k:'boom',x:b.x+0.5,y:b.y+0.5,r:0.9,col:'255,150,60',t:0.45,max:0.45});removeB(b)}}}fx({k:'boom',x:m.x,y:m.y,r:2.2,col:'255,110,40',t:0.6,max:0.6})}
+    else if(m.type==='imperatrice'){m.spawnT=4;for(let i=0;i<4;i++)spawnMonster(Object.assign({type:'larve'},q),m.x+(Math.random()-0.5)*2,m.y+(Math.random()-0.5)*2);if(Math.random()<0.5)spawnMonster(Object.assign({type:'cracheur'},q),m.x,m.y);
+      for(const b of [...buildings]){if(b.type==='noyau')continue;if((b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2<=3.2*3.2){b.hp-=120*m.dmgMul;if(b.hp<=0){if(B[b.type].lure){detonate(b);continue}fx({k:'boom',x:b.x+0.5,y:b.y+0.5,r:0.9,col:'160,255,60',t:0.45,max:0.45});removeB(b)}}}fx({k:'boom',x:m.x,y:m.y,r:3.2,col:'160,255,60',t:0.8,max:0.8})}
     else m.spawnT=999;
   }}
   if(m.frz>0){m.frz-=dt;m.slowVis=0.2;return}
@@ -1489,6 +1548,12 @@ function updM(m,dt){
     else{const step=Math.min(dist-1.7,t.sp*spd*dt);m.x+=m.fx*step;m.y+=m.fy*step}
     return;
   }
+  if(t.spit){m.spT=(m.spT||0)-dt;if(m.spT<=0){m.spT=0.5;m.tgt=null;let bd2=t.spit*t.spit;for(const b of buildings){if(b.type==='noyau'||WALK.has(b.type))continue;const dd=(b.x+0.5-m.x)**2+(b.y+0.5-m.y)**2;if(dd<bd2){bd2=dd;m.tgt=b}}
+      for(const c2 of cores){if(P(c2.owner).dead)continue;if((c2.x+1.5-m.x)**2+(c2.y+1.5-m.y)**2<(t.spit+1.5)**2)m.tgt={core:c2}}}
+    const tg=m.tgt;if(tg&&(tg.core||buildings.includes(tg))){const gx=tg.core?tg.core.x+1.5:tg.x+0.5,gy=tg.core?tg.core.y+1.5:tg.y+0.5,dx=gx-m.x,dy=gy-m.y,dist=Math.hypot(dx,dy)||1;m.fx=dx/dist;m.fy=dy/dist;
+      if(m.cd<=0){m.cd=1.6;if(tg.core)coreDmg(tg.core.owner,m.dmg);else{tg.hp-=m.dmg;if(tg.hp<=0){if(B[tg.type].lure)detonate(tg);else{fx({k:'boom',x:tg.x+0.5,y:tg.y+0.5,r:0.9,col:'160,255,60',t:0.45,max:0.45});removeB(tg)}m.tgt=null}}
+        fx({k:'shot',x1:m.x,y1:m.y,x2:gx,y2:gy,col:'#a6ff4d',w:0.12,t:0.25,max:0.25});fx({k:'boom',x:gx,y:gy,r:0.6,col:'160,255,60',t:0.35,max:0.35})}
+      return}}
   for(const r of robots){if(Math.hypot(r.x-m.x,r.y-m.y)<t.r+0.45){if(t.blast){explode(m);return}if(m.cd<=0){m.cd=1;r.hp-=m.dmg;fx({k:'boom',x:r.x,y:r.y,r:0.3,col:'255,90,90',t:0.2,max:0.2})}return}}
   const tx=clamp(Math.floor(m.x),0,W-1),ty=clamp(Math.floor(m.y),0,H-1);
   let bx=tx,by=ty,bd=flow[ty*W+tx];
@@ -1758,6 +1823,38 @@ function drawB(c,b,x,y,s,now){
     c.save();c.translate(mx,my);c.rotate(an);c.fillStyle='#d8c8e8';c.fillRect(0,-s*0.2,s*1.05,s*0.13);c.fillRect(0,s*0.07,s*1.05,s*0.13);c.fillStyle=d.col;c.fillRect(s*0.95,-s*0.26,s*0.16,s*0.52);c.fillStyle='#fff';c.beginPath();c.arc(s*1.12,0,s*0.08,0,7);c.fill();c.restore();
     c.fillStyle='#ffd700';c.font=`900 ${Math.max(8,s*0.32)}px system-ui`;c.textAlign='center';c.fillText('G',mx,my+s*0.12);
     if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.beginPath();c.moveTo(x+S2,y+S2);c.lineTo(x+S2-s*0.3,y+S2);c.lineTo(x+S2,y+S2-s*0.3);c.closePath();c.fill()}
+    return;
+  }
+  if(k==='cantine'){
+    const S2=s*2,mx=x+s,my=y+s,fed=b.fed;
+    c.fillStyle='rgba(0,0,0,0.3)';rr(c,x+s*0.2,y+s*0.28,S2*0.94,S2*0.94,s*0.3);c.fill();
+    c.fillStyle='#5a3a24';rr(c,x+s*0.08,y+s*0.08,S2-s*0.16,S2-s*0.16,s*0.3);c.fill();c.strokeStyle='#ff8a3d';c.lineWidth=Math.max(1,s*0.06);c.stroke();
+    c.fillStyle='#c94c2c';c.beginPath();c.moveTo(x+s*0.1,y+s*0.75);c.lineTo(mx,y+s*0.1);c.lineTo(x+S2-s*0.1,y+s*0.75);c.closePath();c.fill();
+    for(let i=0;i<5;i++){c.fillStyle=i%2?'#fff':'#e04a3a';c.fillRect(x+s*0.2+i*s*0.32,y+s*0.75,s*0.32,s*0.14)}
+    c.fillStyle='#2a2e36';c.beginPath();c.ellipse(mx,my+s*0.45,s*0.5,s*0.28,0,0,7);c.fill();c.fillStyle=fed?'#ffc93c':'#6a5a3a';c.beginPath();c.ellipse(mx,my+s*0.38,s*0.42,s*0.18,0,0,7);c.fill();
+    if(fed&&now>0)for(let i=0;i<3;i++){const a=(now*0.6+i/3)%1;c.strokeStyle=`rgba(255,255,255,${0.5*(1-a)})`;c.lineWidth=Math.max(1,s*0.05);c.beginPath();c.moveTo(mx-s*0.2+i*s*0.2,my+s*0.2-a*s*0.8);c.quadraticCurveTo(mx-s*0.1+i*s*0.2,my-a*s*0.8,mx-s*0.2+i*s*0.2,my-s*0.2-a*s*0.8);c.stroke()}
+    c.fillStyle='#fff';c.font=`700 ${Math.max(6,s*0.2)}px system-ui`;c.textAlign='center';c.fillText('🍲 Gougouz',mx,y+S2-s*0.12);
+    if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.beginPath();c.moveTo(x+S2,y+S2);c.lineTo(x+S2-s*0.3,y+S2);c.lineTo(x+S2,y+S2-s*0.3);c.closePath();c.fill()}
+    return;
+  }
+  if(k==='brouilleur'){
+    c.fillStyle='rgba(0,0,0,0.28)';rr(c,x+s*0.13,y+s*0.17,s*0.88,s*0.88,s*0.16);c.fill();
+    c.fillStyle='#2a1e12';rr(c,x+s*0.07,y+s*0.07,s*0.86,s*0.86,s*0.18);c.fill();c.strokeStyle=d.col;c.lineWidth=Math.max(1,s*0.05);c.stroke();
+    c.fillStyle='#ffb020';c.beginPath();for(let i=0;i<6;i++){const a=i/6*Math.PI*2+Math.PI/6;c.lineTo(cx+Math.cos(a)*s*0.26,cy+Math.sin(a)*s*0.26)}c.closePath();c.fill();
+    c.fillStyle='#fff3c0';c.beginPath();c.arc(cx,cy,s*0.09+(now>0?Math.sin(now*6)*s*0.02:0),0,7);c.fill();
+    c.strokeStyle='#ffd27a';c.lineWidth=Math.max(1,s*0.04);c.beginPath();c.moveTo(cx,cy-s*0.26);c.lineTo(cx,cy-s*0.44);c.stroke();
+    if(b.active&&now>0){for(let i=0;i<2;i++){const a=((now*0.6)+i*0.5)%1;c.strokeStyle=`rgba(255,176,32,${0.5*(1-a)})`;c.lineWidth=Math.max(1,s*0.05);c.beginPath();c.arc(cx,cy,s*(0.4+a*5.6),0,7);c.stroke()}}
+    if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.fillRect(x+s*0.75,y+s*0.75,s*0.2,s*0.2)}
+    return;
+  }
+  if(k==='lance_dard'){
+    c.fillStyle='rgba(0,0,0,0.28)';rr(c,x+s*0.13,y+s*0.17,s*0.88,s*0.88,s*0.16);c.fill();
+    c.fillStyle='#3a2612';rr(c,x+s*0.07,y+s*0.07,s*0.86,s*0.86,s*0.3);c.fill();c.strokeStyle=d.col;c.lineWidth=Math.max(1,s*0.05);c.stroke();
+    c.save();c.translate(cx,cy);c.rotate(b.angle??-Math.PI/2);
+    c.fillStyle='#8a5a22';c.beginPath();c.moveTo(-s*0.1,-s*0.14);c.lineTo(s*0.34,-s*0.06);c.lineTo(s*0.34,s*0.06);c.lineTo(-s*0.1,s*0.14);c.closePath();c.fill();
+    c.fillStyle='#ffe6a8';c.beginPath();c.moveTo(s*0.52,0);c.lineTo(s*0.3,-s*0.05);c.lineTo(s*0.3,s*0.05);c.closePath();c.fill();
+    c.fillStyle=d.col;c.beginPath();c.ellipse(-s*0.02,0,s*0.22,s*0.18,0,0,7);c.fill();c.strokeStyle='#5a3410';c.lineWidth=Math.max(1,s*0.03);for(let i=1;i<=2;i++){c.beginPath();c.ellipse(-s*0.02,0,s*0.22*i/3,s*0.18,0,-1.2,1.2);c.stroke()}
+    c.restore();if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.fillRect(x+s*0.75,y+s*0.75,s*0.2,s*0.2)}
     return;
   }
   if(k==='station'){
@@ -2098,6 +2195,17 @@ function drawM(c,m,px,py,T,now){
   c.strokeStyle=shade(t.col,-0.6);c.lineWidth=Math.max(1,T*0.04);c.stroke();c.globalAlpha=1;
   const eyeC=t.boss?'#ff4d4d':'#fff';
   for(const sgn of[-1,1]){const ox=px+ex*R*0.38+qx*R*0.32*sgn,oy=py+ey*R*0.38+qy*R*0.32*sgn;c.fillStyle=eyeC;c.beginPath();c.arc(ox,oy,R*0.18,0,7);c.fill();c.fillStyle='#111';c.beginPath();c.arc(ox+ex*R*0.06,oy+ey*R*0.06,R*0.09,0,7);c.fill()}
+  if(m.type==='larve'){c.strokeStyle='rgba(120,90,40,0.6)';c.lineWidth=Math.max(1,T*0.025);for(let k=-1;k<=1;k++){c.beginPath();c.arc(px-ex*R*k*0.45,py-ey*R*k*0.45,R*0.55,Math.atan2(qy,qx)-1,Math.atan2(qy,qx)+1);c.stroke()}}
+  if(m.type==='soldat_ruche'){c.fillStyle='#5a3410';for(const sg of[-1,1]){c.beginPath();c.moveTo(px+ex*R*0.7+qx*R*0.25*sg,py+ey*R*0.7+qy*R*0.25*sg);c.lineTo(px+ex*R*1.35+qx*R*(0.45+0.15*Math.sin(now*8))*sg,py+ey*R*1.35+qy*R*(0.45+0.15*Math.sin(now*8))*sg);c.lineTo(px+ex*R*0.8+qx*R*0.05*sg,py+ey*R*0.8+qy*R*0.05*sg);c.closePath();c.fill()}
+    c.strokeStyle='rgba(60,30,8,0.8)';c.lineWidth=Math.max(1,T*0.035);for(let k=0;k<3;k++){c.beginPath();c.arc(px-ex*R*0.15*k,py-ey*R*0.15*k,R*(0.85-k*0.2),Math.atan2(-ey,-ex)-1.1,Math.atan2(-ey,-ex)+1.1);c.stroke()}}
+  if(m.type==='cracheur'){for(const sg of[-1,1]){const gx=px-ex*R*0.35+qx*R*0.55*sg,gy=py-ey*R*0.35+qy*R*0.55*sg,gr=c.createRadialGradient(gx,gy,0,gx,gy,R*0.4);gr.addColorStop(0,'#e8ffb0');gr.addColorStop(1,'rgba(120,220,40,0.6)');c.fillStyle=gr;c.beginPath();c.arc(gx,gy,R*0.38*(1+0.1*Math.sin(now*6+sg)),0,7);c.fill()}
+    if(m.cd>1.3){c.fillStyle='#b6ff5a';c.beginPath();c.arc(px+ex*R*1.1,py+ey*R*1.1,R*0.18,0,7);c.fill()}}
+  if(m.type==='imperatrice'){
+    c.globalAlpha=0.55;c.fillStyle='#ffe9a8';const fl=Math.abs(Math.sin(now*9));for(const sg of[-1,1]){c.save();c.translate(px-ex*R*0.2+qx*R*0.4*sg,py-ey*R*0.2+qy*R*0.4*sg);c.rotate(Math.atan2(qy*sg,qx*sg)-0.5*sg);c.scale(1,0.4+fl*0.6);c.beginPath();c.ellipse(R*0.9,0,R*1.2,R*0.5,0,0,7);c.fill();c.restore()}c.globalAlpha=1;
+    c.fillStyle='#c27a10';c.beginPath();c.ellipse(px-ex*R*1.15,py-ey*R*1.15,R*0.75,R*0.75,0,0,7);c.fill();c.strokeStyle='#5a3410';c.lineWidth=Math.max(1,T*0.05);for(let k=1;k<=3;k++){c.beginPath();c.arc(px-ex*R*1.15,py-ey*R*1.15,R*0.2*k,0,7);c.stroke()}
+    c.fillStyle='#ffd700';const hx=px+ex*R*0.55,hy=py+ey*R*0.55;c.beginPath();for(let k=0;k<5;k++){const a=Math.atan2(ey,ex)+(k-2)*0.35;c.lineTo(hx+Math.cos(a)*R*0.75,hy+Math.sin(a)*R*0.75);c.lineTo(hx+Math.cos(a+0.17)*R*0.5,hy+Math.sin(a+0.17)*R*0.5)}c.closePath();c.fill();
+    if(m.shield>0){c.strokeStyle=`rgba(255,200,60,${0.6+0.3*Math.sin(now*10)})`;c.lineWidth=Math.max(2,T*0.12);c.beginPath();for(let k=0;k<6;k++){const a=k/6*Math.PI*2+now*0.6;c.lineTo(px+Math.cos(a)*R*1.6,py+Math.sin(a)*R*1.6)}c.closePath();c.stroke();c.fillStyle='rgba(255,190,60,0.18)';c.fill()}}
+  if(m.jam>0&&MT[m.type].hive){c.fillStyle='rgba(255,176,32,0.8)';c.font=`${Math.max(8,R*0.9)}px system-ui`;c.textAlign='center';c.fillText('?',px,py-R*1.3)}
   if(m.type==='explosif'&&Math.sin(now*12+m.seed)>0){c.fillStyle='#ff2a2a';c.beginPath();c.arc(px-ex*R*0.4,py-ey*R*0.4,R*0.18,0,7);c.fill()}
   if(m.type==='blinde'||m.type==='golem'){c.strokeStyle=m.type==='golem'?'#dffcff':'#b8c0c8';c.lineWidth=Math.max(1,T*0.04);c.beginPath();for(let k=0;k<6;k++){const a=k/6*Math.PI*2+Math.PI/6;c.lineTo(px+Math.cos(a)*R*0.75,py+Math.sin(a)*R*0.75)}c.closePath();c.stroke()}
   if(m.type==='golem'){c.fillStyle='rgba(200,250,255,0.85)';for(let k=0;k<5;k++){const a=k/5*Math.PI*2+0.3;c.beginPath();c.moveTo(px+Math.cos(a-0.15)*R*0.8,py+Math.sin(a-0.15)*R*0.8);c.lineTo(px+Math.cos(a)*R*1.45,py+Math.sin(a)*R*1.45);c.lineTo(px+Math.cos(a+0.15)*R*0.8,py+Math.sin(a+0.15)*R*0.8);c.fill()}}
@@ -2351,6 +2459,8 @@ function wPix(w,x,y,sd){
   if(w==='lune'){const mare=vnoise(x,y,420,sd+7)>0.58?0.62:1;const v=(78+n1*48+n2*26+n3*10+n4*10)*mare;return[v,v,v*1.04]}
   if(w==='mars'){const dune=Math.sin((x*0.06+y*0.025)+vnoise(x,y,120,sd+5)*6)*0.5+0.5,bas=vnoise(x,y,300,sd+8)>0.62?0.6:1;const f=(0.72+n1*0.25+n2*0.12+dune*0.12+n3*0.05)*bas;return[178*f,82*f,46*f]}
   if(w==='europe'){const f=0.86+n1*0.1+n2*0.06+n3*0.04;return[205*f,222*f,236*f]}
+  if(w==='ruche'){const vein=Math.abs(Math.sin(x*0.018+vnoise(x,y,140,sd+4)*9)*Math.cos(y*0.021+vnoise(x,y,90,sd+6)*7)),v=vein<0.08?1:0,flesh=vnoise(x,y,320,sd+11);const f=0.55+n1*0.3+n2*0.15+n3*0.06;
+    return[(70+flesh*40)*f+v*90,(28+flesh*12)*f+v*55,(44+flesh*10)*f+v*10]}
   const sw=Math.sin(y*0.02+vnoise(x,y,260,sd+9)*7+x*0.004)*0.5+0.5,f=0.65+sw*0.3+n2*0.12+n3*0.04;return[28*f,52*f,128*f]
 }
 function wGround(w){
@@ -2368,6 +2478,18 @@ function wGround(w){
   if(w==='europe'){for(let k=0;k<26;k++){g.strokeStyle=`rgba(${150+R(k,5)*40|0},${80+R(k,6)*30|0},${50},${0.35+R(k,7)*0.3})`;g.lineWidth=1.5+R(k,8)*3;g.beginPath();let x=R(k,1)*GW,y=R(k,2)*GH,a=R(k,3)*6.28;g.moveTo(x,y);for(let s2=0;s2<20;s2++){a+=(R(k,10+s2)-0.5)*0.5;x+=Math.cos(a)*60;y+=Math.sin(a)*60;g.lineTo(x,y)}g.stroke();g.strokeStyle='rgba(255,255,255,0.25)';g.lineWidth=1;g.stroke()}
     for(let k=0;k<500;k++){g.fillStyle=`rgba(255,255,255,${0.3+R(k,30)*0.6})`;g.fillRect(R(k,31)*GW,R(k,32)*GH,1.5,1.5)}
     for(let k=0;k<30;k++){const x=R(k,60)*GW,y=R(k,61)*GH;g.fillStyle='rgba(120,170,210,0.25)';g.beginPath();for(let j=0;j<6;j++){const a=j/6*6.28;g.lineTo(x+Math.cos(a)*(20+R(k,62+j)*30),y+Math.sin(a)*(20+R(k,70+j)*30))}g.closePath();g.fill()}}
+  if(w==='ruche'){
+    // alvéoles hexagonales
+    const hr=26,hh=hr*Math.sqrt(3);for(let row=-1;row<GH/hh*2+2;row++)for(let col=-1;col<GW/(hr*1.5)+2;col++){const hx=col*hr*1.5,hy=row*hh/2*2+(col%2?hh/2:0);if(hsh(col,row,sd+40)<0.45)continue;
+      const fill=hsh(col,row,sd+41);g.beginPath();for(let j=0;j<6;j++){const a=j/6*Math.PI*2;g.lineTo(hx+Math.cos(a)*hr*0.92,hy+Math.sin(a)*hr*0.92)}g.closePath();
+      g.fillStyle=fill<0.25?'rgba(255,190,60,0.22)':fill<0.5?'rgba(20,5,12,0.35)':'rgba(120,60,40,0.18)';g.fill();g.strokeStyle='rgba(230,170,90,0.35)';g.lineWidth=2.5;g.stroke();g.strokeStyle='rgba(0,0,0,0.3)';g.lineWidth=1;g.stroke();
+      if(fill<0.12){const eg=g.createRadialGradient(hx-4,hy-4,1,hx,hy,hr*0.55);eg.addColorStop(0,'#fff6d0');eg.addColorStop(0.5,'rgba(255,200,80,0.8)');eg.addColorStop(1,'rgba(160,80,20,0)');g.fillStyle=eg;g.beginPath();g.ellipse(hx,hy,hr*0.45,hr*0.55,0,0,7);g.fill()}}
+    // flaques de résine
+    for(let k=0;k<14;k++){const x=R(k,80)*GW,y=R(k,81)*GH,r=20+R(k,82)*50;const gr=g.createRadialGradient(x,y,2,x,y,r);gr.addColorStop(0,'rgba(255,214,90,0.55)');gr.addColorStop(0.7,'rgba(200,120,30,0.25)');gr.addColorStop(1,'rgba(200,120,30,0)');g.fillStyle=gr;g.beginPath();g.ellipse(x,y,r,r*0.7,R(k,83)*3,0,7);g.fill()}
+    // racines organiques / tendons
+    g.lineCap='round';for(let k=0;k<18;k++){let x=R(k,100)*GW,y=R(k,101)*GH,a=R(k,102)*6.28;g.strokeStyle=`rgba(${110+R(k,103)*50|0},40,60,0.55)`;g.lineWidth=3+R(k,104)*6;g.beginPath();g.moveTo(x,y);for(let s2=0;s2<12;s2++){a+=(R(k,110+s2)-0.5)*0.9;x+=Math.cos(a)*40;y+=Math.sin(a)*40;g.lineTo(x,y)}g.stroke();g.strokeStyle='rgba(255,170,190,0.18)';g.lineWidth=1.5;g.stroke()}
+    // stalactites de glace aux bords (on est sous Neptune)
+    for(let k=0;k<60;k++){const x=R(k,140)*GW,h=10+R(k,141)*40;g.fillStyle='rgba(170,220,255,0.35)';g.beginPath();g.moveTo(x-6,0);g.lineTo(x+6,0);g.lineTo(x,h);g.closePath();g.fill();g.beginPath();g.moveTo(x-6,GH);g.lineTo(x+6,GH);g.lineTo(x,GH-h*0.7);g.closePath();g.fill()}}
   if(w==='neptune'){for(let k=0;k<40;k++){const x=R(k,1)*GW,y=R(k,2)*GH,L=80+R(k,3)*200;const gr=g.createLinearGradient(x,y,x+L,y);gr.addColorStop(0,'rgba(220,240,255,0)');gr.addColorStop(0.5,`rgba(220,240,255,${0.12+R(k,4)*0.2})`);gr.addColorStop(1,'rgba(220,240,255,0)');g.fillStyle=gr;g.beginPath();g.ellipse(x+L/2,y,L/2,4+R(k,5)*8,R(k,6)*0.3-0.15,0,7);g.fill()}
     const sx=GW*0.72,sy=GH*0.7;const gr=g.createRadialGradient(sx,sy,10,sx,sy,120);gr.addColorStop(0,'rgba(5,10,40,0.85)');gr.addColorStop(0.6,'rgba(10,20,70,0.5)');gr.addColorStop(1,'rgba(10,20,70,0)');g.fillStyle=gr;g.beginPath();g.ellipse(sx,sy,160,90,-0.15,0,7);g.fill();
     g.strokeStyle='rgba(200,230,255,0.3)';g.lineWidth=3;g.beginPath();g.ellipse(sx,sy,150,82,-0.15,Math.PI*1.1,Math.PI*1.9);g.stroke()}
@@ -2385,6 +2507,10 @@ function wGround(w){
   WCV[w]=cv;return cv;
 }
 function wFx(w,ox,oy,T,now){
+  if(w==='ruche'){const pulse=0.5+0.5*Math.sin(now*1.6);const gr=ctx.createRadialGradient(ox+WW*T/2,oy+WH*T/2,T*4,ox+WW*T/2,oy+WH*T/2,T*30);gr.addColorStop(0,`rgba(255,170,40,${0.05+pulse*0.07})`);gr.addColorStop(1,'rgba(80,0,40,0.25)');ctx.fillStyle=gr;ctx.fillRect(ox,oy,WW*T,WH*T);
+    for(let k=0;k<50;k++){const x=(hsh(k,1,13)*WW+Math.sin(now*0.3+k)*1.5),y=((hsh(k,2,13)*WH-now*(0.2+hsh(k,3,13)*0.4))%WH+WH)%WH;ctx.fillStyle=`rgba(255,220,120,${0.25+0.35*Math.sin(now*2+k)**2})`;ctx.beginPath();ctx.arc(ox+x*T,oy+y*T,1.5+hsh(k,4,13)*2,0,7);ctx.fill()}
+    for(let k=0;k<7;k++){const t2=(now*0.05*(0.6+hsh(k,5,13))+hsh(k,6,13))%1,x=ox+(hsh(k,7,13)*WW+Math.cos(t2*6.28+k)*6)*T,y=oy+(hsh(k,8,13)*WH+Math.sin(t2*6.28+k)*4)*T,a=t2*6.28+k+Math.PI/2;ctx.fillStyle='rgba(20,5,10,0.45)';for(let j=0;j<4;j++){ctx.beginPath();ctx.ellipse(x-Math.cos(a)*j*T*0.22,y-Math.sin(a)*j*T*0.22,T*0.16,T*0.12,a,0,7);ctx.fill()}}
+    return}
   if(w==='mars'){ctx.fillStyle='rgba(230,150,100,0.35)';for(let k=0;k<70;k++){const x=((hsh(k,1,9)*WW+now*(0.6+hsh(k,2,9)))%WW),y=hsh(k,3,9)*WH+Math.sin(now+k)*0.3;ctx.fillRect(ox+x*T,oy+y*T,2,2)}}
   else if(w==='europe'){for(let k=0;k<40;k++){const a=Math.sin(now*3+k*1.7);if(a<0.85)continue;ctx.fillStyle=`rgba(255,255,255,${(a-0.85)*6})`;const x=ox+hsh(k,4,3)*WW*T,y=oy+hsh(k,5,3)*WH*T;ctx.fillRect(x-1,y-4,2,8);ctx.fillRect(x-4,y-1,8,2)}}
   else if(w==='neptune'){ctx.globalAlpha=0.18;for(let k=0;k<6;k++){const y=oy+(hsh(k,1,5)*WH)*T,x=ox+((now*1.2*(0.5+hsh(k,2,5))*T+hsh(k,3,5)*WW*T)%(WW*T*1.4))-WW*T*0.2;const gr=ctx.createLinearGradient(x,0,x+T*12,0);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(0.5,'rgba(220,240,255,1)');gr.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=gr;ctx.fillRect(x,y,T*12,T*0.4)}ctx.globalAlpha=1}
@@ -2445,6 +2571,7 @@ function drawLayer(now){
       ctx.strokeStyle='rgba(40,60,90,0.8)';ctx.beginPath();ctx.moveTo(TX,TY-T*0.45);ctx.lineTo(TX,TY+T*0.45);ctx.stroke();
       if(op){ctx.fillStyle=`rgba(126,249,255,${0.3+0.3*Math.sin(now*3)})`;ctx.beginPath();ctx.arc(TX,TY,T*0.25,0,7);ctx.fill()}else{ctx.fillStyle='#5a6b80';ctx.font=`${Math.max(10,T*0.4)}px system-ui`;ctx.textAlign='center';ctx.fillText('🔒',TX,TY+T*0.15)}
       ctx.fillStyle='#fff';ctx.font='600 11px system-ui';ctx.textAlign='center';ctx.fillText(op?'Trappe — clique pour descendre':'Trappe scellée',TX,TY-T*0.75)}
+    if(w==='ruche')drawHive(now,ox,oy,T);
     for(const b of S.wb[w]){const g={type:WB[b.t].look,x:b.x,y:b.y,rot:0,owner:b.o,hp:1};initB(g);g.spin=now*8*WB[b.t].spd;drawB(ctx,g,ox+b.x*T,oy+b.y*T,T,0);if(coop()){ctx.fillStyle=pcol(b.o);ctx.fillRect(ox+(b.x+0.75)*T,oy+(b.y+0.75)*T,T*0.22,T*0.22)}
       if(Math.sin(now*4+b.x+b.y)>0.92){ctx.fillStyle='#fff';ctx.font='700 11px system-ui';ctx.textAlign='center';ctx.fillText('+1',ox+(b.x+0.5)*T,oy+(b.y-0.1)*T)}}
     if(mouse.inside&&mouse.tx>=0&&mouse.ty>=0&&mouse.tx<WW&&mouse.ty<WH){const ok=LTOOL?!worldCanPlace(w,LTOOL,mouse.tx,mouse.ty,ME):true;ctx.strokeStyle=ok?'rgba(255,255,255,0.7)':'#e5484d';ctx.lineWidth=1.5;ctx.strokeRect(ox+mouse.tx*T+0.5,oy+mouse.ty*T+0.5,T-1,T-1);
@@ -2453,11 +2580,58 @@ function drawLayer(now){
   // alerte vague
   if(monsters.length>0){ctx.fillStyle='rgba(120,20,20,0.85)';rr(ctx,cw/2-170,ch-44,340,30,8);ctx.fill();ctx.fillStyle='#fff';ctx.font='700 13px system-ui';ctx.textAlign='center';ctx.fillText(`⚠ Vague en cours à la surface : ${monsters.length} monstres`,cw/2,ch-24)}
 }
+let HSEL=null;
+function drawHive(now,ox,oy,T){
+  const lbl=(t,X,Y,col='#fff')=>{ctx.font='700 12px system-ui';ctx.textAlign='center';const lw=ctx.measureText(t).width;ctx.fillStyle='rgba(0,0,0,0.55)';rr(ctx,X-lw/2-6,Y-13,lw+12,18,6);ctx.fill();ctx.fillStyle=col;ctx.fillText(t,X,Y)};
+  const sel=(k,i)=>HSEL&&HSEL.k===k&&(HSEL.i===i||k!=='nid');
+  ctx.fillStyle='rgba(255,230,180,0.85)';ctx.font='600 11px system-ui';ctx.textAlign='center';ctx.fillText('Escalier de glace (vers Neptune)',ox+WW/2*T,oy+(WH/2+3.2)*T);
+  // capsule d'Atlas
+  {const X=ox+(HIVE.caps.x+0.5)*T,Y=oy+(HIVE.caps.y+0.5)*T,aw=S.ug.atlas;
+    const gl=ctx.createRadialGradient(X,Y,T*0.3,X,Y,T*2.6);gl.addColorStop(0,aw?'rgba(120,255,180,0.35)':'rgba(126,249,255,0.45)');gl.addColorStop(1,'rgba(126,249,255,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(X,Y,T*2.6,0,7);ctx.fill();
+    ctx.fillStyle='#232a3a';rr(ctx,X-T*0.9,Y-T*1.6,T*1.8,T*3.2,T*0.9);ctx.fill();ctx.strokeStyle='#9fb6d8';ctx.lineWidth=2;ctx.stroke();
+    if(!aw){const gg=ctx.createLinearGradient(X,Y-T*1.4,X,Y+T*1.4);gg.addColorStop(0,'rgba(200,245,255,0.9)');gg.addColorStop(1,'rgba(90,170,230,0.6)');ctx.fillStyle=gg;rr(ctx,X-T*0.65,Y-T*1.35,T*1.3,T*2.7,T*0.65);ctx.fill();
+      ctx.fillStyle='rgba(30,50,80,0.7)';ctx.beginPath();ctx.arc(X,Y-T*0.75,T*0.28,0,7);ctx.fill();rr(ctx,X-T*0.35,Y-T*0.45,T*0.7,T*1.5,T*0.25);ctx.fill();
+      for(let k=0;k<9;k++){ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=1;const fx2=X+(hsh(k,1,4)-0.5)*T*1.1,fy2=Y+(hsh(k,2,4)-0.5)*T*2.4;ctx.beginPath();ctx.moveTo(fx2-3,fy2);ctx.lineTo(fx2+3,fy2);ctx.moveTo(fx2,fy2-3);ctx.lineTo(fx2,fy2+3);ctx.stroke()}
+      ctx.fillStyle=Math.sin(now*2)>0?'#5ff3ff':'#1a4a6a';ctx.beginPath();ctx.arc(X,Y+T*1.3,T*0.1,0,7);ctx.fill()}
+    else{ctx.fillStyle='rgba(20,30,40,0.9)';rr(ctx,X-T*0.65,Y-T*1.35,T*1.3,T*2.7,T*0.65);ctx.fill();ctx.strokeStyle='rgba(200,245,255,0.6)';ctx.beginPath();ctx.moveTo(X+T*0.65,Y-T*1.2);ctx.lineTo(X+T*1.6,Y-T*1.9);ctx.stroke();
+      const ax=X+T*1.6,ay=Y+T*0.6;ctx.fillStyle='#e8eef8';ctx.beginPath();ctx.arc(ax,ay-T*0.6,T*0.28,0,7);ctx.fill();ctx.fillStyle='#5ff3ff';ctx.beginPath();ctx.arc(ax,ay-T*0.6,T*0.16,0,7);ctx.fill();ctx.fillStyle='#d0d8e8';rr(ctx,ax-T*0.3,ay-T*0.32,T*0.6,T*0.9,T*0.2);ctx.fill()}
+    if(sel('caps'))ctx.strokeStyle='#ffd23f',ctx.lineWidth=3,ctx.strokeRect(X-T*1.2,Y-T*1.9,T*2.4,T*3.8);
+    lbl(aw?'🧑‍🚀 Atlas (réveillé) — clique pour lui parler':'🧊 Capsule de stase — Atlas',X,Y-T*2.1,aw?'#a6ffcf':'#bdf3ff')}
+  // nids
+  HIVE.nids.forEach((n,i)=>{const X=ox+(n.x+0.5)*T,Y=oy+(n.y+0.5)*T,dead=S.ug.nids[i];
+    if(dead){ctx.fillStyle='rgba(10,8,8,0.8)';ctx.beginPath();ctx.ellipse(X,Y,T*1.6,T*1.2,0,0,7);ctx.fill();for(let k=0;k<8;k++){ctx.fillStyle=`rgba(255,${80+k*10},30,${0.25+0.25*Math.sin(now*3+k)})`;ctx.beginPath();ctx.arc(X+(hsh(i,k,7)-0.5)*T*2,Y+(hsh(i,k+9,7)-0.5)*T*1.5,T*0.12,0,7);ctx.fill()}lbl('Nid détruit',X,Y-T*1.5,'#999')}
+    else{const p=1+0.05*Math.sin(now*2.2+i);ctx.fillStyle='#4a1a2a';ctx.beginPath();ctx.ellipse(X,Y+T*0.2,T*1.7*p,T*1.25*p,0,0,7);ctx.fill();ctx.fillStyle='#7a2c3c';ctx.beginPath();ctx.ellipse(X,Y,T*1.35*p,T*0.95*p,0,0,7);ctx.fill();
+      for(let k=0;k<7;k++){const a=k/7*Math.PI*2+i,ex2=X+Math.cos(a)*T*0.75,ey2=Y+Math.sin(a)*T*0.5,eg=ctx.createRadialGradient(ex2-2,ey2-2,1,ex2,ey2,T*0.3);const gl2=0.6+0.4*Math.sin(now*3+k+i);eg.addColorStop(0,'#fffbe0');eg.addColorStop(0.6,`rgba(255,200,70,${gl2})`);eg.addColorStop(1,'rgba(150,70,20,0.2)');ctx.fillStyle=eg;ctx.beginPath();ctx.ellipse(ex2,ey2,T*0.24,T*0.3,0,0,7);ctx.fill()}
+      ctx.fillStyle='rgba(20,0,10,0.8)';ctx.beginPath();ctx.ellipse(X,Y,T*0.35,T*0.25,0,0,7);ctx.fill();
+      if(sel('nid',i)){ctx.strokeStyle='#ffd23f';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(X,Y,T*2,T*1.6,0,0,7);ctx.stroke()}
+      lbl(`🥚 Nid ${i+1}`,X,Y-T*1.6,'#ffd27a')}});
+  // trône de la Reine
+  {const X=ox+(HIVE.trone.x+0.5)*T,Y=oy+(HIVE.trone.y+0.5)*T,open=S.ug.atlas&&nidsDone()>=5,dead=S.ug.reine,on=S.ug.reineOn;
+    const gl=ctx.createRadialGradient(X,Y,T,X,Y,T*4);gl.addColorStop(0,dead?'rgba(120,120,120,0.2)':on?`rgba(255,40,40,${0.3+0.2*Math.sin(now*5)})`:'rgba(255,170,40,0.35)');gl.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.arc(X,Y,T*4,0,7);ctx.fill();
+    ctx.fillStyle='#3a1420';ctx.beginPath();for(let k=0;k<6;k++){const a=k/6*Math.PI*2+Math.PI/6;ctx.lineTo(X+Math.cos(a)*T*2.3,Y+Math.sin(a)*T*2.3)}ctx.closePath();ctx.fill();ctx.strokeStyle='#c27a10';ctx.lineWidth=3;ctx.stroke();
+    if(!dead&&!on){ctx.fillStyle=open?'rgba(255,200,80,0.45)':'rgba(140,60,80,0.85)';ctx.beginPath();ctx.arc(X,Y,T*1.5,0,7);ctx.fill();if(!open){ctx.strokeStyle='rgba(60,10,20,0.9)';ctx.lineWidth=2;for(let k=0;k<6;k++){ctx.beginPath();ctx.moveTo(X,Y);ctx.lineTo(X+Math.cos(k)*T*1.5,Y+Math.sin(k)*T*1.5);ctx.stroke()}}
+      else{ctx.fillStyle='#ffd700';ctx.beginPath();for(let k=0;k<5;k++){const a=-Math.PI/2+(k-2)*0.4;ctx.lineTo(X+Math.cos(a)*T*0.9,Y+Math.sin(a)*T*0.9+T*0.3);ctx.lineTo(X+Math.cos(a+0.2)*T*0.55,Y+Math.sin(a+0.2)*T*0.55+T*0.3)}ctx.closePath();ctx.fill()}}
+    else if(on){ctx.fillStyle='rgba(0,0,0,0.8)';ctx.beginPath();ctx.arc(X,Y,T*1.5,0,7);ctx.fill()}
+    else{ctx.fillStyle='rgba(60,60,60,0.9)';ctx.beginPath();ctx.arc(X,Y,T*1.5,0,7);ctx.fill();ctx.fillStyle='#8a7a40';ctx.save();ctx.translate(X,Y);ctx.rotate(0.5);ctx.fillRect(-T*0.6,-T*0.15,T*1.2,T*0.3);ctx.restore()}
+    if(sel('trone'))ctx.strokeStyle='#ffd23f',ctx.lineWidth=3,ctx.strokeRect(X-T*2.5,Y-T*2.5,T*5,T*5);
+    lbl(dead?'👑 Trône vide — clique pour relire':on?'⚠ La Reine est à la surface !':open?'👑 Trône de la Reine — clique pour la défier':'🔒 Trône scellé (Atlas + 5 nids)',X,Y-T*2.7,dead?'#bbb':on?'#ff6b6b':'#ffd27a')}
+}
+function hiveHit(x,y){if(Math.abs(x-HIVE.caps.x)<=1&&Math.abs(y-HIVE.caps.y)<=2)return{k:'caps'};if(Math.abs(x-HIVE.trone.x)<=2&&Math.abs(y-HIVE.trone.y)<=2)return{k:'trone'};const i=HIVE.nids.findIndex(n=>Math.abs(x-n.x)<=1&&Math.abs(y-n.y)<=1);return i>=0?{k:'nid',i}:null}
+const costTxt=c=>Object.keys(c).map(k=>`${c[k]} ${ITEMS[k].n}`).join(', ');
+const costOk=c=>Object.keys(c).every(k=>total(k,ME)>=c[k]);
+function hivePanel(){
+  const u=S.ug,nd=nidsDone();let h=`<div style="min-width:220px"><b>🐝 Chapitre 3 · La Ruche</b><div class="mut" style="font-size:12px">${u.atlas?'✅':'⬜'} Atlas réveillé · ${nd===5?'✅':'⬜'} Nids ${nd}/5 · ${u.reine?'✅ Reine vaincue':u.reineOn?'⚔ Reine à la surface':'⬜ Reine'}</div>`;
+  if(HSEL&&HSEL.k==='caps'){h+=u.atlas?'<div class="mut" style="font-size:12px">Atlas est réveillé : +20 % de dégâts pour toutes les tourelles, brouilleur phéromonal débloqué.</div>':`<div class="mut" style="font-size:12px">Réveiller Atlas : ${costTxt(ATLAS_COST)}</div><button data-hv="atlas" class="${costOk(ATLAS_COST)?'prim':''}">🧑‍🚀 Réveiller Atlas</button>`}
+  else if(HSEL&&HSEL.k==='nid'&&!u.nids[HSEL.i]){const c=nidCost(nd);h+=`<div class="mut" style="font-size:12px">Charge thermique : ${costTxt(c)}. Attention : la ruche contre-attaquera à la surface !</div><button data-hv="nid:${HSEL.i}" class="${costOk(c)?'warn':''}">🔥 Brûler le nid ${HSEL.i+1}</button>`}
+  else if(HSEL&&HSEL.k==='trone'){if(u.reine)h+='<div class="mut" style="font-size:12px">La Reine est morte. Gougouz est libre.</div>';else if(u.reineOn)h+='<div class="mut" style="font-size:12px">La Reine attaque ton usine. Défends-toi !</div>';else if(!u.atlas||nd<5)h+='<div class="mut" style="font-size:12px">Le trône est scellé : réveille Atlas et brûle les 5 nids.</div>';else h+='<div class="mut" style="font-size:12px">Elle remontera à la surface avec sa garde. Bouclier à 66 % et 33 % de PV, rage sous 20 %. Le canon Garik ne lui retire que 0,4 % de ses PV par tir.</div><button data-hv="reine" class="danger">👑 Défier la Reine</button>'}
+  else h+='<div class="mut" style="font-size:12px">Clique sur la capsule, un nid ou le trône.</div>';
+  return h+'</div>'}
 function worldCanPlace(w,t,x,y,o){
   if(!S.ug.found[w])return 'Portail pas encore découvert';const d=WB[t];if(!d)return 'Inconnu';
   if(d.lvl&&P(o).level<d.lvl)return `Niveau ${d.lvl} requis`;
   if(x<0||y<0||x>=WW||y>=WH)return 'Hors de la carte';
   if(!WDEP[w][y][x])return 'Pose-la sur un gisement';
+  if(w==='ruche'&&hiveHit(x,y))return 'Emplacement réservé';
   if(S.wb[w].some(b=>b.x===x&&b.y===y))return 'Case occupée';
   if(!canAfford(d.cost,o))return 'Ressources insuffisantes';
   return null;
@@ -2465,10 +2639,11 @@ function worldCanPlace(w,t,x,y,o){
 function setLayer(l){
   if(l===LAYER)return;
   if(l==='ug'&&P(ME).level<UG_LVL){toast(`Souterrain : débloqué au niveau ${UG_LVL}`);return}
-  if(WORLDS[l]&&!(S.ug&&S.ug.found[l])){toast(l==='neptune'?'Construis une rampe de lancement (3×3, niveau 55) et lance la fusée pour atteindre Neptune':'Trouve d\'abord ce portail avec ta sonde, dans le souterrain');return}
+  if(WORLDS[l]&&!(S.ug&&S.ug.found[l])){toast(l==='ruche'?'Termine les recherches du labo extraterrestre, puis ouvre la trappe sur Neptune':l==='neptune'?'Construis une rampe de lancement (3×3, niveau 55) et lance la fusée pour atteindre Neptune':'Trouve d\'abord ce portail avec ta sonde, dans le souterrain');return}
   LCAM[LAYER]={x:cam.x,y:cam.y,z:cam.z};LAYER=l;LTOOL=null;setTool(null);sel=null;BP.mode=null;
   const c=LCAM[l];if(c){cam.x=c.x;cam.y=c.y;cam.z=c.z}else if(l==='ug'){const p=probeOf(ME);cam.x=p?p.x:48;cam.y=p?Math.max(4,p.y):6;cam.z=1}else if(WORLDS[l]){cam.x=WW/2;cam.y=WH/2;cam.z=0.9}
-  $('mini').style.display=l==='surface'?'':'none';buildToolbar();renderLayers();refreshUI(true);
+  $('mini').style.display=l==='surface'?'':'none';HSEL=null;buildToolbar();renderLayers();refreshUI(true);
+  if(l==='ruche'){META.lore=META.lore||{};if(!META.lore.ruche){META.lore.ruche=1;saveMeta();setTimeout(()=>openLore(0,LORE3),300)}}
 }
 function renderLayers(){
   const el=$('layers');if(!el||!S)return;ensureLayers();
@@ -2484,7 +2659,7 @@ function buildLayerToolbar(){
       <div class="mut" style="max-width:420px;font-size:12px">Clique dans la roche ou une grotte : la sonde y va en creusant. Chaque case cassée lui donne de l'XP (roche dure et minerais rapportent plus) : +8 % de vitesse par niveau, plus de chargement, <b>3×3 au niveau 10</b>, <b>5×5 au niveau 20</b>, et elle perce la <b>roche noire au niveau 25</b>. Trouve les <b>portails</b> en profondeur pour ouvrir la Lune, Mars et Europe.</div></div>`;
   }else{
     const w=LAYER,W2=WORLDS[w];
-    box.innerHTML=`<div class="ugbar"><div><b>${W2.ic} ${W2.n}</b><div class="mut" style="max-width:300px;font-size:12px">${W2.d} La production arrive directement dans ton stock.</div></div>${WB_IDS.map(t=>{const d=WB[t],lk=d.lvl&&P(ME).level<d.lvl;return`<button data-wt="${t}" class="${LTOOL===t?'prim':''}" ${lk?'disabled':''}>${d.n}${lk?' 🔒 niv '+d.lvl:''}<br><span class="mut" style="font-size:11px">${Object.keys(d.cost).map(k=>d.cost[k]+' '+ITEMS[k].n).join(', ')} · ×${d.spd}</span></button>`}).join('')}<div class="mut" style="font-size:12px">Clic : poser sur un gisement · clic droit : démonter (remboursé)<br>Foreuses ici : ${S.wb[w].filter(b=>b.o===ME).length}</div></div>`;
+    box.innerHTML=`<div class="ugbar">${w==='ruche'?hivePanel():''}<div><b>${W2.ic} ${W2.n}</b><div class="mut" style="max-width:300px;font-size:12px">${W2.d} La production arrive directement dans ton stock.</div></div>${WB_IDS.map(t=>{const d=WB[t],lk=d.lvl&&P(ME).level<d.lvl;return`<button data-wt="${t}" class="${LTOOL===t?'prim':''}" ${lk?'disabled':''}>${d.n}${lk?' 🔒 niv '+d.lvl:''}<br><span class="mut" style="font-size:11px">${Object.keys(d.cost).map(k=>d.cost[k]+' '+ITEMS[k].n).join(', ')} · ×${d.spd}</span></button>`}).join('')}<div class="mut" style="font-size:12px">Clic : poser sur un gisement · clic droit : démonter (remboursé)<br>Foreuses ici : ${S.wb[w].filter(b=>b.o===ME).length}</div></div>`;
   }
 }
 function layerInfo(){
@@ -2497,16 +2672,18 @@ function layerInfo(){
     return`<b class="t">${t}</b><p class="mut">Profondeur ${ty*10} m</p>${o&&!ugOpen(i)?`<p>${sw(UG_ORES[o-1])} ${ITEMS[UG_ORES[o-1]].n} (2 par case creusée)</p>`:''}`;
   }
   const w=LAYER;if(!mouse.inside||tx<0||ty<0||tx>=WW||ty>=WH)return`<b class="t">${WORLDS[w].ic} ${WORLDS[w].n}</b><p class="mut">${WORLDS[w].d}</p>`;
+  if(w==='ruche'){const h=hiveHit(tx,ty);if(h){if(h.k==='caps')return`<b class="t">🧑‍🚀 Capsule de stase</b><p class="mut">${S.ug.atlas?'Atlas est réveillé et analyse la ruche avec toi.':'Atlas dort à l\'intérieur. Il faut de la gelée royale pour relancer la capsule.'}</p>`;if(h.k==='trone')return`<b class="t">👑 Trône de la Reine</b><p class="mut">${S.ug.reine?'Vide.':'Scellé tant qu\'Atlas dort et que les 5 nids sont intacts.'}</p>`;return`<b class="t">🥚 Nid ${h.i+1}</b><p class="mut">${S.ug.nids[h.i]?'Détruit.':'Chaque nid brûlé réduit de 6 % la taille des vagues.'}</p>`}}
   const it=WDEP[w][ty][tx],b=S.wb[w].find(q=>q.x===tx&&q.y===ty);
   if(b)return`<b class="t">${WB[b.t].n}</b>${ownerLine(b.o)}<p>Extrait ${sw(it)} ${ITEMS[it].n} : 1 / ${(ORE_RATE[it]/(WB[b.t].spd*mMach(b.o))).toFixed(1)} s</p>`;
   if(it)return`<b class="t">Gisement</b><p>${sw(it)} ${ITEMS[it].n}</p><p class="mut">Pose une foreuse spatiale ici.</p>`;
   return`<b class="t">${WORLDS[w].ic} ${WORLDS[w].n}</b><p class="mut">${WORLDS[w].d}</p>`;
 }
 const TRAP={x:12,y:9};
-const alienDone=()=>{const r=rsOf(ME);return r&&RESEARCH.filter(t=>t.alien).every(t=>r.done.includes(t.id))};
+const alienDone=(o=ME)=>{const r=rsOf(o);return r&&RESEARCH.filter(t=>t.alien).every(t=>r.done.includes(t.id))};
 function layerClick(x,y){
   if(LAYER==='neptune'&&S.ug.lab&&Math.abs(x-TRAP.x)<=1&&Math.abs(y-TRAP.y)<=1){if(alienDone())openLore(0,LORE2);else toast('🔒 Une trappe scellée… Termine toutes les recherches du labo extraterrestre pour l\'ouvrir.');return}
   if(LAYER==='neptune'&&x>=LAB.x-1&&x<=LAB.x+2&&y>=LAB.y-1&&y<=LAB.y+2){if(!S.ug.lab){act('lab');if(NET.role==='guest')S.ug.lab=true;sfx('level')}openLore();return}
+  if(LAYER==='ruche'){const h=hiveHit(x,y);if(h){HSEL=h;LTOOL=null;if(h.k==='caps'&&S.ug.atlas)openLore(0,LORE_ATLAS);else if(h.k==='trone'&&S.ug.reine)openLore(0,LORE_REINE);buildToolbar();return}}
   if(LAYER==='ug'){if(!probeOf(ME)){toast('Construis d\'abord une sonde (barre du bas)');return}const err=act('pgo',x,y);if(err)toast(err);return}
   if(!LTOOL){toast('Choisis une foreuse dans la barre du bas');return}
   const err=act('wplace',LAYER,LTOOL,x,y);if(err)toast(err);else{sfx('build');if(NET.role==='guest'){S.wb[LAYER].push({t:LTOOL,x,y,o:ME,tm:0});for(const k in WB[LTOOL].cost)P(ME).inv[k]=Math.max(0,(P(ME).inv[k]||0)-WB[LTOOL].cost[k])}}
@@ -2528,13 +2705,34 @@ const LORE2=[
   {tag:'Capsule de stase · Niveau -3',t:'Atlas',x:['Au fond de la ruche, une capsule de stase de ton espèce. Givrée. Intacte.','À l\'intérieur : Atlas. Endormi, vivant. Ses constantes sont faibles, mais stables.','Sur la vitre, gravé au couteau : « Gougouz est parti chercher la Reine. Ne me réveillez pas avant son retour. »']},
   {tag:'Mémoire interne · Unité U-7',t:'Nouvelle directive',x:['Tes créateurs t\'ont envoyé coloniser l\'univers.','Ils ne savaient pas que chaque foreuse réveillait une ruche.','Quelque part sous la glace, la Reine attend. Gougouz est peut-être encore vivant. Et Atlas dort, à quelques mètres de toi.','Directive mise à jour : survivre. Comprendre. Retrouver Gougouz.','…à suivre.']},
 ];
+window.LORE0=LORE;
+const LORE3=[
+  {tag:'Chapitre 3 · La Ruche',t:'L\'escalier de glace',x:['Les marches s\'arrêtent sur une salle immense. L\'air est chaud, humide, sucré. Les parois respirent.','Tes capteurs comptent cinq nids encore actifs. Chacun pond des milliers d\'œufs, qui remontent par des fissures jusqu\'aux mondes où tes foreuses travaillent.','Au fond, derrière une membrane scellée, un trône. Et contre un mur, givrée, la capsule d\'Atlas.']},
+  {tag:'Mémoire interne · Unité U-7',t:'Plan d\'action',x:['1. Récolter la chitine et la gelée royale avec des foreuses spatiales.','2. Relancer la capsule d\'Atlas avec de la gelée royale : il connaît la ruche mieux que personne.','3. Brûler les cinq nids. Chaque nid détruit, ce sont des vagues plus petites… mais la ruche se défendra.','4. Ouvrir le trône. Affronter la Reine. Retrouver Gougouz.']},
+  {tag:'Message gravé · Paroi nord',t:'« Ne réveillez pas la Reine »',x:['Quelqu\'un a écrit dans la chitine, avec une griffe ou un tournevis :','« Elle n\'est pas méchante. Elle a faim. Elle se défend. Mais elle ne s\'arrêtera pas tant que nous creuserons ses œufs. »','Signé d\'un petit dessin de casserole.'],sig:'— probablement Gougouz'},
+];
+const LORE_ATLAS=[
+  {tag:'Capsule de stase · Réveil',t:'Atlas',x:['La glace fond. La vitre se lève dans un sifflement.','Atlas tousse, cligne des yeux, te regarde longtemps. « Une unité de colonisation… Alors ils ont continué à envoyer des robots. Ils n\'ont pas reçu nos messages. »','« Combien de temps ai-je dormi ? » Tes registres répondent : trop longtemps.']},
+  {tag:'Atlas · Rapport',t:'« Ce que nous avons trouvé »',x:['« Le neptunium, ce sont leurs œufs. Chaque foreuse qui en touche un réveille une larve. Ton usine… c\'est pour ça qu\'ils t\'attaquent. »','« Mais je peux t\'aider. Je connais leur odeur, leurs phéromones. Je peux construire un brouilleur qui les rend confus. Et je vais recalibrer toutes tes tourelles. »','Bonus débloqué : +20 % de dégâts pour toutes les tourelles. Nouveau bâtiment : brouilleur phéromonal.']},
+  {tag:'Atlas · Inquiet',t:'« Et Gougouz ? »',x:['« Gougouz est descendu parler à la Reine. Parler, oui. Il pensait qu\'on pouvait négocier. »','« S\'il est encore vivant, il est dans le trône. Brûle les nids : sans eux, la Reine sera obligée de sortir pour se défendre. »','« Et U-7… merci. »'],sig:'— Atlas, scientifique en chef'},
+];
+const LORE_REINE=[
+  {tag:'Chapitre 3 · Fin',t:'La Reine est tombée',x:['Le cri de la Reine fait trembler toute la surface. Puis plus rien.','Dans la ruche, les alvéoles s\'éteignent une à une. Les œufs restants se figent : ils redeviennent du simple neptunium, froid et silencieux.','Les vagues seront plus petites désormais. Pour de bon.']},
+  {tag:'Trône de la Reine',t:'Gougouz',x:['Derrière le trône, un cocon de chitine bouge. Tu le découpes au laser.','Gougouz en sort, couvert de gelée royale, une casserole à la main. « Ah ! Enfin ! Vous en avez mis du temps. J\'ai faim. Vous avez faim ? Moi j\'ai faim. »','Atlas le serre dans ses bras. Gougouz râle, mais ne le repousse pas.']},
+  {tag:'Journal de Gougouz · Entrée 32',t:'« La recette »',x:['« Six mois dans un cocon, ça donne le temps de réfléchir. La gelée royale, bien cuite, c\'est un super-carburant. Pour les humains ET pour les machines. »','« Je vais ouvrir une cantine à côté de ton usine, U-7. Tu m\'apportes de la gelée, je te fais tourner tout ça plus vite. Marché conclu ? »','Nouveau bâtiment : Cantine de Gougouz. Bonus permanent : +15 % de dégâts des tourelles.'],sig:'— Gougouz, chef cuisinier (à nouveau)'},
+  {tag:'Atlas · Relevé atmosphérique',t:'L\'air de Neptune',x:['Atlas relance enfin la mesure qu\'il n\'avait jamais envoyée.','Sans la ruche, les spores disparaissent de l\'atmosphère. Résultat : 21 % d\'oxygène dans les poches sous la glace. Respirable.','Le message part vers la planète d\'origine, à travers des années-lumière.']},
+  {tag:'Signal entrant · Priorité absolue',t:'Chapitre 4 ?',x:['Trois jours plus tard, une réponse arrive. Ce n\'est pas la voix de tes créateurs.','C\'est un signal qui vient de plus loin que Neptune. Il dit, dans une langue que même Atlas ne connaît pas, un seul mot répété en boucle.','Gougouz pose sa casserole. « Ça, c\'est la langue de la ruche. Mais en beaucoup, beaucoup plus gros. »','La Reine n\'était peut-être pas la seule.','…à suivre.']},
+];
 let lorePg=0,LOREBOOK=LORE;
+let LPREV=null;
+function loreWatch(){if(!S||!S.ug)return;const st={a:!!S.ug.atlas,r:!!S.ug.reine};if(!LPREV){LPREV=st;return}
+  if(st.a&&!LPREV.a)setTimeout(()=>openLore(0,LORE_ATLAS),400);if(st.r&&!LPREV.r)setTimeout(()=>openLore(0,LORE_REINE),1500);LPREV=st}
 function openLore(p=0,book=LORE){LOREBOOK=book;lorePg=p;renderLore();$('loreDlg').hidden=false}
 function renderLore(){const LORE=LOREBOOK,L=LORE[lorePg];$('loreTag').textContent=L.tag;$('lorePg').textContent=`${lorePg+1} / ${LORE.length}`;$('loreTitle').textContent=L.t;
   $('loreTxt').innerHTML=L.x.map((t,i)=>`<span class="ln" style="animation-delay:${i*0.45}s">${esc(t)}</span>`).join('\n\n')+(L.sig?`<span class="sig ln" style="animation-delay:${L.x.length*0.45}s">${esc(L.sig)}</span>`:'');
-  $('lorePrev').style.visibility=lorePg?'visible':'hidden';$('loreNext').textContent=lorePg<LORE.length-1?'Suivant →':LOREBOOK===LORE2?'Fermer':'🔬 Ouvrir les recherches du labo';}
+  $('lorePrev').style.visibility=lorePg?'visible':'hidden';$('loreNext').textContent=lorePg<LORE.length-1?'Suivant →':LOREBOOK===LORE2?'🐝 Descendre dans la ruche':LOREBOOK!==window.LORE0?'Fermer':'🔬 Ouvrir les recherches du labo';}
 document.getElementById('lorePrev').onclick=()=>{if(lorePg>0){lorePg--;renderLore()}};
-document.getElementById('loreNext').onclick=()=>{if(lorePg<LOREBOOK.length-1){lorePg++;renderLore();return}$('loreDlg').hidden=true;if(LOREBOOK===LORE2){if(!S.ug.trappe){S.ug.trappe=true;META.ach=META.ach||{};if(!META.ach.glace){META.ach.glace=Date.now();saveMeta();banner('🏆 Succès débloqué : 🧊 Sous la glace',false,5,'pur')}}return}tab='labo';document.querySelectorAll('#tabs button').forEach(q=>q.classList.toggle('on',q.dataset.tab==='labo'));renderPane(true)};
+document.getElementById('loreNext').onclick=()=>{if(lorePg<LOREBOOK.length-1){lorePg++;renderLore();return}$('loreDlg').hidden=true;if(LOREBOOK===LORE2){META.ach=META.ach||{};if(!META.ach.glace){META.ach.glace=Date.now();saveMeta();banner('🏆 Succès débloqué : 🧊 Sous la glace',false,5,'pur')}if(!S.ug.trappe){act('trappe');if(NET.role==='guest'){S.ug.trappe=true;S.ug.found.ruche=true}}setTimeout(()=>setLayer('ruche'),200);return}if(LOREBOOK!==LORE)return;tab='labo';document.querySelectorAll('#tabs button').forEach(q=>q.classList.toggle('on',q.dataset.tab==='labo'));renderPane(true)};
 document.getElementById('loreDlg').addEventListener('mousedown',e=>{if(e.target.id==='loreDlg')$('loreDlg').hidden=true});
 // ----- Ping & chat -----
 function doPing(){if(!S||!coop()){toast('Le ping sert en partie multi (Alt + clic ou G)');return}if(!mouse.inside)return;act('ping',+mouse.wx.toFixed(1),+mouse.wy.toFixed(1))}
@@ -2556,6 +2754,7 @@ document.getElementById('layers').addEventListener('click',e=>{const b=e.target.
 document.getElementById('tools').addEventListener('pointerdown',e=>{
   const u=e.target.closest('[data-ug]');if(u){const k=u.dataset.ug;let err=null;if(k==='build')err=act('probe');else if(k==='recall')err=act('precall');else if(k==='stop')err=act('pstop');if(err)toast(err);else if(k==='build'){sfx('build');toast('Sonde construite ! Clique dans le sous-sol pour la diriger',true)}setTimeout(()=>buildToolbar(),300);return}
   const w=e.target.closest('[data-wt]');if(w&&!w.disabled){LTOOL=LTOOL===w.dataset.wt?null:w.dataset.wt;buildToolbar()}
+  const hv=e.target.closest('[data-hv]');if(hv){const [k,i]=hv.dataset.hv.split(':');const err=k==='nid'?act('nid',+i):act(k);if(err)toast(err);else{sfx(k==='reine'?'wave':'level');if(NET.role==='guest'&&k==='nid'){S.ug.nids[+i]=1}if(NET.role==='guest'&&k==='atlas')S.ug.atlas=true;if(k==='reine'){setLayer('surface')}setTimeout(buildToolbar,300);buildToolbar()}}
 });
 function newRobotGhost(k='robot'){return{isRobot:true,kind:k,owner:ME,x:0,y:0,hp:1,maxhp:1,state:'seek',count:0,charge:1}}
 function rangeCircle(type,x,y,T){if(!B[type].range)return;ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.setLineDash([5,5]);ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(x,y,B[type].range*(TURRETS.has(type)?mRange(ME):1)*T,0,7);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fill()}
@@ -3075,6 +3274,7 @@ function migrateS(old){
 }
 function applySave(d){
   if(!d||!d.S||![1,2,3].includes(d.v))return false;
+  LPREV=null;HSEL=null;if(d.S&&d.S.ug)d.S.ug.reineOn=false;
   $('overlay').hidden=true;
   const s=migrateS(d.S);
   if(!d.mapV){const sx=16,sy=10;for(const o of d.b||[]){o.x+=sx;o.y+=sy;if(o.lk){o.lk[0]+=sx;o.lk[1]+=sy}}for(const o of d.rb||[]){o.x+=sx;o.y+=sy;if(o.st){o.st=[o.st[0]+sx,o.st[1]+sy]}}for(const o of d.m||[]){o.x+=sx;o.y+=sy}d.mapV=2}
@@ -3474,7 +3674,7 @@ function hostMoveGuest(peer,t){
 function sanCos(c){const o={};if(typeof c.col==='string'&&/^#[0-9a-fA-F]{6}$/.test(c.col))o.col=c.col;if(typeof c.skin==='string'&&c.skin.length<16)o.skin=c.skin;return o}
 const PINGT={},CHATT={};
 let WBV=1;
-const GUEST_ACTS=new Set(['lab','launch','probe','pgo','pstop','precall','wplace','wdel','ping','chat','research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
+const GUEST_ACTS=new Set(['trappe','atlas','nid','reine','lab','launch','probe','pgo','pstop','precall','wplace','wdel','ping','chat','research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
 function bcRoom(){
   if(NET.role==='host'&&NET.room&&(NET.guestHere||NET.specs.size))return NET.room;
   if(NET.role==='solo'&&SPEC.room&&SPEC.specs.size)return SPEC.room;
@@ -3497,7 +3697,8 @@ function encBuildings(){
     let ex=0;
     if(MACHINES.has(b.type)){ex=(b.recipe||0)+(b.crafting?16:0);const st=machState(b);if(st&&st[0]!=='ok')ex+=32}
     else if(DRILLS.has(b.type)){const st=machState(b);ex=st&&st[0]!=='ok'?32:0}
-    else if(b.type==='cryo')ex=b.active?1:0;
+    else if(b.type==='cryo'||b.type==='brouilleur')ex=b.active?1:0;
+    else if(b.type==='cantine')ex=b.fed?1:0;
     else if(b.type==='extracteur')ex=b.filter?ITEM_ORDER.indexOf(b.filter)+1:0;
     else if(b.type==='lanceur')ex=Math.round((b.count||0)/20*63);
     else if(b.type==='recepteur')ex=Math.round((b.count||0)/40*63);
@@ -3522,7 +3723,7 @@ function hostNetTick(now){
     for(let i=0;i<n;i++){const o={i,n,ts,d:ms.slice(i*3500,(i+1)*3500)};if(i===0){o.rp=rp;if(f.length)o.f=f}RM.emit('mo',o).catch(()=>{})}
   }
   if(now-NET.tickAt<250)return;NET.tickAt=now;
-  if(S.ug&&((UGV!==NET.ugSent||WBV!==NET.wbSent)&&now-(NET.ugAt||0)>1000||now-(NET.ugAt||0)>6000)){NET.ugSent=UGV;NET.wbSent=WBV;NET.ugAt=now;RM.emit('ug',{lb:S.ug.lab?1:0,d:bitsEnc(UGD),s:bitsEnc(UGS),w:S.wb,f:S.ug.found,md:S.ug.maxD}).catch(()=>{})}
+  if(S.ug&&((UGV!==NET.ugSent||WBV!==NET.wbSent)&&now-(NET.ugAt||0)>1000||now-(NET.ugAt||0)>6000)){NET.ugSent=UGV;NET.wbSent=WBV;NET.ugAt=now;RM.emit('ug',{hv:{t:S.ug.trappe?1:0,a:S.ug.atlas?1:0,n:S.ug.nids,r:S.ug.reine?1:0,o:S.ug.reineOn?1:0},lb:S.ug.lab?1:0,d:bitsEnc(UGD),s:bitsEnc(UGS),w:S.wb,f:S.ug.found,md:S.ug.maxD}).catch(()=>{})}
   // bâtiments : quand ils changent (max 3/s) et toutes les 4 s
   if(NET.bver!==NET.bSent&&now-NET.bAt>330||now-NET.bAt>4000){NET.bSent=NET.bver;NET.bAt=now;sendChunks('bl',encBuildings(),{v:NET.bver},RM)}
   // état
@@ -3574,7 +3775,7 @@ function bindRemote(room){
     if(NET.mo.parts.filter(x=>x!=null).length===d.n){guestApplyMonsters(NET.mo.parts.join(''),d.ts);NET.mo.parts=[]}});
   room.on('fx',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||!Array.isArray(d.f))return;if(typeof d.ts==='number')netClock(d.ts);for(const a of d.f)if(Array.isArray(a))NET.fxQ.push(a)});
   room.on('bi',m=>{if(m.isMe||!S)return;const d=m.data;if(!d||typeof d.d!=='string')return;NET.bi.parts=NET.bi.n===d.n&&NET.bi.parts?NET.bi.parts:[];NET.bi.n=d.n;NET.bi.parts[d.i]=d.d;if(NET.bi.parts.filter(x=>x!=null).length===d.n){guestApplyBelts(NET.bi.parts.join(''));NET.bi.parts=null}});
-  room.on('ug',m=>{if(m.isMe||!S)return;const d=m.data||{};ensureLayers();{const o1=UGD.slice(),o2=UGS.slice();if(typeof d.d==='string')bitsDec(d.d,UGD);if(typeof d.s==='string')bitsDec(d.s,UGS);for(let i=0;i<UGD.length;i++)if(o1[i]!==UGD[i]||o2[i]!==UGS[i])ugMark(i)}if(d.w&&typeof d.w==='object')for(const w of WORLD_IDS)if(Array.isArray(d.w[w]))S.wb[w]=d.w[w].filter(b=>b&&WB[b.t]).map(b=>({t:b.t,x:b.x|0,y:b.y|0,o:b.o|0,tm:0}));if(d.f)S.ug.found=Object.assign({},d.f);if(d.lb)S.ug.lab=true;if(Array.isArray(d.md))S.ug.maxD=d.md;UGV++;renderLayers()});
+  room.on('ug',m=>{if(m.isMe||!S)return;const d=m.data||{};ensureLayers();{const o1=UGD.slice(),o2=UGS.slice();if(typeof d.d==='string')bitsDec(d.d,UGD);if(typeof d.s==='string')bitsDec(d.s,UGS);for(let i=0;i<UGD.length;i++)if(o1[i]!==UGD[i]||o2[i]!==UGS[i])ugMark(i)}if(d.w&&typeof d.w==='object')for(const w of WORLD_IDS)if(Array.isArray(d.w[w]))S.wb[w]=d.w[w].filter(b=>b&&WB[b.t]).map(b=>({t:b.t,x:b.x|0,y:b.y|0,o:b.o|0,tm:0}));if(d.f)S.ug.found=Object.assign({},d.f);if(d.lb)S.ug.lab=true;if(d.hv&&typeof d.hv==='object'){S.ug.trappe=!!d.hv.t;S.ug.atlas=!!d.hv.a;S.ug.reine=!!d.hv.r;S.ug.reineOn=!!d.hv.o;if(Array.isArray(d.hv.n)&&d.hv.n.length===5)S.ug.nids=d.hv.n.map(x=>x?1:0);if(LAYER==='ruche')buildToolbar()}if(Array.isArray(d.md))S.ug.maxD=d.md;UGV++;renderLayers()});
   room.on('st',m=>{if(m.isMe||!S)return;const d=m.data||{};if(typeof d.ts==='number'){if(d.ts<(NET.stTs||0))return;NET.stTs=d.ts;netClock(d.ts)}guestApplyState(d)});
 }
 function guestPresence(){
@@ -3597,7 +3798,7 @@ function guestApplyBuildings(str){
   for(let i=0;i+9<=str.length;i+=9){
     const t=TYPES[d1(str,i)];if(!t)continue;const x=d2(str,i+1),y=d2(str,i+3);if(x<0||y<0||x>=W||y>=H||grid[y][x])continue;
     const b={type:t,x,y,rot:d1(str,i+5)&3,owner:Math.min(3,d1(str,i+6)),hp:0};initB(b);b.hp=d1(str,i+7)/63*maxHp(b);const ex=d1(str,i+8);
-    if(t==='cryo')b.active=!!ex;
+    if(t==='cryo'||t==='brouilleur')b.active=!!ex;if(t==='cantine')b.fed=!!ex;
     if(t==='extracteur')b.filter=ex>0?ITEM_ORDER[ex-1]||null:null;
     if(t==='lanceur')b.count=ex/63*20;if(t==='recepteur')b.count=ex/63*40;
     b.warn=!!(ex&32);
@@ -3901,7 +4102,7 @@ function frameBody(nowMs){
     if(keys.KeyA||keys.ArrowLeft)cam.x-=ps;
     if(keys.KeyD||keys.ArrowRight)cam.x+=ps;
     cam.x=clamp(cam.x,0,layerW());cam.y=clamp(cam.y,LAYER==='ug'?-4:0,layerH());
-    if(isRemote())guestFrame(dt);else update(dt);
+    if(isRemote())guestFrame(dt);else update(dt);loreWatch();
     cosmeticUpdate(dt);
     hostNetTick(nowMs);
   }

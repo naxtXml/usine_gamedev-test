@@ -52,6 +52,13 @@ Jeu de navigateur en vue du dessus : construis une usine (foreuses, tapis roulan
 - Chapitre 2 « Sous la glace » : termine les 5 recherches du labo extraterrestre puis clique la trappe sur Neptune.
 - Nouvelles textures pour le souterrain, la Lune, Mars, Europe et Neptune.
 
+## Chapitre 3 : la Ruche
+- Ouvre la trappe sous le labo de Neptune : nouvel onglet 🐝 Ruche (chitine, gelée royale).
+- Réveille Atlas dans sa capsule : +20 % de dégâts des tourelles, Brouilleur phéromonal.
+- Brûle les 5 nids : vagues −6 % chacun, contre-attaque à la surface, Lance-dards de chitine.
+- Défie la Reine de la Ruche (bouclier à 66 % et 33 %, rage sous 20 %) : Gougouz libéré, Cantine de Gougouz, +15 % de dégâts.
+- Nouveaux monstres : larve, soldat de la ruche, cracheur d'acide. 8 nouveaux succès.
+
 ## Commandes
 
 | Action | Touche |
