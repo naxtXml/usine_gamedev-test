@@ -163,6 +163,11 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - Quand **tous** les joueurs (2, 3 ou 4) ont coché la case, le jeu annonce « 🤝 Le monde est en coop+ ».
 - **Fusion des stocks** : un joueur propose, tous les autres doivent accepter. Ensuite tous les noyaux et tous les coffres puisent dans un seul stock commun (Présent et Futur). Bouton « Séparer les stocks » pour revenir en arrière (partage à parts égales).
 
+## Énergie partagée, Give et Téléporteur (v50)
+- Onglet ⚙ Param. : case « Partager mon énergie avec l'équipe ». Les joueurs qui la cochent (au moins 2) mettent en commun leur production et leur consommation d'énergie (dans le Présent). La barre d'énergie affiche aussi le total de l'équipe.
+- Si ton pseudo est exactement « ∞naxt∞ », l'onglet ⚙ Param. affiche une section 🎁 Give : choisis un objet et une quantité, et donne-les au joueur que tu regardes (le noyau le plus proche du centre de l'écran) ou à un joueur choisi dans la liste. Le serveur vérifie le pseudo.
+- Nouveau bâtiment **Téléporteur** (Logistique, niveau 60) : apporte-lui des objets par tapis ou bras robot, il les envoie aussitôt dans ton noyau, où qu'il soit sur la carte. Consomme 20 d'énergie.
+
 ## Commandes
 
 | Action | Touche |
