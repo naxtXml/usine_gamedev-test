@@ -168,6 +168,12 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - Si ton pseudo est exactement « ∞naxt∞ », l'onglet ⚙ Param. affiche une section 🎁 Give : choisis un objet et une quantité, et donne-les au joueur que tu regardes (le noyau le plus proche du centre de l'écran) ou à un joueur choisi dans la liste. Ce pseudo est protégé par un mot de passe (demandé une seule fois par appareil) ; l'hôte vérifie aussi que le joueur l'a bien saisi avant d'accepter un Give (v51).
 - Nouveau bâtiment **Téléporteur** (Logistique, niveau 60) : apporte-lui des objets par tapis ou bras robot, il les envoie aussitôt dans ton noyau, où qu'il soit sur la carte. Consomme 20 d'énergie.
 
+## Espace développeur : boss event exclusif (v52)
+- Sous le Give (réservé à ∞naxt∞ avec mot de passe) : section 🛠 Espace développeur.
+- Choisis n'importe quel monstre ou boss du jeu (les boss 👑 en premier), ses PV, l'XP que tous les joueurs gagneront, et l'endroit (📍 clic sur la carte, sinon le centre de l'écran).
+- « ⚡ Lancer le boss event » : annonce « BOSS EVENT EXCLUSIF » à tous les joueurs et met le compte à rebours de la vague en pause jusqu'à la mort du boss. À sa mort, chacun gagne l'XP choisie et le compte à rebours reprend.
+- Boutons « Annuler l'event » et « Voir le boss ». Un seul event à la fois ; le boss apparaît dans l'époque que tu regardes.
+
 ## Commandes
 
 | Action | Touche |

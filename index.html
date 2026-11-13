@@ -1279,7 +1279,7 @@ const ET=()=>RUN==='futur'?'f':RUN==='origine'?'o':0,ERX=d=>d&&d.e==='f'?'futur'
 
 // ===== Multijoueur : toute l'équipe tombe → réapparition (pas de game over) =====
 let MINABLE=null;const minable=()=>MINABLE||(MINABLE=new Set([...Object.keys(DEP),...Object.values(WORLDS).flatMap(w=>w.ores||[])]));
-function teamWipe(){const bosses=[];const c=S.ch4,u=S.ug;
+function teamWipe(){S.devEv=null;const bosses=[];const c=S.ch4,u=S.ug;
   if(c&&c.bossOn&&!c.done){c.bossOn=false;bosses.push(MT[c4bossType()].n)}
   if(u&&u.reineOn&&!u.reine){u.reineOn=false;bosses.push(MT.imperatrice.n)}
   if(S.era==='futur'&&S.omniOn&&!S.omni){S.omniOn=0;S.emp=0;refund(COEUR_COST,S.omniPay||0);bosses.push('l’Omnicerveau')}
@@ -1291,7 +1291,7 @@ function teamWipe(){const bosses=[];const c=S.ch4,u=S.ug;
   flowDirty=true;UGV++;NET.bver++;
   const txt=`💀 Toute l’équipe est tombée… Vous réapparaissez (noyaux à 50 %). ${wv?`La vague ${wv} est annulée`:'L’attaque est annulée'}${bosses.length?`, le combat contre ${bosses.join(' et ')} aussi (relançable quand vous voulez)`:''}. −20 % de vos minerais. Prochaine vague dans ${Math.ceil(S.waveTimer/60)} min.`;
   for(let o=0;o<S.players.length;o++)notify(o,txt);sfx('wave')}
-function futFall(){if(S.omniOn&&!S.omni){S.omniOn=0;S.emp=0;refund(COEUR_COST,S.omniPay||0)}monsters=[];spawnQ=[];for(const p of S.players){p.dead=false;p.coreHp=p.coreMax*0.5}S.waveTimer=Math.max(S.waveTimer,300);flowDirty=true;for(let o=0;o<NP();o++)notify(o,'🌐 Ta base du futur est tombée… Les noyaux redémarrent à 50 %. Prochaine vague du futur dans 5 min.')}
+function futFall(){S.devEv=null;if(S.omniOn&&!S.omni){S.omniOn=0;S.emp=0;refund(COEUR_COST,S.omniPay||0)}monsters=[];spawnQ=[];for(const p of S.players){p.dead=false;p.coreHp=p.coreMax*0.5}S.waveTimer=Math.max(S.waveTimer,300);flowDirty=true;for(let o=0;o<NP();o++)notify(o,'🌐 Ta base du futur est tombée… Les noyaux redémarrent à 50 %. Prochaine vague du futur dans 5 min.')}
 function gridTopo(){
   const nodes=[];for(const c of cores)if(!P(c.owner)||!P(c.owner).dead)nodes.push({x:c.x+1.5,y:c.y+1.5,r:5,l:9});
   for(const b of buildings){const d=B[b.type];if(d.node)nodes.push({x:b.x+0.5,y:b.y+0.5,r:d.node,l:d.link,b})}
@@ -1519,6 +1519,11 @@ const ACT={
     const e=canPlace(t,x,y,o);if(e)return e;
     pay(B[t].cost,o);{const nb=placeB(t,x,y,r,o);if(nb&&kind(t)==='gare'){S.gseq=(S.gseq||0)+1;nb.gid=S.gseq}}P(o).fresh=false;return null;
   },
+  devboss(o,type,hp,xp,x,y){const adm=o===0?isAdminMe()&&NET.hostName===ADMIN:[...NET.guests.values()].some(g=>g.slot===o&&g.admin);if(NET.role==='solo'||!adm)return 'Réservé au développeur';
+    if(!MT[type])return 'Monstre inconnu';if(S.devEv)return 'Un boss event est déjà en cours';hp=clamp(+hp||MT[type].hp,1,1e12);xp=clamp(+xp||0,0,1e9);x=clamp(x|0,1,W-2);y=clamp(y|0,1,H-2);
+    spawnMonster({type,hpMul:hp/MT[type].hp,dmgMul:1+0.05*Math.max(0,S.wave-1),wMul:1,tier:0},x+0.5,y+0.5);const m=monsters[monsters.length-1];if(!m)return 'Impossible de faire apparaître le boss';m.devEv=1;m.devXp=xp;m.hp=m.maxhp=hp;
+    S.devEv={n:MT[type].n,id:m.id,x,y};const txt=`⚡ BOSS EVENT EXCLUSIF : ${MT[type].n} apparaît (${Math.round(hp).toLocaleString('fr-FR')} PV) ! La vague est en pause.`;sfx('wave');for(let o2=0;o2<S.players.length;o2++){if(o2===ME)banner(txt,true,5);else if(NET.role==='host')NET.msgOut.push('!'+txt);notify(o2,txt)}return null},
+  devcancel(o){const adm=o===0?isAdminMe()&&NET.hostName===ADMIN:[...NET.guests.values()].some(g=>g.slot===o&&g.admin);if(!adm||!S.devEv)return null;monsters=monsters.filter(m=>!m.devEv);S.devEv=null;for(let o2=0;o2<S.players.length;o2++)notify(o2,'⚡ Boss event annulé par le développeur.');return null},
   shareE(o,v){if(!coop())return null;P(o).shareE=!!v;for(let q=0;q<S.players.length;q++)if(q!==o)notify(q,`⚡ ${playerName(o)} ${v?'partage':'ne partage plus'} son énergie avec l’équipe.`);NET.bver++;return null},
   agive(o,to,item,n){const adm=o===0?isAdminMe()&&NET.hostName===ADMIN:[...NET.guests.values()].some(g=>g.slot===o&&g.admin);if(NET.role==='solo'||!adm)return 'Réservé à '+ADMIN+' (mot de passe vérifié)';to=to|0;if(!S.players[to]||!ITEMS[item])return null;n=clamp(Math.floor(+n||0),1,1000000);addInv(to,item,n);notify(to,`🎁 ${ADMIN} t’a donné ${n} ${ITEMS[item].n}`);if(to!==o)notify(o,`🎁 ${n} ${ITEMS[item].n} donnés à ${playerName(to)}`);return null},
   allowEdit(o,v){if(!coop())return null;const was=coopPlus();P(o).allowEdit=!!v;const now2=coopPlus();for(let q=0;q<S.players.length;q++){if(now2&&!was)notify(q,'🤝 Le monde est en coop+ : tout le monde peut modifier les installations de tout le monde !');else if(was&&!now2)notify(q,'Le monde n’est plus en coop+.');else if(q!==o)notify(q,`${playerName(o)} ${v?'autorise':'n’autorise plus'} les autres à modifier ses installations.`)}NET.bver++;return null},
@@ -2046,7 +2051,8 @@ function hurt(m,d,pierce=0){
   if(d>=10)spawnNum(m.x,m.y-MT[m.type].r,d);
   if(m.hp<=0){
     const t=MT[m.type];S.kills++;
-    gainXp(t.xp*(1+0.15*Math.max(0,S.wave-1)));
+    gainXp(m.devEv?m.devXp:t.xp*(1+0.15*Math.max(0,S.wave-1)));
+    if(m.devEv&&S.devEv){S.devEv=null;for(let o2=0;o2<S.players.length;o2++)notify(o2,`⚡ Boss event terminé : ${t.n} est vaincu ! +${Math.round(m.devXp)} XP. Le compte à rebours de la vague reprend.`)}
     fx({k:'boom',x:m.x,y:m.y,r:t.r*1.8,col:t.boss?'200,120,255':'160,220,90',t:t.boss?1:0.3,max:t.boss?1:0.3});
     if(t.split)for(let i=0;i<3;i++)spawnMonster({type:'nanite_mini',hpMul:m.hpMul||1,dmgMul:m.dmgMul||1},m.x+(Math.random()-0.5),m.y+(Math.random()-0.5));
     if(m.type==='hydre')for(let i=0;i<3;i++)spawnMonster({type:'colosse',hpMul:(m.wMul||1)*2,dmgMul:m.dmgMul},m.x+(Math.random()-0.5)*2,m.y+(Math.random()-0.5)*2);
@@ -2056,7 +2062,7 @@ function hurt(m,d,pierce=0){
     if(m.type==='tisseur'&&S.era==='futur'&&!S.tis1){S.tis1=1}
     if(m.type==='omnicerveau'&&S.era==='futur'&&!S.omni){S.omni=1;S.omniOn=0;S.emp=0;monsters.forEach(q=>{if(MT[q.type].mech&&q!==m)q.hp=0});spawnQ=[];for(let o2=0;o2<S.players.length;o2++){addInv(o2,'chrono_sable',100);notify(o2,'🧠 L\'Omnicerveau est vaincu ! Toutes ses machines s\'éteignent. +50 % de dégâts dans le futur, +100 chrono-sable')}}
     if(m.type==='imperatrice'&&S.ug){S.ug.reine=true;S.ug.reineOn=false;UGV++;for(let o2=0;o2<S.players.length;o2++){addInv(o2,'titan_token',3);addInv(o2,'gelee_royale',300);notify(o2,'👑 La Reine de la Ruche est vaincue ! Gougouz est libre. +3 Jetons du Titan, +300 gelée royale')}}
-    if(t.boss){S.bossKills=(S.bossKills||0)+1;for(let o=0;o<S.players.length;o++)notify(o,`${t.n} est vaincu ! +${t.xp} XP`)}
+    if(t.boss&&!m.devEv){S.bossKills=(S.bossKills||0)+1;for(let o=0;o<S.players.length;o++)notify(o,`${t.n} est vaincu ! +${t.xp} XP`)}
   }
 }
 function gainXp(n){
@@ -2345,9 +2351,10 @@ function update(dt){
   for(let o=0;o<S.players.length;o++){const r=rsOf(o);if(r&&r.cur){r.cur.left-=dt;if(r.cur.left<=0){const t=RESEARCH.find(x=>x.id===r.cur.id);if(t&&!r.done.includes(t.id))r.done.push(t.id);r.cur=null;if(t){notify(o,`🔬 Recherche terminée : ${t.n} (${t.d})`);if(o===ME)sfx('level')}applyTalentsLive()}}}
   for(let o=0;o<S.players.length;o++){const p=P(o);if(p.craftQ.length){const q=p.craftQ[0];q.left-=dt*mMach(o);if(q.left<=0){const r=RECIPES[q.set][q.i];addInv(o,r.out,r.n);p.made[r.out]=(p.made[r.out]||0)+r.n;p.craftQ.shift()}}}
   flowTimer-=dt;if(flowDirty&&flowTimer<=0){computeFlow();flowDirty=false;flowTimer=0.3}
-  S.waveTimer-=dt;
+  if(S.devEv&&!monsters.some(m=>m.devEv&&m.hp>0)&&!spawnQ.some(q=>q.devEv)){S.devEv=null;for(let o2=0;o2<S.players.length;o2++)notify(o2,'⚡ Boss event terminé.')}
+  if(!S.devEv)S.waveTimer-=dt;
   if(S.waveTimer<=60&&S.warned<1){S.warned=1;const t=S.wave%10===9?'Le BOSS arrive dans 1 minute !':'Attaque dans 1 minute !';banner(t,true,3);if(NET.role==='host')NET.msgOut.push('!'+t)}
-  if(S.waveTimer<=0||allVoted())startWave();
+  if((S.waveTimer<=0||allVoted())&&!S.devEv)startWave();
   for(let i=spawnQ.length-1;i>=0;i--){spawnQ[i].t-=dt;if(spawnQ[i].t<=0){if(monsters.length>=MAX_ALIVE&&!MT[spawnQ[i].type].boss){spawnQ[i].t=1;continue}spawnMonster(spawnQ[i]);spawnQ.splice(i,1)}}
   for(const c of cores){
     const o=c.owner;if(P(o).dead)continue;
@@ -3216,6 +3223,7 @@ function draw(now){
   for(const c of cores)drawB(ctx,c,ox+c.x*T,oy+c.y*T,T,now);
   if(S.era==='futur'){drawGrid(ox,oy,T,now);drawBunkers(ox,oy,T,now);drawCoeur(ox,oy,T,now)}
   if(S.era==='origine')drawOri(ox,oy,T,now);
+  if(DEVPOS&&isAdminMe()&&!S.devEv){const X=ox+(DEVPOS[0]+0.5)*T,Y=oy+(DEVPOS[1]+0.5)*T;ctx.strokeStyle='#ff6ad5';ctx.lineWidth=2;ctx.beginPath();ctx.arc(X,Y,T*0.6+Math.sin(now*5)*T*0.1,0,7);ctx.moveTo(X-T,Y);ctx.lineTo(X+T,Y);ctx.moveTo(X,Y-T);ctx.lineTo(X,Y+T);ctx.stroke()}
   for(const b of buildings){const mh=maxHp(b);if(b.hp<mh-0.5&&vis(b)){ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(ox+b.x*T+T*0.1,oy+b.y*T+T*0.02,T*0.8,T*0.07);ctx.fillStyle='#f2a33a';ctx.fillRect(ox+b.x*T+T*0.1,oy+b.y*T+T*0.02,T*0.8*b.hp/mh,T*0.07)}}
   // tunnels : liaison entrée → sortie
   for(const b of buildings)if(b.type==='pont_entree'&&vis(b)){const ex=tunnelExit(b),[dx,dy]=DIRS[b.rot];if(!ex){ctx.strokeStyle='rgba(255,90,90,0.55)';ctx.setLineDash([3,4]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ox+(b.x+0.5)*T,oy+(b.y+0.5)*T);ctx.lineTo(ox+(b.x+0.5+dx*1.5)*T,oy+(b.y+0.5+dy*1.5)*T);ctx.stroke();ctx.setLineDash([]);continue}
@@ -3835,7 +3843,7 @@ function askAdmin(then){const d=document.getElementById('pwDlg');d.hidden=false;
   document.getElementById('pwOk').onclick=ok;i.onkeydown=e=>{if(e.key==='Enter')ok()};document.getElementById('pwNo').onclick=()=>{d.hidden=true;then&&then(false)}}
 function guardAdminName(go){const el=document.getElementById('mpName');const v=(el?el.value:getPseudo()).trim();if(v===ADMIN&&!adminOk()){askAdmin(ok=>{if(ok){setPseudo(ADMIN);go()}else{if(el)el.value='';setPseudo('');toast('Ce pseudo est protégé par un mot de passe')}});return true}return false}
 function watchedPlayer(){let best=ME,bd=1e9;for(const c of cores){const d=Math.hypot(c.x+1.5-cam.x,c.y+1.5-cam.y);if(d<bd){bd=d;best=c.owner}}return best}
-let AGIVE_TO=null;
+let AGIVE_TO=null,DEVPICK=false,DEVPOS=null,DEVSEL={t:'colosse_forge'};
 const coopPlus=()=>coop()&&S.players.length>1&&S.players.every(p=>p.allowEdit);
 function eraEach(fn){for(const e of ['present','futur'])if(RUN===e||CTX[e])withEra(e,fn)}
 function poolMerge(){eraEach(()=>{if(S.pool)return;const inv=P(0).inv;for(let o=1;o<S.players.length;o++){const q=P(o).inv;for(const k in q){if(q[k]>0)inv[k]=(inv[k]||0)+q[k]}P(o).inv={}}S.pool=1;S.poolReq=null;NET.bver++})}
@@ -3851,7 +3859,12 @@ function paneParams(){const multi=NET.role!=='solo'&&S.players.length>1;let h='<
   if(isAdminMe()){const tgt=AGIVE_TO??watchedPlayer();h+=`<h3>🎁 Give</h3><div class="card" style="border-color:#c77dff"><p class="mut" style="margin:0 0 6px">Donne des objets au joueur que tu regardes (le noyau le plus proche du centre de l’écran).</p>
     <div class="rgrow">Joueur <select id="agTo"><option value="">👁 celui que je regarde (${esc(playerName(watchedPlayer()))})</option>${S.players.map((p,o)=>`<option value="${o}" ${AGIVE_TO===o?'selected':''}>${esc(playerName(o))}</option>`).join('')}</select></div>
     <div class="rgrow">Objet <select id="agIt">${ITEM_ORDER.filter(k=>!S.era||(S.era==='futur'?ITEMS[k].fut||['lingot_fer','acier','minerai_fer'].includes(k):S.era==='origine'?ITEMS[k].ori:true)).map(k=>`<option value="${k}">${ITEMS[k].n}</option>`).join('')}</select> × <input id="agN" type="number" min="1" max="1000000" value="100" style="width:90px"></div>
-    <div class="btnrow"><button class="prim" data-act="agive">🎁 Donner à ${esc(playerName(tgt))}</button></div></div>`}
+    <div class="btnrow"><button class="prim" data-act="agive">🎁 Donner à ${esc(playerName(tgt))}</button></div></div>
+    <h3>🛠 Espace développeur</h3><div class="card" style="border-color:#ff6ad5">${S.devEv?(()=>{const m=monsters.find(q=>q.devEv);return `<p><b>⚡ Boss event en cours :</b> ${esc(S.devEv.n)}${m?` · ${Math.round(Math.max(0,m.hp)).toLocaleString('fr-FR')} / ${Math.round(m.maxhp).toLocaleString('fr-FR')} PV`:''}</p><p class="mut">Le compte à rebours de la vague est en pause.</p><div class="btnrow"><button data-act="devcancel">✖ Annuler l’event</button><button data-act="devcam">📍 Voir le boss</button></div>`})():`
+    <div class="rgrow">Boss <select id="dvT">${Object.keys(MT).filter(k=>!MT[k].mini).sort((a,b)=>(MT[b].boss?1:0)-(MT[a].boss?1:0)||MT[a].n.localeCompare(MT[b].n)).map(k=>`<option value="${k}" ${DEVSEL.t===k?'selected':''}>${MT[k].boss?'👑 ':''}${esc(MT[k].n)}</option>`).join('')}</select></div>
+    <div class="rgrow">PV <input id="dvHp" type="number" min="1" value="${DEVSEL.hp??MT[DEVSEL.t]?.hp??1000}" style="width:120px"> · XP gagnée <input id="dvXp" type="number" min="0" value="${DEVSEL.xp??MT[DEVSEL.t]?.xp??100}" style="width:90px"></div>
+    <div class="rgrow">Endroit : <b>${DEVPOS?`(${DEVPOS[0]}, ${DEVPOS[1]})`:'centre de l’écran'}</b><button data-act="devpick">${DEVPICK?'Clique sur la carte…':'📍 Choisir sur la carte'}</button></div>
+    <div class="btnrow"><button class="prim" style="background:#ff6ad5;color:#2a0020" data-act="devgo">⚡ Lancer le boss event</button></div><p class="mut" style="font-size:11px">Le boss apparaît dans l’époque que tu regardes. La vague est mise en pause jusqu’à sa mort ; l’XP choisie est donnée à tous les joueurs.</p>`}</div>`}
   h+='<h3>📦 Stock des noyaux</h3><div class="card">';
   if(S.pool)h+=`<p class="okc"><b>Stocks fusionnés</b> : tous les noyaux et tous les coffres puisent dans le même stock (dans le Présent et le Futur).</p><div class="btnrow"><button data-act="poolsplit">Séparer les stocks (partage égal)</button></div>`;
   else if(S.poolReq){const r=S.poolReq,ok=r.yes.includes(ME);h+=`<p><b>${esc(playerName(r.from))}</b> propose de fusionner les stocks de tous les noyaux. (${r.yes.length}/${S.players.length} d’accord)</p>`+(ok?'<p class="mut">En attente des autres joueurs…</p><div class="btnrow"><button data-act="poolno">Annuler</button></div>':'<div class="btnrow"><button class="prim" data-act="poolyes">✔ Accepter</button><button data-act="poolno">✖ Refuser</button></div>')}
@@ -4269,7 +4282,7 @@ function renderPane(force){
   const h=tab==='base'?paneBase():tab==='usine'?paneUsine():tab==='labo'?paneLabo():tab==='prog'?paneProg():tab==='atelier'?paneAtelier():tab==='journal'?paneJournal():tab==='params'?paneParams():paneTalents();
   if(h!==lastPane||force){$('pane').innerHTML=h;lastPane=h}
 }
-$('pane').addEventListener('change',e=>{if(e.target.id==='agTo'){AGIVE_TO=e.target.value===''?null:+e.target.value;renderPane(true);return}if(e.target.id==='optEnergy'){const v=e.target.checked;const er=act('shareE',v?1:0);if(er)toast(er);if(NET.role==='guest')P(ME).shareE=v;setTimeout(()=>renderPane(true),150);return}if(e.target.id==='optEdit'){const v=e.target.checked;const er=act('allowEdit',v?1:0);if(er)toast(er);if(NET.role==='guest')P(ME).allowEdit=v;setTimeout(()=>renderPane(true),150)}});
+$('pane').addEventListener('change',e=>{if(e.target.id==='dvT'){DEVSEL={t:e.target.value};renderPane(true);return}if(e.target.id==='dvHp'){DEVSEL.hp=+e.target.value;return}if(e.target.id==='dvXp'){DEVSEL.xp=+e.target.value;return}if(e.target.id==='agTo'){AGIVE_TO=e.target.value===''?null:+e.target.value;renderPane(true);return}if(e.target.id==='optEnergy'){const v=e.target.checked;const er=act('shareE',v?1:0);if(er)toast(er);if(NET.role==='guest')P(ME).shareE=v;setTimeout(()=>renderPane(true),150);return}if(e.target.id==='optEdit'){const v=e.target.checked;const er=act('allowEdit',v?1:0);if(er)toast(er);if(NET.role==='guest')P(ME).allowEdit=v;setTimeout(()=>renderPane(true),150)}});
 $('pane').addEventListener('pointerdown',e=>{
   const jr=e.target.closest('[data-jr]');if(jr){for(const [,es] of jrList())for(const x of es)if(x[0]===jr.dataset.jr&&jrOk(x)){const b=jrBook(x);if(b){openLore(0,b);setTimeout(()=>renderPane(true),50)}}return}
   const rec=e.target.closest('[data-rec]');
@@ -4299,6 +4312,10 @@ $('pane').addEventListener('pointerdown',e=>{
   if(k==='goneptune')setLayer('neptune');
   if(k==='ch4')openCh();
   if(k==='oriopen'){openOriDlg();return}
+  if(k==='devpick'){DEVPICK=!DEVPICK;if(DEVPICK)toast('📍 Clique sur la carte à l’endroit où le boss doit apparaître',true);renderPane(true);return}
+  if(k==='devgo'){const t=document.getElementById('dvT').value,hp=+document.getElementById('dvHp').value,xp=+document.getElementById('dvXp').value;const pos=DEVPOS||[Math.floor(cam.x),Math.floor(cam.y)];const e=act('devboss',t,hp,xp,pos[0],pos[1]);if(e)toast(e);setTimeout(()=>renderPane(true),200);return}
+  if(k==='devcancel'){const e=act('devcancel');if(e)toast(e);setTimeout(()=>renderPane(true),200);return}
+  if(k==='devcam'){const m=monsters.find(q=>q.devEv);if(m){cam.x=m.x;cam.y=m.y}else if(S.devEv){cam.x=S.devEv.x;cam.y=S.devEv.y}return}
   if(k==='agive'){const sel=document.getElementById('agTo').value;const to=sel===''?watchedPlayer():+sel;const e=act('agive',to,document.getElementById('agIt').value,+document.getElementById('agN').value);if(e)toast(e);else sfx('level');return}
   if(['poolask','poolyes','poolno','poolsplit'].includes(k)){const e=act(k);if(e)toast(e);setTimeout(()=>renderPane(true),150);return}
   if(k==='regopen'){if(!buildings.some(q=>kind(q.type)==='regulateur'&&mineB(q))){toast(S.era==='futur'?'Construis d\'abord un régulateur IA':'Construis d\'abord un régulateur d\'infos');return}openReg('mach')}
@@ -4439,6 +4456,7 @@ canvas.addEventListener('mousedown',e=>{
     if(e.button===0&&BP.mode==='select'){BP.start=[mouse.tx,mouse.ty];BP.end=[mouse.tx,mouse.ty];return}
     if(e.button===0&&BP.mode==='paste'){pastePlan(mouse.tx,mouse.ty);return}
   }
+  if(e.button===0&&DEVPICK){DEVPOS=[mouse.tx,mouse.ty];DEVPICK=false;toast(`📍 Le boss apparaîtra en (${DEVPOS[0]}, ${DEVPOS[1]})`,true);renderPane(true);return}
   if(e.button===0&&S.era==='origine'&&MOVEC){const er=act('cmove',mouse.tx,mouse.ty);if(er)toast(er);MOVEC=false;buildToolbar();return}
   if(e.button===0&&S.era==='futur'&&!tool&&coeurAt(mouse.tx,mouse.ty)){openCoeur();return}
   if(e.button===0&&S.era==='futur'){const bi=bunkAt(mouse.tx,mouse.ty);if(bi>=0&&(TALKIE||!tool)){bunkClick(bi);return}if(TALKIE){toast('📻 Clique sur un bunker (Échap pour ranger le talkie-walkie)');return}}
@@ -4971,7 +4989,7 @@ function hostMoveGuest(peer,t){
 function sanCos(c){const o={};if(typeof c.col==='string'&&/^#[0-9a-fA-F]{6}$/.test(c.col))o.col=c.col;if(typeof c.skin==='string'&&c.skin.length<16)o.skin=c.skin;return o}
 const PINGT={},CHATT={};
 let WBV=1;
-const GUEST_ACTS=new Set(['shareE','agive','allowEdit','poolask','poolyes','poolno','poolsplit','expe','exret','cmove','cstop','oriup','moff','tr','coeur','bunk','tempo','c4reset','c4vote','c4svote','c4force','c4go','c4obj','c4boss','trappe','atlas','nid','reine','lab','launch','probe','pgo','pstop','precall','wplace','wdel','ping','chat','research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
+const GUEST_ACTS=new Set(['devboss','devcancel','shareE','agive','allowEdit','poolask','poolyes','poolno','poolsplit','expe','exret','cmove','cstop','oriup','moff','tr','coeur','bunk','tempo','c4reset','c4vote','c4svote','c4force','c4go','c4obj','c4boss','trappe','atlas','nid','reine','lab','launch','probe','pgo','pstop','precall','wplace','wdel','ping','chat','research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
 function bcRoom(){
   if(NET.role==='host'&&NET.room&&(NET.guestHere||NET.specs.size))return NET.room;
   if(NET.role==='solo'&&SPEC.room&&SPEC.specs.size)return SPEC.room;
@@ -5036,7 +5054,7 @@ function hostNetTick(now){
   const trn=S.trains&&S.trains.length?S.trains.map(t=>[t.id,t.o,t.cars.map(c=>c.k==='loco'?'L':'W').join(''),t.path,+t.prog.toFixed(2),t.st,t.spd,t.mode,t.wait,t.park||0,t.stops,t.run?1:0,t.cars.map(c=>c.s?Object.entries(c.s).filter(e=>e[1]>0).map(e=>[ITEM_ORDER.indexOf(e[0]),e[1]]):0),t.seg]):undefined;
   const gss=1?buildings.filter(b=>kind(b.type)==='gare').map(b=>[b.x,b.y,b.gid]):undefined;
   const lk=buildings.filter(b=>kind(b.type)==='lanceur'&&b.lk).map(b=>[b.x,b.y,b.lk[0],b.lk[1]]);
-  RM.emit('st',{pool:S.pool?1:0,prq:S.poolReq||0,xo:S.era==='origine'?{e:S.exp,sc:S.sanct,cz:cores.map(c=>[c.x,c.y]),mv:S.players.map(p=>p.mv||0)}:undefined,ox:!S.era&&S.ori&&S.ori.cur&&CTX.origine?[S.ori.cur.k,S.ori.cur.seed]:0,ori:!S.era?S.ori:undefined,tr:trn,gs:gss,e:ET(),fo:S.futOpen?1:0,fl:S.era==='futur'?[S.hk1?1:0,S.tis1?1:0,S.omni?1:0,S.omniOn?1:0,+(S.emp||0).toFixed(1)]:undefined,ec:S.era==='futur'&&S.echo&&(S.echoV!==NET.ecSent||now-NET.ecAt>20000)?(NET.ecSent=S.echoV,NET.ecAt=now,S.echo):undefined,bkn:S.bk,bkc:S.bkcd?S.bkcd.map(t=>Math.max(0,Math.ceil(t-S.t))):undefined,pb:(S.probes||[]).map(p=>[p.o,Math.round(p.x*10),Math.round(p.y*10),p.n,p.st==='dig'?1:0,p.ret?1:0,p.lv||1,Math.floor(p.xp||0)]),sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ak:Object.fromEntries([...NET.guests.values()].map(g=>[g.slot,g.lastSeq])),sl:Object.fromEntries([...NET.guests.values()].map(g=>[g.sid,g.slot])),nm:NET.names,pc:S.players.map((_,o)=>o===0?sanCos(META.cos||{}):NET.cosAll[o]||{}),ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
+  RM.emit('st',{pool:S.pool?1:0,prq:S.poolReq||0,xo:S.era==='origine'?{e:S.exp,sc:S.sanct,cz:cores.map(c=>[c.x,c.y]),mv:S.players.map(p=>p.mv||0)}:undefined,ox:!S.era&&S.ori&&S.ori.cur&&CTX.origine?[S.ori.cur.k,S.ori.cur.seed]:0,ori:!S.era?S.ori:undefined,tr:trn,gs:gss,e:ET(),fo:S.futOpen?1:0,fl:S.era==='futur'?[S.hk1?1:0,S.tis1?1:0,S.omni?1:0,S.omniOn?1:0,+(S.emp||0).toFixed(1)]:undefined,ec:S.era==='futur'&&S.echo&&(S.echoV!==NET.ecSent||now-NET.ecAt>20000)?(NET.ecSent=S.echoV,NET.ecAt=now,S.echo):undefined,bkn:S.bk,bkc:S.bkcd?S.bkcd.map(t=>Math.max(0,Math.ceil(t-S.t))):undefined,pb:(S.probes||[]).map(p=>[p.o,Math.round(p.x*10),Math.round(p.y*10),p.n,p.st==='dig'?1:0,p.ret?1:0,p.lv||1,Math.floor(p.xp||0)]),sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),dv:S.devEv||0,v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ak:Object.fromEntries([...NET.guests.values()].map(g=>[g.slot,g.lastSeq])),sl:Object.fromEntries([...NET.guests.values()].map(g=>[g.sid,g.slot])),nm:NET.names,pc:S.players.map((_,o)=>o===0?sanCos(META.cos||{}):NET.cosAll[o]||{}),ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
   if(now-(NET.biAt||0)<400)return;NET.biAt=now;
   let bi='';for(const b of buildings)if(BELT.has(b.type)&&b.item)bi+=e2(b.x)+e2(b.y)+e2(ITEM_ORDER.indexOf(b.item))+e1(b.prog*63);
   sendChunks('bi',bi,{ts:Math.round(now),e:ET()},RM);
@@ -5169,7 +5187,7 @@ function guestApplyState(d){
   if(Array.isArray(d.fl)){S.hk1=d.fl[0];S.tis1=d.fl[1];S.omni=d.fl[2];S.omniOn=d.fl[3];S.emp=d.fl[4]||0}if(Array.isArray(d.ec)&&S.era==='futur'){S.echo=d.ec;applyEchoes(d.ec)}
   if(Array.isArray(d.bkn))S.bk=d.bkn.map(x=>x?1:0);if(Array.isArray(d.bkc))S.bkcL=d.bkc.map(v=>Date.now()+(v|0)*1000);
   if(typeof d.w==='number'){if(d.w>S.wave&&S.wave>0||d.w>S.wave&&d.w===1){}S.wave=d.w}
-  if(typeof d.wt==='number')S.waveTimer=d.wt;
+  if(typeof d.wt==='number')S.waveTimer=d.wt;S.devEv=d.dv||null;
   {if(Array.isArray(d.tr))S.trains=d.tr.map(a=>({id:a[0],o:a[1],cars:[...a[2]].map((k,i)=>k==='L'?{k:'loco'}:{k:'wagon',s:Object.fromEntries((a[12][i]||[]).map(e=>[ITEM_ORDER[e[0]],e[1]])),n:(a[12][i]||[]).reduce((x,e)=>x+e[1],0)}),path:a[3],prog:a[4],st:a[5],spd:a[6],mode:a[7],wait:a[8],park:a[9]||null,stops:a[10],run:!!a[11],seg:a[13]||1}));else if(d.tr===undefined&&S.trains&&S.trains.length)S.trains=[];if(Array.isArray(d.gs))for(const g of d.gs){const b=at(g[0],g[1]);if(b&&kind(b.type)==='gare')b.gid=g[2]}}
   if(Array.isArray(d.cp)){const n0=CAPS.length;CAPS=d.cp.map(a=>({sx:a[0]/10,sy:a[1]/10,tx:a[2]/10,ty:a[3]/10,t:a[4],dur:a[5],it:ITEM_ORDER[a[6]]||'lingot_fer',rk:a[7]?1:0}));if(CAPS.some(c=>c.t<0.3))sfx('launch')}
   if(Array.isArray(d.lk))for(const a of d.lk){const b=at(a[0],a[1]);if(b&&kind(b.type)==='lanceur'){b.lk=[a[2],a[3]];b.aim=Math.atan2(a[3]-a[1],a[2]-a[0])}}
@@ -5220,7 +5238,7 @@ function guestFrame(dt){
   for(const b of buildings)if(b.launchT>0)b.launchT=Math.max(0,b.launchT-dt);
   if(S.probes)for(const p of S.probes)if(p.gx!=null){const k=Math.min(1,dt*6);p.x+=(p.gx-p.x)*k;p.y+=(p.gy-p.y)*k}
   for(const r of robots)if(r.kind==='gardien'&&r.state==='fight')r.ftime=Math.max(0,(r.ftime||0)-dt);
-  S.waveTimer=Math.max(0,S.waveTimer-dt);
+  if(!S.devEv)S.waveTimer=Math.max(0,S.waveTimer-dt);
   if(NET.metaDirty){NET.metaDirty=false;guestPresence()}
 }
 async function leaveCoop(){
