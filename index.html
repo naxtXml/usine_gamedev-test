@@ -67,6 +67,12 @@ canvas#c{display:block;cursor:crosshair}
 .rec.on{border-color:var(--acc);background:#33291c}
 .btnrow{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .btnrow button{font-size:12px;padding:4px 8px}
+#goalDlg{position:fixed;inset:0;z-index:150;background:rgba(6,8,12,.86);display:flex;align-items:center;justify-content:center;padding:24px}#goalDlg[hidden]{display:none}
+#goalDlg .gcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:min(1200px,100%);height:100%;display:flex;flex-direction:column;padding:18px 22px;gap:10px}
+#goalDlg .ghead{display:flex;align-items:center;gap:12px;font-size:18px}#goalDlg .ghead button{font-size:13px}#gFilt button.on{border-color:#5fd0ff;color:#5fd0ff}
+#gList{flex:1;overflow:auto;columns:3 320px;column-gap:28px;margin:6px 0 0;padding-left:30px;font-size:14.5px}
+#gList li{break-inside:avoid;margin:0 0 9px;color:var(--mut);line-height:1.35}#gList li.done{color:var(--ok);text-decoration:line-through;text-decoration-color:rgba(76,195,138,.5)}
+#gList li.cur{color:#fff;font-weight:700}#gList li.cur::after{content:' ◀ en cours';color:#ffd23f;font-size:11px;font-weight:600}
 ol.goals{padding-left:18px;font-size:12.5px}
 ol.goals li{margin:3px 0;color:var(--mut)}
 ol.goals li.done{color:var(--ok);text-decoration:line-through;text-decoration-color:rgba(76,195,138,.5)}
@@ -150,6 +156,12 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
 #chatIn{width:100%;padding:6px 8px;border-radius:6px;border:1px solid #4a515e;background:#14171c;color:#fff;font:13px system-ui;text-transform:none;letter-spacing:0}
 #chatQuick{display:flex;flex-wrap:wrap;gap:3px}#chatQuick button{font-size:11px;padding:3px 6px}
 #chatBtn{pointer-events:auto;align-self:flex-start;font-size:14px;padding:3px 8px}
+body.side-c #mid{grid-template-columns:minmax(0,1fr) 236px}body.side-c #side{font-size:11px}body.side-c #tabs button{font-size:10px;padding-left:2px;padding-right:2px}body.side-c .card{padding:7px}
+body.side-h #mid{grid-template-columns:minmax(0,1fr) 0}body.side-h #side{display:none}
+body.mm-s #mini{width:112px;height:103px}body.mm-h #mini{display:none!important}
+.ovb{position:absolute;z-index:4;width:22px;height:22px;padding:0;font-size:13px;line-height:20px;border-radius:6px;background:rgba(20,24,30,.85);border:1px solid #4a515e;color:#cfd6e0;cursor:pointer}
+.ovb:hover{border-color:#8fb0c0;color:#fff}
+#bSide{right:4px;top:50%;height:44px;transform:translateY(-50%);border-radius:8px 0 0 8px;border-right:none}
 #mini{position:absolute;left:10px;bottom:10px;width:192px;height:176px;border:1px solid #4a515e;border-radius:6px;background:#0d0f12;opacity:.92;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:2}
 #mini.small{width:128px;height:88px}
 #overlay{position:absolute;inset:0;background:rgba(8,9,11,.78);display:flex;align-items:center;justify-content:center;z-index:4}
@@ -221,6 +233,7 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
       <div id="layers"></div>
       <div id="eraBar" hidden></div><div id="hint" hidden><div id="hintTxt"></div><div class="btnrow"><button id="hintOff">Ne plus afficher d'aides</button><button id="hintOk" class="prim">Compris</button></div></div>
       <div id="coeurDlg" class="dlg" hidden><div class="card lore" id="coeurCard"></div></div>
+      <div id="goalDlg" hidden><div class="gcard"><div class="ghead"><b id="gTitle">🎯 Objectifs</b><span id="gCount" class="mut"></span><span style="flex:1"></span><span id="gFilt"></span><button id="gX" title="Fermer (Échap)">✕</button></div><div class="bar xp"><i id="gBar"></i></div><ol id="gList"></ol></div></div>
       <div id="pwDlg" class="dlg" hidden style="z-index:200"><div class="card" style="max-width:360px"><b>🔒 Pseudo protégé</b><p class="mut">Ce pseudo demande un mot de passe.</p><input id="pwIn" type="password" autocomplete="off" style="width:100%;padding:8px;margin:6px 0"><div id="pwMsg" class="bad" style="min-height:18px"></div><div class="btnrow"><button id="pwNo">Annuler</button><button id="pwOk" class="prim">Valider</button></div></div></div>
       <div id="oriDlg" class="dlg" hidden><div class="card reg" id="oriCard"></div></div>
       <div id="regDlg" class="dlg" hidden><div class="card reg"><div class="lh"><b id="regTitle">📟 Régulateur d'infos</b><button id="regX" style="margin-left:auto">Fermer</button></div><div id="regTabs" class="rtabs"></div><div id="regBody"></div></div></div>
@@ -229,6 +242,7 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
       <div id="loreDlg" class="dlg" hidden><div class="card lore"><div class="lh"><span id="loreTag"></span><span id="lorePg" class="mut"></span></div><h2 id="loreTitle"></h2><div id="loreTxt"></div><div class="btnrow"><button id="lorePrev">← Précédent</button><button id="loreNext" class="prim" style="margin-left:auto">Suivant →</button></div></div></div>
       <div id="chat" hidden><div id="chatLog"></div><div id="chatBar" hidden><div id="chatQuick"></div><input id="chatIn" maxlength="80" placeholder="Message… (Entrée envoyer · Échap fermer)" autocomplete="off"></div><button id="chatBtn" title="Chat (Entrée)">💬</button></div>
       <canvas id="mini" width="192" height="176" title="Mini-carte : clique pour t'y déplacer"></canvas>
+      <button id="bMini" class="ovb" title="Taille de la mini-carte">–</button><button id="bSide" class="ovb" title="Rapetisser le panneau">⟩</button>
       <div id="saveDlg" class="dlg" hidden><div class="card">
         <h2>Code de sauvegarde</h2>
         <p class="mut">Copie ce code et garde-le (notes, mail…). Colle-le sur un autre appareil ou navigateur pour retrouver ta partie solo et tes talents.</p>
@@ -4175,7 +4189,7 @@ function paneBase(){
   if(coop()&&!spec)h+=`<div class="btnrow"><button class="blue" data-act="give" ${mates().every(o=>P(o).dead)?'disabled':''}>Donner des matériaux${NP()===2?' à '+esc(playerName(mates()[0])):' à un coéquipier'}</button></div>`;
   h+=`<h3>Infos</h3><div class="card" style="min-height:90px">${infoHtml()}</div>`;
   const GL=S.era==='origine'?[]:S.era==='futur'?FGOALS:GOALS;let cur=-1;for(let i=0;i<GL.length;i++)if(!p.goalsDone.includes(i)){cur=i;break}
-  if(GL.length)h+=`<h3>Objectifs${S.era==='futur'?' du futur':''} (+60 XP chacun)</h3><ol class="goals">`+GL.map((g,i)=>`<li class="${p.goalsDone.includes(i)?'done':i===cur?'cur':''}">${g[0]}</li>`).join('')+'</ol>';
+  if(GL.length)h+=`<h3 style="display:flex;align-items:center;gap:6px"><span style="flex:1">Objectifs${S.era==='futur'?' du futur':''} (+60 XP chacun)</span><button data-act="goalsFS" title="Afficher les objectifs en plein écran" style="padding:1px 7px;font-size:13px">⛶</button></h3><ol class="goals">`+GL.map((g,i)=>`<li class="${p.goalsDone.includes(i)?'done':i===cur?'cur':''}">${g[0]}</li>`).join('')+'</ol>';
   h+=`<h3>Commandes</h3><div class="help">
     <div><kbd>Clic</kbd> poser · <b>glisser</b> pour une ligne de tapis/murs</div>
     <div><kbd>Clic droit</kbd> démolir (remboursé)${coop()?' · sur le noyau du coéquipier : donner':''}</div>
@@ -4321,6 +4335,7 @@ $('pane').addEventListener('pointerdown',e=>{
   if(k==='launch'&&sel&&sel.type==='rampe'){const err=act('launch',sel.x,sel.y);if(err)toast(err);else{sel.launchT=4;sfx('launch');sfx('boom')}}
   if(k==='goneptune')setLayer('neptune');
   if(k==='ch4')openCh();
+  if(k==='goalsFS'){openGoalsFS();return}
   if(k==='oriopen'){openOriDlg();return}
   if(k==='devpick'){DEVPICK=!DEVPICK;if(DEVPICK)toast('📍 Clique sur la carte à l’endroit où le boss doit apparaître',true);renderPane(true);return}
   if(k==='devgo'){const t=document.getElementById('dvT').value,hp=+document.getElementById('dvHp').value,xp=+document.getElementById('dvXp').value;const pos=DEVPOS||[Math.floor(cam.x),Math.floor(cam.y)];const e=act('devboss',t,hp,xp,pos[0],pos[1]);if(e)toast(e);setTimeout(()=>renderPane(true),200);return}
@@ -4623,6 +4638,28 @@ function drawMini(){
   for(const m of monsters){const t=MT[m.type];mctx.fillStyle=t.boss?'#c77dff':'#ff4d4d';const z=t.boss?5:2;mctx.fillRect(m.x*2-z/2,m.y*2-z/2,z,z)}
   const T=TS*cam.z,vw=cw/T,vh=ch/T;mctx.strokeStyle='#fff';mctx.lineWidth=1;mctx.strokeRect((cam.x-vw/2)*2,(cam.y-vh/2)*2,vw*2,vh*2);
 }
+
+// ===== panneau latéral et mini-carte réductibles =====
+let SIDEM='n',MINIM='n';try{SIDEM=localStorage.getItem('usine-side')||'n';MINIM=localStorage.getItem('usine-mini')||'n'}catch(e){}
+function applyUiSizes(){const bd=document.body;bd.classList.toggle('side-c',SIDEM==='c');bd.classList.toggle('side-h',SIDEM==='h');bd.classList.toggle('mm-s',MINIM==='s');bd.classList.toggle('mm-h',MINIM==='h');
+  const bs=$('bSide');bs.textContent=SIDEM==='h'?'⟨':'⟩';bs.title=SIDEM==='n'?'Rapetisser le panneau':SIDEM==='c'?'Fermer le panneau':'Rouvrir le panneau';
+  const bm=$('bMini'),w=MINIM==='s'?112:192,h=MINIM==='s'?103:176;if(MINIM==='h'){bm.style.left='10px';bm.style.bottom='10px';bm.textContent='🗺';bm.title='Afficher la mini-carte'}else{bm.style.left=(10+w-24)+'px';bm.style.bottom=(10+h-24)+'px';bm.textContent=MINIM==='n'?'–':'＋';bm.title=MINIM==='n'?'Rapetisser la mini-carte':'Masquer la mini-carte'}
+  try{localStorage.setItem('usine-side',SIDEM);localStorage.setItem('usine-mini',MINIM)}catch(e){}setTimeout(()=>{resize();renderPane&&renderPane(true)},30)}
+$('bSide').onclick=e=>{e.stopPropagation();SIDEM=SIDEM==='n'?'c':SIDEM==='c'?'h':'n';applyUiSizes()};
+$('bMini').onclick=e=>{e.stopPropagation();MINIM=MINIM==='n'?'s':MINIM==='s'?'h':'n';applyUiSizes()};
+for(const id of ['bSide','bMini'])$(id).addEventListener('mousedown',e=>e.stopPropagation());
+applyUiSizes();
+
+// ===== objectifs en plein écran =====
+let GFILT='all';
+function renderGoalsFS(){if(!S)return;const p=P(ME),GL=S.era==='origine'?[]:S.era==='futur'?FGOALS:GOALS;let cur=-1;for(let i=0;i<GL.length;i++)if(!p.goalsDone.includes(i)){cur=i;break}
+  const done=GL.filter((_,i)=>p.goalsDone.includes(i)).length;$('gTitle').textContent=`🎯 Objectifs${S.era==='futur'?' du futur':''} (+60 XP chacun)`;$('gCount').textContent=`${done} / ${GL.length} faits`;$('gBar').style.width=(GL.length?done/GL.length*100:0)+'%';
+  $('gFilt').innerHTML=[['all','Tous'],['todo','À faire'],['done','Faits']].map(([k,n])=>`<button data-gf="${k}" class="${GFILT===k?'on':''}">${n}</button>`).join(' ');
+  $('gList').innerHTML=GL.map((g,i)=>{const d=p.goalsDone.includes(i);if(GFILT==='todo'&&d||GFILT==='done'&&!d)return '';return `<li value="${i+1}" class="${d?'done':i===cur?'cur':''}">${g[0]}</li>`}).join('')||'<p class="mut">Rien ici.</p>'}
+function openGoalsFS(){$('goalDlg').hidden=false;renderGoalsFS()}
+$('goalDlg').addEventListener('click',e=>{if(e.target.id==='goalDlg'||e.target.id==='gX'){$('goalDlg').hidden=true;return}const f=e.target.closest('[data-gf]');if(f){GFILT=f.dataset.gf;renderGoalsFS()}});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('goalDlg').hidden){$('goalDlg').hidden=true;e.stopPropagation()}},true);
+setInterval(()=>{if(!$('goalDlg').hidden)try{renderGoalsFS()}catch(e){}},1000);
 let miniDrag=false;
 const miniMove=e=>{const r=miniCv.getBoundingClientRect();cam.x=clamp((e.clientX-r.left)/r.width*W,0,W);cam.y=clamp((e.clientY-r.top)/r.height*H,0,H)};
 miniCv.addEventListener('mousedown',e=>{e.stopPropagation();miniDrag=true;miniMove(e)});

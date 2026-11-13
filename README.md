@@ -186,6 +186,14 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - Dans le Futur, à la place de la musique générée, 4 morceaux fournis (MP3 intégrés au fichier, v55) : « Calm theme Chinese Street » quand il n'y a aucun ennemi, « Battle theme Chinese Street » quand il n'y a que des monstres, « Riot theme » contre un boss robot ou humain (Colosse-Forge, Tisseur, Omnicerveau…), « Bar Street Battle theme » contre les autres boss. Fondu enchaîné entre les morceaux ; retour au calme 3 s après le dernier ennemi.
 - Bouton 🎵 en haut : musique forte → douce (🎶) → coupée (🔕). Le bouton 🔊 coupe tout le son.
 
+## Panneau et mini-carte réductibles (v56)
+- Petit bouton ⟩ sur le bord droit de la carte : panneau latéral normal → compact (plus étroit, texte plus petit) → fermé (la carte prend toute la largeur). ⟨ pour le rouvrir.
+- Bouton sur le coin de la mini-carte : normale → petite → masquée (🗺 pour la réafficher).
+- Les deux réglages sont retenus sur l'appareil.
+
+## Objectifs en plein écran (v57)
+- Bouton ⛶ à droite du titre « Objectifs » (onglet Base) : affiche tous les objectifs en plein écran, sur plusieurs colonnes, avec la barre de progression, l'objectif en cours surligné et des filtres Tous / À faire / Faits. Mise à jour en direct ; Échap ou ✕ pour fermer.
+
 ## Commandes
 
 | Action | Touche |
