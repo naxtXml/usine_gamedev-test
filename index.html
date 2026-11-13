@@ -115,6 +115,9 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
 #loreDlg .lore{width:min(620px,94%);background:linear-gradient(160deg,#0b1430,#140b2a);border:1px solid #3b5bdb;box-shadow:0 0 40px rgba(80,140,255,.35)}
 #loreDlg .lh{display:flex;justify-content:space-between;font:600 11px ui-monospace,monospace;letter-spacing:.12em;color:#7ef9ff;text-transform:uppercase}
 #loreDlg h2{color:#e8f6ff;margin:6px 0 10px}
+#qteDlg .lore{width:min(620px,94%);background:linear-gradient(160deg,#061a20,#0b1430);border:1px solid #5fff9a;box-shadow:0 0 40px rgba(95,255,154,.3)}
+#qteDlg .lh{display:flex;justify-content:space-between;font:600 11px ui-monospace,monospace;letter-spacing:.12em;color:#5fff9a;text-transform:uppercase}#qteDlg h2{color:#e8fff2;margin:6px 0 4px}
+#qteCv{width:100%;height:auto;background:#050b12;border-radius:10px;border:1px solid #1d3a4a;display:block}
 #eraBar{position:absolute;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:3}
 #eraBar button{width:96px;padding:10px 6px;border-radius:12px;font-weight:700;border:1px solid #3b4a7a;background:rgba(10,14,24,.88);color:#cfd8ef;cursor:pointer;text-align:center}
 #eraBar button.on{background:linear-gradient(160deg,#1a6a8a,#3fd0ff);color:#04131c;border-color:#3fd0ff;box-shadow:0 0 16px rgba(63,208,255,.45)}
@@ -207,6 +210,7 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
       <div id="tagR"></div>
       <div id="layers"></div>
       <div id="eraBar" hidden></div>
+      <div id="qteDlg" class="dlg" hidden><div class="card lore"><div class="lh"><span id="qteTag"></span><span id="qteStep" class="mut"></span></div><h2 id="qteTitle"></h2><p id="qteHint" class="mut" style="font-size:13px"></p><canvas id="qteCv" width="560" height="170"></canvas><div id="qteCtl" class="btnrow" style="margin-top:10px"></div><div class="btnrow"><button id="qteQuit" class="danger">Couper la connexion (échec)</button></div></div></div>
       <div id="chDlg" class="dlg" hidden><div class="card lore" id="chCard"></div></div>
       <div id="loreDlg" class="dlg" hidden><div class="card lore"><div class="lh"><span id="loreTag"></span><span id="lorePg" class="mut"></span></div><h2 id="loreTitle"></h2><div id="loreTxt"></div><div class="btnrow"><button id="lorePrev">← Précédent</button><button id="loreNext" class="prim" style="margin-left:auto">Suivant →</button></div></div></div>
       <div id="chat" hidden><div id="chatLog"></div><div id="chatBar" hidden><div id="chatQuick"></div><input id="chatIn" maxlength="80" placeholder="Message… (Entrée envoyer · Échap fermer)" autocomplete="off"></div><button id="chatBtn" title="Chat (Entrée)">💬</button></div>
@@ -471,6 +475,13 @@ B.brouilleur={cat:'def',n:'Brouilleur phéromonal',cost:{chitine:30,module_quant
 B.lance_dard={cat:'def',n:'Lance-dards de chitine',cost:{chitine:40,alliage:10,circuit:12},hp:1400,pw:-50,range:11,rate:0.8,dmg:900,pierce:4,col:'#d9a441',lvl:66,req:'nid',desc:'Un dard de chitine qui transperce jusqu\'à 4 monstres alignés et ignore toute armure. Débloqué en détruisant un nid de la ruche.'};
 B.cantine={cat:'prod',size:2,n:'Cantine de Gougouz',cost:{acier:200,gelee_royale:50,circuit:40},hp:3000,pw:-30,col:'#ff8a3d',lvl:60,req:'reine',desc:'Gougouz est sauvé… et il cuisine ! Consomme 1 gelée royale toutes les 20 s (prise dans ton stock) : tant qu\'elle est nourrie, +30 % d\'XP et +15 % de vitesse des machines pour toi.'};
 // ================= BÂTIMENTS DU FUTUR (era:'futur') =================
+B.relais_wifi={cat:'log',era:'futur',n:'Relais Wi-Fi',cost:{ferraille:10,nanites:3},hp:400,pw:-6,wifi:8,wlink:12,col:'#5fff9a',lvl:1,desc:'Diffuse le signal radio à 8 cases et se relie aux autres relais (et au noyau) à 12 cases. Doit être alimenté par un pylône. Un bunker couvert par le réseau peut être contacté avec le 📻 talkie-walkie.'};
+B.antenne_longue={cat:'log',era:'futur',base:'relais_wifi',n:'Antenne longue portée',cost:{graphene:6,fibre_optique:4},hp:900,pw:-20,wifi:13,wlink:22,col:'#3fd0ff',lvl:12,req:'bk:2',desc:'Diffuse à 13 cases et se relie jusqu\'à 22 cases.'};
+B.assembleur_ia={cat:'prod',era:'futur',base:'assembleur',rs:'nanofab',n:'Assembleur IA',cost:{graphene:10,puce_ia:2},hp:900,pw:-14,col:'#5fff9a',spd:3,lvl:8,req:'bk:1',desc:'Les recettes de la nanofabrique, 3× plus vite.'};
+B.mur_holo={cat:'def',era:'futur',base:'mur',n:'Mur holographique',cost:{verre_optique:3,puce_ia:1},hp:15000,col:'#7fe0ff',lvl:15,req:'bk:3',desc:'De la lumière solide. Extrêmement résistant.'};
+B.tour_ia={cat:'def',era:'futur',base:'laser',n:'Tour IA',cost:{puce_ia:4,graphene:8,fibre_optique:4},hp:2500,pw:-30,range:9,rate:2.5,dmg:120,col:'#5fff9a',lvl:20,req:'bk:4',desc:'Le code de ciblage de l\'Omnicerveau, retourné contre lui. Énergie.'};
+B.dynamo_singularite={cat:'nrj',era:'futur',base:'solaire',n:'Dynamo de singularité',cost:{matiere_noire:20,supraconducteur:6},hp:3000,pw:250,col:'#9a5cff',lvl:30,req:'bk:5',desc:'+250 d\'énergie, sans carburant (reliée au réseau).'};
+B.canon_antimatiere={cat:'def',era:'futur',base:'railgun',n:'Canon à antimatière',cost:{supraconducteur:10,matiere_noire:20,puce_ia:6},hp:5000,pw:-80,range:15,rate:0.25,dmg:6000,pierce:true,col:'#ff6ad5',lvl:35,req:'bk:6',desc:'Transperce tout sur sa ligne avec 6 000 dégâts. Énergie.'};
 B.tapis_mag={cat:'log',era:'futur',base:'tapis',n:'Tapis magnétique',cost:{ferraille:1},hp:120,col:'#1f6a8a',spd:4,lvl:1,desc:'Les objets lévitent sur un rail magnétique.'};
 B.tapis_mag2={cat:'log',era:'futur',base:'tapis',n:'Tapis magnétique rapide',cost:{plaque_composite:1},hp:250,col:'#2fd0ff',spd:9,lvl:10,desc:'Deux fois plus rapide. Pose-le par-dessus un tapis pour l\'améliorer.'};
 B.jonction={cat:'log',era:'futur',base:'fusionneur',n:'Jonction',cost:{ferraille:5},hp:200,col:'#3a5a7a',lvl:1,desc:'Jusqu\'à 3 entrées → 1 sortie (flèche).'};
@@ -532,10 +543,10 @@ const TYPES=Object.keys(B);
 const CATS=[['log','Logistique'],['prod','Production'],['nrj','Énergie'],['def','Défense'],['trap','Pièges']];
 const kind=t=>(B[t]&&B[t].base)||t;
 const BELT=new Set(['tapis_mag','tapis_mag2','tapis','tapis_rapide','tapis_express','tapis_quantique','tapis_stellaire']);
-const ROTATABLE=new Set(['tapis_mag','tapis_mag2','jonction','aiguillage','excavatrice','excavatrice_plasma','recycleur','nanofabrique','tapis_quantique','tapis_stellaire','foreuse_ruche','assembleur_psy','fonderie_orbitale','pont_entree','pont_sortie','compacteur','synthetiseur','tunnel_entree','tunnel_sortie','extracteur','recepteur','tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
-const MACHINES=new Set(['recycleur','nanofabrique','assembleur_psy','fonderie_orbitale','compacteur','synthetiseur','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','forge','centrifugeuse']);
+const ROTATABLE=new Set(['assembleur_ia','tapis_mag','tapis_mag2','jonction','aiguillage','excavatrice','excavatrice_plasma','recycleur','nanofabrique','tapis_quantique','tapis_stellaire','foreuse_ruche','assembleur_psy','fonderie_orbitale','pont_entree','pont_sortie','compacteur','synthetiseur','tunnel_entree','tunnel_sortie','extracteur','recepteur','tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
+const MACHINES=new Set(['assembleur_ia','recycleur','nanofabrique','assembleur_psy','fonderie_orbitale','compacteur','synthetiseur','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','forge','centrifugeuse']);
 const DRILLS=new Set(['excavatrice','excavatrice_plasma','foreuse_ruche','foreuse','foreuse_avancee','foreuse_laser','pompe']);
-const TURRETS=new Set(['tourelle_faisceau','canon_ionique','arc_tesla','lance_rail','mitrailleuse_vael','tour_echo','canon_createurs','relais_orbital','lance_dard','canon_garik','canon_prisme','mitrailleuse','mitrailleuse_lourde','laser','plasma','tesla','lance_flammes','railgun']);
+const TURRETS=new Set(['tour_ia','canon_antimatiere','tourelle_faisceau','canon_ionique','arc_tesla','lance_rail','mitrailleuse_vael','tour_echo','canon_createurs','relais_orbital','lance_dard','canon_garik','canon_prisme','mitrailleuse','mitrailleuse_lourde','laser','plasma','tesla','lance_flammes','railgun']);
 const WALK=new Set(['sol_electrifie','mine_plasma','mine','pics','piege_resine','mine_psy','nid_piege']);
 const GENS=new Set(['reacteur_compact','cellule_gelee','reacteur_gelee','generateur','super_generateur','reacteur','reacteur_helium']);
 const MT={
@@ -648,6 +659,12 @@ const RESEARCH=[
   {id:'e2',br:'nrj',n:'Réseau intelligent',d:'+25 % d\'énergie produite',fx:{pw:0.25},cost:{circuit:30,batterie:15},t:120,lvl:12,req:['e1']},
 ];
 RESEARCH.push(
+  {id:'f1',br:'fut',fut:1,n:'Calibrage des faisceaux',d:'+25 % de dégâts des tourelles (futur)',fx:{arm:0.25},cost:{plaque_composite:60,nanites:30},t:90,lvl:3},
+  {id:'f2',br:'fut',fut:1,n:'Moteurs magnétiques',d:'+30 % de vitesse des machines et excavatrices (futur)',fx:{mach:0.3},cost:{graphene:20,verre_optique:30},t:120,lvl:8},
+  {id:'f3',br:'fut',fut:1,n:'Supraconduction',d:'+40 % d\'énergie produite (futur)',fx:{pw:0.4},cost:{graphene:30,fibre_optique:15},t:150,lvl:14,req:['f2']},
+  {id:'f4',br:'fut',fut:1,n:'Blindage composite',d:'+30 % de PV des bâtiments (futur)',fx:{hp:0.3},cost:{plaque_composite:150,graphene:20},t:150,lvl:10},
+  {id:'f5',br:'fut',fut:1,n:'Ciblage IA',d:'+20 % de dégâts et +10 % de portée (futur)',fx:{arm:0.2,range:0.1},cost:{puce_ia:15,graphene:30},t:200,lvl:20,req:['f1']},
+  {id:'f6',br:'fut',fut:1,n:'Mémoire reconstruite',d:'+25 % d\'XP (futur)',fx:{xp:0.25},cost:{puce_ia:10,nanites:100},t:200,lvl:16},
   {id:'a1',br:'alien',n:'Alliages extraterrestres',d:'+25 % de PV des bâtiments',fx:{hp:0.25},cost:{neptunium:50},t:120,lvl:55,alien:true},
   {id:'a2',br:'alien',n:'Propulsion ionique',d:'+40 % de vitesse des robots, drones et sondes',fx:{rob:0.4},cost:{neptunium:80,batterie:40},t:150,lvl:55,alien:true,req:['a1']},
   {id:'a3',br:'alien',n:'Réacteurs stellaires',d:'+40 % d\'énergie produite',fx:{pw:0.4},cost:{neptunium:120,pile_fusion:10},t:200,lvl:58,alien:true,req:['a1']},
@@ -667,6 +684,10 @@ const FGOALS=[
   ['Atteindre le niveau 10 du futur',(o,p)=>p.level>=10],
   ['Forer dans la Mégapole effondrée (niveau 6)',o=>buildings.some(b=>b.owner===o&&kind(b.type)==='foreuse'&&ZMAP[b.y][b.x]==='megapole')],
   ['Survivre jusqu\'à la vague 6 du futur',()=>S.wave>=6],
+  ['Construire un relais Wi-Fi et l\'alimenter',o=>buildings.some(b=>b.owner===o&&B[b.type].wifi&&b.net>=0)],
+  ['Connecter un bunker avec le 📻 talkie-walkie',()=>!!(S.bk&&S.bk.some(x=>x))],
+  ['Connecter 4 bunkers',()=>!!(S.bk&&S.bk.filter(x=>x).length>=4)],
+  ['Rétablir le réseau des survivants (8 connexions)',()=>!!(S.bk&&S.bk.every(x=>x))],
 ];
 const GOALS=[
   ['Poser une foreuse sur un gisement de fer (brun)',o=>buildings.some(b=>b.owner===o&&kind(b.type)==='foreuse')],
@@ -706,6 +727,8 @@ const ACH=[
   ['c4o','🫡','Bon soldat','Terminer l\'histoire des Créateurs en obéissant',()=>!!(S.ch4&&S.ch4.done&&S.ch4.side==='obeir')],
   ['c4p','🐝','Ami de la ruche','Terminer l\'histoire des Créateurs en protégeant la ruche',()=>!!(S.ch4&&S.ch4.done&&S.ch4.side==='proteger')],
   ['c4s','🛰','Gardien de l\'orbite','Terminer l\'histoire de la Station orbitale',()=>!!(S.ch4&&S.ch4.done&&S.ch4.pick==='orbite')],
+  ['bk1','📻','Allô ?','Connecter un premier bunker de survivants',()=>{const f=RUN==='futur'?S:CTX.futur&&CTX.futur.S;return !!(f&&f.bk&&f.bk.some(x=>x))}],
+  ['bkall','🛰','Réseau rétabli','Connecter les 8 bunkers et la tour',()=>{const f=RUN==='futur'?S:CTX.futur&&CTX.futur.S;return !!(f&&f.bk&&f.bk.every(x=>x))}],
   ['futur1','🌐','Deux siècles plus tard','Voyager dans le futur',()=>futOpen()],
   ['pylon10','🔌','Électricien','Poser 10 pylônes dans le futur',()=>S.era==='futur'&&buildings.filter(b=>b.owner===ME&&B[b.type].node).length>=10],
   ['fut10','🤖','Réapprentissage','Atteindre le niveau 10 du futur',()=>{const f=RUN==='futur'?S:CTX.futur&&CTX.futur.S;return !!(f&&f.players[ME]&&f.players[ME].level>=10)}],
@@ -998,7 +1021,7 @@ function buildTerrain(seed){
 }
 function genTerrain(seed,on){TER=new Uint8Array(W*H);if(on&&typeof buildTerrain==='function')buildTerrain(seed)}
 function setupWorld(seed,mode,np=2,terr=false){
-  resetEras();
+  resetEras();BUNKS=[];TALKIE=false;
   SPOTS=coreSpots(mode,np);
   genMap(seed,mode,np);
   genTerrain(seed,terr);genUG(seed);genWorlds(seed);LAYER='surface';LTOOL=null;{const mc=document.getElementById('mini');if(mc)mc.style.display=''}
@@ -1014,19 +1037,20 @@ function setupWorld(seed,mode,np=2,terr=false){
 }
 
 // ================= ÉPOQUES : Présent / Futur =================
+const BUNKDEF=[{"n": "Bunker Alpha", "z": "neo", "tier": 1, "d": [9, 13], "loot": {"plaque_composite": 80, "nanites": 40}, "rw": "Labo des survivants débloqué (onglet Labo)."}, {"n": "Bunker Bêta", "z": "neo", "tier": 1, "d": [15, 20], "loot": {"verre_optique": 40}, "rw": "Plan : Assembleur IA."}, {"n": "Bunker Gamma", "z": "megapole", "tier": 2, "loot": {"graphene": 30}, "rw": "Plan : Antenne longue portée."}, {"n": "Abri Delta", "z": "verre", "tier": 2, "loot": {"fibre_optique": 20}, "rw": "Plan : Mur holographique."}, {"n": "Abri Epsilon", "z": "nanite", "tier": 2, "loot": {"puce_ia": 10}, "rw": "Plan : Tour IA."}, {"n": "Refuge Zêta", "z": "foret", "tier": 3, "loot": {"supraconducteur": 8}, "rw": "Plan : Dynamo de singularité."}, {"n": "Station Êta", "z": "singul", "tier": 3, "loot": {"matiere_noire": 30}, "rw": "Plan : Canon à antimatière."}, {"n": "Tour de communication", "z": "megapole", "tier": 2, "tower": 1, "loot": {"cristal_donnees": 40}, "rw": "Signal amplifié : tous tes relais portent 4 cases plus loin."}];let BUNKS=[],TALKIE=false,QTE=null,LPREVF=null;
 let ERA='present',RUN='present';const CTX={present:null,futur:null},ECAM={},GPR=[];let GRID=null;
 const CONDUIT=new Set(['minerai_fer','lingot_fer','acier','silicium','lingot_cuivre']);
 const FUT_IO=Object.keys(ITEMS).filter(k=>ITEMS[k].fut).concat(['lingot_fer','acier','silicium','lingot_cuivre','minerai_fer']);
 const NK=['bver','bSent','bAt','fastAt','tickAt','biAt','spAt','ugAt','bl','mo','bi','stTs','fxOut','fxQ','bdirtyHp'];
 const newNetE=()=>({bver:1,bSent:0,bAt:0,fastAt:0,tickAt:0,biAt:0,spAt:0,ugAt:0,bl:{},mo:{},bi:{},stTs:0,fxOut:[],fxQ:[],bdirtyHp:false});
-function ctxSave(){return{S,deposit,grid,buildings,chests,robots,monsters,effects,spawnQ,flow,flowDirty,flowTimer,cores,groundCv,TER,ZMAP,ZCENTER,CAPS,SHIELDS,LAVAT,SPOTS,parts,decals,prevMon,prevCore,miniBase,sel,tool,goalAcc,GRID,net:Object.fromEntries(NK.map(k=>[k,NET[k]]))}}
-function ctxLoad(c){({S,deposit,grid,buildings,chests,robots,monsters,effects,spawnQ,flow,flowDirty,flowTimer,cores,groundCv,TER,ZMAP,ZCENTER,CAPS,SHIELDS,LAVAT,SPOTS,parts,decals,prevMon,prevCore,miniBase,sel,tool,goalAcc,GRID}=c);for(const k of NK)NET[k]=c.net[k]}
+function ctxSave(){return{S,deposit,grid,buildings,chests,robots,monsters,effects,spawnQ,flow,flowDirty,flowTimer,cores,groundCv,TER,ZMAP,ZCENTER,CAPS,SHIELDS,LAVAT,SPOTS,parts,decals,prevMon,prevCore,miniBase,sel,tool,goalAcc,GRID,BUNKS,net:Object.fromEntries(NK.map(k=>[k,NET[k]]))}}
+function ctxLoad(c){({S,deposit,grid,buildings,chests,robots,monsters,effects,spawnQ,flow,flowDirty,flowTimer,cores,groundCv,TER,ZMAP,ZCENTER,CAPS,SHIELDS,LAVAT,SPOTS,parts,decals,prevMon,prevCore,miniBase,sel,tool,goalAcc,GRID,BUNKS}=c);for(const k of NK)NET[k]=c.net[k]}
 function withEra(e,fn){if(RUN===e)return fn();if(!CTX[e])return undefined;const prev=RUN;CTX[prev]=ctxSave();ctxLoad(CTX[e]);RUN=e;try{return fn()}finally{CTX[e]=ctxSave();ctxLoad(CTX[prev]);RUN=prev}}
 const PS=()=>RUN==='present'?S:(CTX.present&&CTX.present.S);
 const futOpen=()=>{const ps=PS();return !!(ps&&ps.futOpen)};
-function resetEras(){ERA='present';RUN='present';CTX.present=null;CTX.futur=null;GRID=null;const eb=document.getElementById('eraBar');if(eb)eb.hidden=true}
+function resetEras(){LPREVF=null;ERA='present';RUN='present';CTX.present=null;CTX.futur=null;GRID=null;const eb=document.getElementById('eraBar');if(eb)eb.hidden=true}
 const futSeed=sd=>((sd|0)^0x5f17c0de)>>>0;
-function newFutState(ps){const np=ps.players.length;const s2=newState(futSeed(ps.seed),ps.mode,np,false);s2.era='futur';s2.interval=ps.mode==='coop'?1200:2400;s2.waveTimer=s2.interval;for(const p of s2.players){p.inv={ferraille:60,nanites:10};p.level=1;p.xp=0;p.fresh=false}return s2}
+function newFutState(ps){const np=ps.players.length;const s2=newState(futSeed(ps.seed),ps.mode,np,false);s2.era='futur';s2.interval=ps.mode==='coop'?1200:2400;s2.waveTimer=s2.interval;for(const p of s2.players){p.inv={ferraille:60,nanites:10};p.level=1;p.xp=0;p.fresh=false}s2.bk=Array(BUNKDEF.length).fill(0);s2.bkcd=Array(BUNKDEF.length).fill(0);return s2}
 function zoneFut(x,y){const cx2=x+0.5,cy2=y+0.5,R2=17*17;if(cx2**2+cy2**2<R2||(cx2-W)**2+cy2**2<R2||cx2**2+(cy2-H)**2<R2||(cx2-W)**2+(cy2-H)**2<R2)return'singul';
   const dx=(cx2-48)/30,dy=(cy2-56)/22;if(dx*dx+dy*dy<1)return'neo';const a=Math.atan2(cy2-56,cx2-48)*180/Math.PI;if(a>-45&&a<=45)return'megapole';if(a>45&&a<=135)return'verre';if(a>-135&&a<=-45)return'foret';return'nanite'}
 function genMapFut(seed,mode,np){
@@ -1037,6 +1061,11 @@ function genMapFut(seed,mode,np){
   place('neo','ferraille',2,14,18,[5,8]);place('neo','sable_vitrifie',1,9,12,[7,11]);place('neo','nanites',1,7,10,[8,13]);place('neo','ferraille',N(2),10,14,[10,20]);
   place('megapole','ferraille',5,12,18);place('megapole','cristal_donnees',3,6,9);place('verre','sable_vitrifie',6,10,15);place('verre','cristal_donnees',1,5,8);
   place('nanite','nanites',6,10,14);place('foret','nanites',3,8,12);place('foret','cristal_donnees',3,6,9);place('singul','matiere_noire',4,5,8);
+  // bunkers des survivants (positions déterministes à partir de la graine)
+  const rb=rng((seed^0xb0b5eed)>>>0);BUNKS=[];
+  for(const D of BUNKDEF){let x=0,y=0,k=0,ok=false;while(k++<1500&&!ok){if(D.d){const a=rb()*Math.PI*2,d=D.d[0]+rb()*(D.d[1]-D.d[0]);x=Math.round(48+Math.cos(a)*d);y=Math.round(56+Math.sin(a)*d*0.75)}else{x=4+((rb()*(W-8))|0);y=4+((rb()*(H-8))|0)}
+      ok=x>=3&&y>=3&&x<W-3&&y<H-3&&ZMAP[y][x]===D.z&&!inCoreZone(x,y,3)&&BUNKS.every(b=>Math.hypot(b.x-x,b.y-y)>11)}
+    BUNKS.push({x,y});for(let yy=y-2;yy<=y+2;yy++)for(let xx=x-2;xx<=x+2;xx++)if(deposit[yy]&&xx>=0&&xx<W)deposit[yy][xx]=null}
 }
 function setupFuture(seed,mode,np){
   SPOTS=coreSpots(mode,np);genMapFut(seed,mode,np);TER=new Uint8Array(W*H);
@@ -1106,6 +1135,61 @@ function futDecor(g,x,y,X,Y,zn,sd){const h=k=>hsh(x,y,sd+k);
   if(zn==='nanite'){if(h(1)<0.25){g.fillStyle='rgba(200,210,255,0.35)';for(let k=0;k<3;k++)g.fillRect(X+h(2+k)*TS,Y+h(5+k)*TS,1.5,1.5)}return}
   if(zn==='foret'){if(h(1)<0.1){const bx=X+TS/2,by=Y+TS*0.7,c2=h(2)<0.5?'95,243,200':'190,120,255';const gr=g.createRadialGradient(bx,by-6,1,bx,by-6,12);gr.addColorStop(0,`rgba(${c2},0.8)`);gr.addColorStop(1,`rgba(${c2},0)`);g.fillStyle=gr;g.beginPath();g.arc(bx,by-6,12,0,7);g.fill();g.fillStyle='#2a3a4a';g.fillRect(bx-1,by-6,2,8);g.fillStyle=`rgba(${c2},0.95)`;g.beginPath();g.ellipse(bx,by-7,6,3,0,Math.PI,0);g.fill()}return}
   if(h(1)<0.06){g.fillStyle='rgba(150,90,255,0.5)';g.beginPath();g.arc(X+h(2)*TS,Y+h(3)*TS,1.5+h(4)*2,0,7);g.fill()}}
+function bunkAt(x,y,z=1){for(let i=0;i<BUNKS.length;i++){const b=BUNKS[i];if(x<=b.x+1&&x+z-1>=b.x-1&&y<=b.y+1&&y+z-1>=b.y-1)return i}return -1}
+const bkOn=i=>!!(S.bk&&S.bk[i]);
+function bkCd(i){if(isRemote())return Math.max(0,(((S.bkcL||[])[i]||0)-Date.now())/1000);return Math.max(0,((S.bkcd||[])[i]||0)-S.t)}
+let SIG=null;
+function sigTopo(force){if(!force&&SIG&&SIG.S===S&&performance.now()-SIG.at<500)return SIG;const boost=bkOn(7)?4:0;const nodes=[];for(const c of cores)nodes.push({x:c.x+1.5,y:c.y+1.5,r:7,l:10,core:1});
+  for(const b of buildings){const d=B[b.type];if(!d.wifi)continue;const pw=b.net!=null&&b.net>=0&&(isRemote()||b.npr==null||b.npr>0.3);nodes.push({x:b.x+0.5,y:b.y+0.5,r:d.wifi+boost,l:d.wlink+boost,b,pw})}
+  const par=nodes.map((_,i)=>i),f=i=>{while(par[i]!==i){par[i]=par[par[i]];i=par[i]}return i},links=[];
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const a=nodes[i],c=nodes[j];if(a.b&&!a.pw||c.b&&!c.pw)continue;const L=Math.max(a.l,c.l);if((a.x-c.x)**2+(a.y-c.y)**2<=L*L){par[f(i)]=f(j);links.push([i,j])}}
+  const ok=new Set();nodes.forEach((n,i)=>{if(n.core)ok.add(f(i))});nodes.forEach((n,i)=>n.on=(!n.b||n.pw)&&ok.has(f(i)));
+  SIG={S,nodes,links,at:performance.now()};return SIG}
+function sigCovered(i,force){const b=BUNKS[i];if(!b)return false;const G=sigTopo(force);return G.nodes.some(n=>n.on&&!n.core&&(n.x-b.x-0.5)**2+(n.y-b.y-0.5)**2<=n.r*n.r)}
+function bunkInfo(i){const D=BUNKDEF[i],on=bkOn(i),cv=sigCovered(i),cd=bkCd(i);return`<b class="t">${D.tower?'🗼':'🏚'} ${D.n}</b><p class="mut">${'★'.repeat(D.tier)} · ${ZONES[D.z].n}</p>${on?'<p class="okc">✅ Connecté au réseau des survivants</p>':cd>0?`<p class="bad">⚡ Interférences : encore ${Math.ceil(cd)} s</p>`:cv?'<p class="okc">📻 À portée : sélectionne le talkie-walkie et clique ici</p>':'<p class="bad">📡 Hors réseau : pose des relais Wi-Fi (alimentés) jusqu\'ici</p>'}<p>Récompense : ${D.rw}</p>`}
+function bunkClick(i){if(bkOn(i)){openLore(0,L7[i]);return}if(!TALKIE){toast('Sélectionne le 📻 talkie-walkie (barre du bas), puis clique sur le bunker');return}
+  const cd=bkCd(i);if(cd>0){toast(`⚡ Interférences : réessaie dans ${Math.ceil(cd)} s`);return}if(!sigCovered(i,true)){toast('📡 Ce bunker est hors de portée : prolonge ton réseau de relais Wi-Fi (alimentés par des pylônes)');return}startQTE(i)}
+function drawBunkers(ox,oy,T,now){
+  const G=sigTopo();const showCov=TALKIE||(tool&&B[tool]&&B[tool].wifi);ctx.lineCap='round';
+  for(const [i,j] of G.links){const a=G.nodes[i],c=G.nodes[j];if(!a.on||!c.on)continue;const ax=ox+a.x*T,ay=oy+(a.y-(a.b?0.45:0))*T,cx2=ox+c.x*T,cy2=oy+(c.y-(c.b?0.45:0))*T;ctx.strokeStyle='rgba(95,255,154,0.35)';ctx.lineWidth=Math.max(1,T*0.03);ctx.setLineDash([T*0.15,T*0.25]);ctx.lineDashOffset=-now*T*0.8;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(cx2,cy2);ctx.stroke();ctx.setLineDash([]);ctx.lineDashOffset=0}
+  if(showCov)for(const n of G.nodes){if(n.core&&!showCov)continue;ctx.strokeStyle=n.on?'rgba(95,255,154,0.45)':'rgba(160,160,170,0.3)';ctx.fillStyle=n.on?'rgba(95,255,154,0.05)':'rgba(0,0,0,0)';ctx.lineWidth=1.5;ctx.setLineDash([5,6]);ctx.beginPath();ctx.arc(ox+n.x*T,oy+n.y*T,n.r*T,0,7);ctx.fill();ctx.stroke();ctx.setLineDash([])}
+  BUNKS.forEach((b,i)=>{const D=BUNKDEF[i],X=ox+(b.x+0.5)*T,Y=oy+(b.y+0.5)*T,on=bkOn(i),cd=bkCd(i)>0,cv=!on&&!cd&&sigCovered(i);
+    const col=on?'95,255,154':cd?'255,90,90':cv?'255,210,63':'140,150,170';
+    const gl=ctx.createRadialGradient(X,Y,T*0.3,X,Y,T*2.6);gl.addColorStop(0,`rgba(${col},${cv?0.3+0.2*Math.sin(now*4):0.18})`);gl.addColorStop(1,`rgba(${col},0)`);ctx.fillStyle=gl;ctx.beginPath();ctx.arc(X,Y,T*2.6,0,7);ctx.fill();
+    if(D.tower){ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(X+T*0.2,Y+T*1.2,T*1.2,T*0.4,0,0,7);ctx.fill();ctx.strokeStyle='#8a96a8';ctx.lineWidth=Math.max(1.5,T*0.08);ctx.beginPath();ctx.moveTo(X-T*0.9,Y+T*1.2);ctx.lineTo(X,Y-T*1.8);ctx.lineTo(X+T*0.9,Y+T*1.2);for(let k=1;k<5;k++){const yy=Y+T*1.2-k*T*0.6,w2=T*0.9*(1-k/6);ctx.moveTo(X-w2,yy);ctx.lineTo(X+w2,yy)}ctx.stroke();
+      ctx.fillStyle=on?'#5fff9a':Math.sin(now*3)>0?'#ff5a5a':'#5a2020';ctx.beginPath();ctx.arc(X,Y-T*1.85,T*0.16,0,7);ctx.fill();if(on)for(let k=0;k<3;k++){const a=((now*0.7+k/3)%1);ctx.strokeStyle=`rgba(95,255,154,${0.6*(1-a)})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(X,Y-T*1.85,T*(0.4+a*2.4),0,7);ctx.stroke()}}
+    else{ctx.fillStyle='rgba(0,0,0,0.35)';rr(ctx,X-T*1.25,Y-T*0.85,T*2.6,T*1.9,T*0.3);ctx.fill();ctx.fillStyle='#4a4e56';rr(ctx,X-T*1.35,Y-T*1.0,T*2.7,T*1.9,T*0.3);ctx.fill();ctx.strokeStyle='#2a2e34';ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='#5a5f68';for(let k=0;k<3;k++)ctx.fillRect(X-T*1.2+k*T*0.85,Y-T*0.95,T*0.7,T*0.12);
+      ctx.fillStyle='#2a2e34';rr(ctx,X-T*0.55,Y-T*0.55,T*1.1,T*1.0,T*0.15);ctx.fill();ctx.fillStyle=on?'#3a6a4a':'#3a3e46';rr(ctx,X-T*0.45,Y-T*0.45,T*0.9,T*0.8,T*0.1);ctx.fill();
+      ctx.strokeStyle='#ffcf3f';ctx.lineWidth=Math.max(1,T*0.05);for(let k=0;k<3;k++){ctx.beginPath();ctx.moveTo(X-T*0.45+k*T*0.35,Y+T*0.35);ctx.lineTo(X-T*0.25+k*T*0.35,Y-T*0.4);ctx.stroke()}
+      ctx.strokeStyle='#8a96a8';ctx.lineWidth=Math.max(1,T*0.05);ctx.beginPath();ctx.moveTo(X+T*0.95,Y-T*0.9);ctx.lineTo(X+T*0.95,Y-T*1.9);ctx.stroke();ctx.fillStyle=on?'#5fff9a':cd?(Math.sin(now*12)>0?'#ff5a5a':'#401010'):cv?(Math.sin(now*5)>0?'#ffd23f':'#5a4a10'):'#5a2020';ctx.beginPath();ctx.arc(X+T*0.95,Y-T*1.95,T*0.13,0,7);ctx.fill();
+      if(on){ctx.fillStyle='rgba(255,230,160,0.8)';for(let k=0;k<3;k++)ctx.fillRect(X-T*1.1+k*T*0.85,Y+T*0.55,T*0.4,T*0.18)}
+      if(cd)for(let k=0;k<6;k++){ctx.fillStyle=`rgba(255,${100+Math.random()*100|0},80,${Math.random()*0.7})`;ctx.fillRect(X+(Math.random()-0.5)*T*2.4,Y+(Math.random()-0.5)*T*1.8,T*0.25,2)}}
+    ctx.font='700 12px system-ui';ctx.textAlign='center';const lb=`${on?'✅':cd?'⚡':cv?'📻':'📡'} ${D.n}${'★'.repeat(D.tier)}`;const lw=ctx.measureText(lb).width,LY=Y-T*(D.tower?2.4:1.6);ctx.fillStyle='rgba(0,0,0,0.6)';rr(ctx,X-lw/2-6,LY-13,lw+12,18,6);ctx.fill();ctx.fillStyle=on?'#9ff0c0':cd?'#ff8a8a':cv?'#ffd27a':'#b0b8c8';ctx.fillText(lb,X,LY)});
+  if(TALKIE&&mouse.inside){ctx.font=`${Math.max(16,T*0.7)}px system-ui`;ctx.textAlign='center';ctx.fillText('📻',ox+(mouse.wx+0.4)*T,oy+(mouse.wy-0.2)*T)}
+}
+// ----- QTE de connexion (talkie-walkie) -----
+const ARR=['ArrowLeft','ArrowUp','ArrowRight','ArrowDown'],ARRG=['⬅','⬆','➡','⬇'];
+function startQTE(i){const D=BUNKDEF[i];QTE={i,tier:D.tier,stage:0,t:0,last:performance.now()};$('qteDlg').hidden=false;$('qteTag').textContent='📻 Talkie-walkie · '+D.n+' '+'★'.repeat(D.tier);qteStage(0);sfx('build');requestAnimationFrame(qteLoop)}
+function qteStage(k){const q=QTE;q.stage=k;q.t=0;$('qteStep').textContent=`Épreuve ${k+1} / 3`;const ctl=$('qteCtl');
+  if(k===0){q.target=1+Math.random()*3;q.f=Math.random()<0.5?0.6:4.4;q.hold=0;q.tol=0.17/Math.pow(q.tier,0.45);q.lim=22;$('qteTitle').textContent='Accorder la fréquence';$('qteHint').textContent='Fais glisser le curseur pour aligner ton onde (orange) sur celle du bunker (bleue), puis garde-la stable.';ctl.innerHTML='<input id="qteF" type="range" min="0.5" max="4.5" step="0.005" style="flex:1">';const r=$('qteF');r.value=q.f;r.oninput=()=>{q.f=+r.value}}
+  else if(k===1){const n=3+q.tier;q.seq=Array.from({length:n},()=>(Math.random()*4)|0);q.pos=0;q.show=1.8+0.35*n;q.lim=q.show+9;$('qteTitle').textContent='Code de connexion';$('qteHint').textContent='Mémorise la séquence, puis tape-la avec les flèches du clavier (ou les boutons).';ctl.innerHTML=ARRG.map((a,j)=>`<button data-qa="${j}" style="flex:1;font-size:20px">${a}</button>`).join('')}
+  else{q.hits=0;q.miss=0;q.need=3;q.maxMiss=q.tier>=3?1:2;q.zone=0.2/Math.sqrt(q.tier);q.zc=0.2+Math.random()*0.6;q.ph=0;q.speed=0.8+0.35*q.tier;q.lim=25;$('qteTitle').textContent='Émettre au bon moment';$('qteHint').textContent='Appuie sur Espace (ou le bouton) quand le curseur est dans la zone verte. 3 fois.';ctl.innerHTML='<button id="qteGo" class="prim" style="flex:1">📡 Émettre</button>';$('qteGo').onclick=qteFire}}
+function qteInput(j){const q=QTE;if(!q||q.stage!==1||q.t<q.show)return;if(q.seq[q.pos]===j){q.pos++;sfx('build');if(q.pos>=q.seq.length)qteNext()}else qteEnd(false)}
+function qteFire(){const q=QTE;if(!q||q.stage!==2)return;const x=0.5+0.5*Math.sin(q.ph);if(Math.abs(x-q.zc)<=q.zone/2){q.hits++;sfx('level');q.zc=0.15+Math.random()*0.7;q.flash=0.3;if(q.hits>=q.need)qteNext()}else{q.miss++;q.flashBad=0.3;sfx('demolish');if(q.miss>q.maxMiss)qteEnd(false)}}
+function qteNext(){if(QTE.stage<2)qteStage(QTE.stage+1);else qteEnd(true)}
+function qteEnd(ok){const q=QTE;if(!q)return;QTE=null;$('qteDlg').hidden=true;TALKIE=false;buildToolbar();const err=act('bunk',q.i,ok?1:0);if(err)toast(err);else if(ok){sfx('level');banner('📻 Connexion établie !',false,3,'pur');if(NET.role==='guest'){S.bk=S.bk||[];S.bk[q.i]=1}}else banner('⚡ Connexion ratée : interférences !',true,3)}
+function qteLoop(now){const q=QTE;if(!q)return;const dt=Math.min(0.05,(now-q.last)/1000);q.last=now;q.t+=dt;
+  const cv=$('qteCv'),g=cv.getContext('2d'),Wc=cv.width,Hc=cv.height;g.fillStyle='#050b12';g.fillRect(0,0,Wc,Hc);g.strokeStyle='rgba(63,208,255,0.08)';g.lineWidth=1;for(let x=0;x<Wc;x+=28){g.beginPath();g.moveTo(x,0);g.lineTo(x,Hc);g.stroke()}for(let y=0;y<Hc;y+=28){g.beginPath();g.moveTo(0,y);g.lineTo(Wc,y);g.stroke()}
+  if(q.stage===0){const ph=q.t*3,d=Math.abs(q.f-q.target),noise=Math.min(24,d*14)*(0.5+q.tier*0.5);
+    const wave=(f,col,w,jit)=>{g.strokeStyle=col;g.lineWidth=w;g.beginPath();for(let x=0;x<=Wc;x+=3){const y=Hc/2+Math.sin(x/Wc*Math.PI*2*f+ph)*Hc*0.3+(jit?(Math.random()-0.5)*jit:0);x?g.lineTo(x,y):g.moveTo(x,y)}g.stroke()};
+    wave(q.target,'#3fd0ff',3,0);wave(q.f,'#ffb04a',2,noise);const need=1.4+0.4*q.tier;if(d<q.tol)q.hold+=dt;else q.hold=Math.max(0,q.hold-dt*0.7);
+    g.fillStyle='rgba(95,255,154,0.85)';g.fillRect(10,Hc-14,(Wc-20)*Math.min(1,q.hold/need),7);g.strokeStyle='#2a4a5a';g.strokeRect(10,Hc-14,Wc-20,7);
+    g.fillStyle=d<q.tol?'#5fff9a':d<q.tol*3?'#ffd23f':'#ff6b6b';g.font='700 14px system-ui';g.textAlign='left';g.fillText(d<q.tol?'Signal verrouillé… ne bouge plus':d<q.tol*3?'Presque…':'Brouillé',12,22);if(q.hold>=need)qteNext()}
+  else if(q.stage===1){g.font='700 34px system-ui';g.textAlign='center';const n=q.seq.length,sp=Math.min(70,(Wc-40)/n);for(let k=0;k<n;k++){const x=Wc/2+(k-(n-1)/2)*sp,show=q.t<q.show||k<q.pos;g.fillStyle=k<q.pos?'#5fff9a':show?'#bff8ff':'#2a3a4a';g.fillText(show?ARRG[q.seq[k]]:'?',x,Hc/2+12)}g.textAlign='left';g.font='600 13px system-ui';g.fillStyle='#8fb0c0';g.fillText(q.t<q.show?`Mémorise… ${Math.ceil(q.show-q.t)}`:`À toi ! ${q.pos}/${n}`,12,22)}
+  else{q.ph+=dt*q.speed*Math.PI;const x=0.5+0.5*Math.sin(q.ph),bx=20,bw=Wc-40,by=Hc/2-14;g.fillStyle='#14202a';g.fillRect(bx,by,bw,28);g.fillStyle='rgba(95,255,154,0.5)';g.fillRect(bx+bw*(q.zc-q.zone/2),by,bw*q.zone,28);g.fillStyle=q.flash>0?'#5fff9a':q.flashBad>0?'#ff6b6b':'#ffd23f';g.fillRect(bx+bw*x-3,by-8,6,44);q.flash=Math.max(0,(q.flash||0)-dt);q.flashBad=Math.max(0,(q.flashBad||0)-dt);g.font='600 13px system-ui';g.textAlign='left';g.fillStyle='#8fb0c0';g.fillText(`Émissions réussies : ${q.hits}/${q.need} · ratés : ${q.miss}/${q.maxMiss+1}`,12,22)}
+  if(!QTE)return;const left=QTE.lim-QTE.t;g.fillStyle=left<5?'#ff6b6b':'#8fb0c0';g.font='600 12px system-ui';g.textAlign='right';g.fillText(`⏱ ${Math.max(0,left).toFixed(1)} s`,Wc-12,22);g.textAlign='left';
+  if(left<=0){qteEnd(false);return}requestAnimationFrame(qteLoop)}
 function renderEraBar(){
   let el=document.getElementById('eraBar');if(!el)return;const fo=futOpen()&&(CTX.futur||RUN==='futur');el.hidden=!fo;if(!fo)return;
   const info=e=>{const s2=e===RUN?S:CTX[e]&&CTX[e].S,m=e===RUN?monsters:CTX[e]&&CTX[e].monsters;if(!s2)return'';const t=Math.max(0,Math.ceil(s2.waveTimer||0));return`<span class="st">Vague ${s2.wave} · ${m&&m.length?'⚔ '+m.length:Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}</span>`};
@@ -1120,10 +1204,10 @@ function pay(cost,o,mul=1){for(const k in cost)take(k,cost[k]*mul,o)}
 function addInv(o,k,n){const p=P(o);p.inv[k]=(p.inv[k]||0)+n}
 function refund(cost,o){for(const k in cost)addInv(o,k,cost[k])}
 const endsOf=()=>S&&S.ch4&&S.ch4.ends||{};
-const hiveReq=r=>{if(r==='fut'){const ps=PS();return !!(ps&&ps.futOpen)}if(r==='all4')return Object.keys(endsOf()).length>=4;if(r.startsWith('e:'))return !!endsOf()[r.slice(2)];if(r.startsWith('c4')){const c=S&&S.ch4,br={e:'essaim',c:'createurs',o:'orbite'}[r[2]];return !!(c&&c.pick===br&&c.step>=+r[3]+1)}const u=S&&S.ug;if(!u)return false;return r==='atlas'?!!u.atlas:r==='nid'?!!(u.nids&&u.nids.some(x=>x)):r==='reine'?!!u.reine:true};
+const hiveReq=r=>{if(r.startsWith('bk:'))return !!(S&&S.era==='futur'&&S.bk&&S.bk[+r.slice(3)]);if(r==='fut'){const ps=PS();return !!(ps&&ps.futOpen)}if(r==='all4')return Object.keys(endsOf()).length>=4;if(r.startsWith('e:'))return !!endsOf()[r.slice(2)];if(r.startsWith('c4')){const c=S&&S.ch4,br={e:'essaim',c:'createurs',o:'orbite'}[r[2]];return !!(c&&c.pick===br&&c.step>=+r[3]+1)}const u=S&&S.ug;if(!u)return false;return r==='atlas'?!!u.atlas:r==='nid'?!!(u.nids&&u.nids.some(x=>x)):r==='reine'?!!u.reine:true};
 const REQMSG={atlas:'Réveille d\'abord Atlas (dans la Ruche, sous Neptune)',nid:'Détruis d\'abord un nid de la Ruche',reine:'Vaincs d\'abord la Reine de la Ruche'};
 const ENDN={essaim:'Essaim-Mère',obeir:'Obéir aux Créateurs',proteger:'Protéger la ruche',orbite:'Station orbitale'};
-const reqMsg=r=>r==='fut'?'Voyage d\'abord dans le futur avec la Machine temporelle':r==='all4'?'Termine les 4 fins du chapitre 4':r&&r.startsWith('e:')?`Termine la fin « ${ENDN[r.slice(2)]} » du chapitre 4`:r&&r.startsWith('c4')?`Chapitre 4 (${CH4[{e:'essaim',c:'createurs',o:'orbite'}[r[2]]].n}) : termine l\'étape ${r[3]}`:REQMSG[r];
+const reqMsg=r=>r&&r.startsWith('bk:')?`Connecte d\'abord : ${BUNKDEF[+r.slice(3)].n} (📻 talkie-walkie)`:r==='fut'?'Voyage d\'abord dans le futur avec la Machine temporelle':r==='all4'?'Termine les 4 fins du chapitre 4':r&&r.startsWith('e:')?`Termine la fin « ${ENDN[r.slice(2)]} » du chapitre 4`:r&&r.startsWith('c4')?`Chapitre 4 (${CH4[{e:'essaim',c:'createurs',o:'orbite'}[r[2]]].n}) : termine l\'étape ${r[3]}`:REQMSG[r];
 const unlocked=(t,o=ME)=>P(o).level>=B[t].lvl&&(!B[t].req||hiveReq(B[t].req));
 const recUnlocked=(r,o=ME)=>P(o).level>=r.lvl;
 
@@ -1164,6 +1248,7 @@ function monsterOn(x,y){return monsters.some(m=>Math.floor(m.x)===x&&Math.floor(
 function canPlace(type,x,y,o=ME){
   if(!B[type])return 'Inconnu';
   if((B[type].era==='futur')!==(S.era==='futur'))return 'Ce bâtiment n\'existe pas à cette époque';
+  if(S.era==='futur'&&bunkAt(x,y,bsz(type))>=0)return 'Emplacement d\'un bunker';
   if(P(o).dead)return 'Ton noyau est détruit : attends d\'être réanimé';
   if(!unlocked(type,o))return P(o).level<B[type].lvl?`Débloqué au niveau ${B[type].lvl}`:reqMsg(B[type].req);
   if(x<0||y<0||x>=W||y>=H)return 'Hors de la carte';
@@ -1230,6 +1315,8 @@ const ACT={
     if(r.done.includes(id))return 'Déjà recherché';if(r.cur)return 'Une recherche est déjà en cours';
     if(P(o).level<t.lvl)return `Niveau ${t.lvl} requis`;
     if((t.req||[]).some(q=>!r.done.includes(q)))return 'Termine d\'abord la recherche précédente';
+    if(!!t.fut!==(S.era==='futur'))return 'Cette recherche n\'existe pas à cette époque';
+    if(t.fut&&!(S.bk&&S.bk[0]))return 'Connecte d\'abord le Bunker Alpha';
     if(t.alien&&!(S.ug&&S.ug.lab))return 'Découvre d\'abord le labo extraterrestre sur Neptune';
     if(!canAfford(t.cost,o))return 'Ressources insuffisantes';
     pay(t.cost,o);r.cur={id,left:t.t};return null;
@@ -1242,6 +1329,11 @@ const ACT={
   wplace(o,w,t,x,y){if(!WORLDS[w]||!WB[t])return null;ensureLayers();x=x|0;y=y|0;const e=worldCanPlace(w,t,x,y,o);if(e)return e;pay(WB[t].cost,o);S.wb[w].push({t,x,y,o,tm:0});WBV++;return null},
   c4vote(o,k){ensureLayers();const c=S.ch4;if(!S.ug.reine||c.pick||!CH4[k])return null;if(storyLocked(k))return 'Tu as déjà terminé cette histoire';c.votes[o]=k;UGV++;c4resolve('votes','pick',false);return null},
   c4svote(o,k){ensureLayers();const c=S.ch4;if(c.pick!=='createurs'||c.side||c.step<2||!SIDES[k])return null;if(c.ends[k])return 'Tu as déjà terminé cette fin';c.svotes[o]=k;UGV++;c4resolve('svotes','side',false);return null},
+  bunk(o,i,ok){if(S.era!=='futur')return null;i=i|0;const D=BUNKDEF[i];if(!D||!BUNKS[i])return null;S.bk=S.bk||Array(BUNKDEF.length).fill(0);S.bkcd=S.bkcd||Array(BUNKDEF.length).fill(0);if(S.bk[i])return null;
+    if(!sigCovered(i,true))return 'Ce bunker est hors de portée du réseau Wi-Fi';if((S.bkcd[i]||0)>S.t)return `Interférences : réessaie dans ${Math.ceil(S.bkcd[i]-S.t)} s`;
+    if(ok){S.bk[i]=1;for(let k=0;k<NP();k++){for(const it in D.loot)addInv(k,it,D.loot[it]);notify(k,`📻 ${D.n} connecté ! ${D.rw}`)}gainXp(300*D.tier);if(S.bk.every(x=>x)){for(let k=0;k<NP();k++)notify(k,'📻 Les 8 bunkers sont connectés : le réseau des survivants est rétabli !')}}
+    else{S.bkcd[i]=S.t+45;const n=Math.max(S.wave,1),hm=Math.pow(1.24,Math.min(n,10)-1)*Math.pow(1.15,Math.max(0,n-10)),b=BUNKS[i];for(let j=0;j<3+3*D.tier;j++)spawnMonster({type:j%3?'drone_rouge':'chasseur_ia',hpMul:hm,dmgMul:1+0.08*(n-1)},b.x+0.5+(Math.random()-0.5)*3,b.y+0.5+(Math.random()-0.5)*3);for(let k=0;k<NP();k++)notify(k,`⚡ Connexion ratée avec ${D.n} : l\'Omnicerveau a repéré le signal et envoie ses machines !`)}
+    return null},
   tempo(o){if(S.era==='futur')return null;if(!buildings.some(b=>b.type==='machine_temporelle'))return 'Construis d\'abord la Machine temporelle';if(!S.futOpen){S.futOpen=true;buildFutureCtx(newFutState(S));UGV++;for(let k=0;k<NP();k++)if(k!==o)notify(k,`🌐 ${playerName(o)} a ouvert la porte du futur ! Bouton « Futur » à gauche de l\'écran.`)}return null},
   c4reset(o){ensureLayers();const c=S.ch4;if(!c.done)return null;Object.assign(c,{pick:null,votes:[],svotes:[],step:0,side:null,bossOn:false,done:false});UGV++;for(let k=0;k<NP();k++)notify(k,`↩ ${playerName(o)} a remonté le temps : retour avant le choix du chapitre 4.`);return null},
   c4force(o,kind){if(o!==0)return 'Seul l\'hôte peut valider';ensureLayers();const c=S.ch4;if(kind==='side'){if(c.pick==='createurs'&&!c.side)c4resolve('svotes','side',true)}else if(!c.pick)c4resolve('votes','pick',true);return null},
@@ -1388,6 +1480,7 @@ function updB(b,dt){
     return;
   }
   if(d.lure){if(b.hp<maxHp(b)*0.15)detonate(b);return}
+  if(kind(t)==='relais_wifi')return;
   if(t==='ruche_domestique'){b.tg=(b.tg||0)+dt*(pr>0.3?1:0);b.tc=(b.tc||0)+dt*(pr>0.3?1:0);if(b.tg>=8){b.tg-=8;addInv(o,'gelee_royale',1);stat(o,'p','gelee_royale');stat(o,'n','gelee_royale')}if(b.tc>=6){b.tc-=6;addInv(o,'chitine',1);stat(o,'p','chitine');stat(o,'n','chitine')}return}
   if(t==='machine_temporelle')return;
   if(kind(t)==='mine'){for(const m of monsters){if(m.hp>0&&!MT[m.type].fly&&(m.x-b.x-0.5)**2+(m.y-b.y-0.5)**2<0.4){detonate(b);break}}return}
@@ -2148,6 +2241,14 @@ function drawB0(c,b,x,y,s,now){
     if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.fillRect(x+s*0.75,y+s*0.75,s*0.2,s*0.2)}
     return;
   }
+  if(k==='relais_wifi'){
+    const big=b.type==='antenne_longue',col=B[b.type].col,on=now>0&&b.net!=null&&b.net>=0;c.fillStyle='rgba(0,0,0,0.3)';c.beginPath();c.ellipse(cx+s*0.06,y+s*0.86,s*0.3,s*0.1,0,0,7);c.fill();
+    c.fillStyle='#2a3038';rr(c,cx-s*0.22,y+s*0.62,s*0.44,s*0.26,s*0.06);c.fill();c.strokeStyle='#8a96a8';c.lineWidth=Math.max(1,s*0.05);c.beginPath();c.moveTo(cx,y+s*0.62);c.lineTo(cx,y+s*(big?0.06:0.18));c.stroke();
+    c.fillStyle='#cfd8e8';c.beginPath();c.ellipse(cx-s*0.1,y+s*0.36,s*(big?0.22:0.16),s*0.08,-0.5,0,7);c.fill();c.fillStyle=col;c.globalAlpha=on?0.85:0.3;c.beginPath();c.arc(cx,y+s*(big?0.06:0.18),s*0.07,0,7);c.fill();c.globalAlpha=1;
+    if(on)for(let i=0;i<2;i++){const a=((now*0.9+i*0.5)%1);c.strokeStyle=`rgba(95,255,154,${0.7*(1-a)})`;c.lineWidth=Math.max(1,s*0.04);c.beginPath();c.arc(cx,y+s*(big?0.06:0.18),s*(0.15+a*0.45),-2.6,-0.5);c.stroke()}
+    if(coop()&&now>0){c.fillStyle=pcol(b.owner);c.fillRect(x+s*0.75,y+s*0.75,s*0.2,s*0.2)}
+    return;
+  }
   if(k==='pylone'){
     const big=b.type==='pylone_haute',col=B[b.type].col;c.fillStyle='rgba(0,0,0,0.3)';c.beginPath();c.ellipse(cx+s*0.06,y+s*0.86,s*0.3,s*0.1,0,0,7);c.fill();
     c.strokeStyle='#8a96a8';c.lineWidth=Math.max(1,s*0.05);c.beginPath();c.moveTo(cx-s*0.22,y+s*0.86);c.lineTo(cx,y+s*0.14);c.lineTo(cx+s*0.22,y+s*0.86);c.moveTo(cx-s*0.15,y+s*0.6);c.lineTo(cx+s*0.15,y+s*0.6);c.moveTo(cx-s*0.1,y+s*0.4);c.lineTo(cx+s*0.1,y+s*0.4);c.stroke();
@@ -2607,7 +2708,7 @@ function draw(now){
   for(const b of buildings)if(BELT.has(b.type)&&b.item&&vis(b)){const [dx,dy]=DIRS[b.rot];drawItem(ctx,b.item,ox+(b.x+0.5+dx*(b.prog-0.5))*T,oy+(b.y+0.5+dy*(b.prog-0.5))*T,T*0.34)}
   for(const b of buildings)if(!BELT.has(b.type)&&vis(b))drawB(ctx,b,ox+b.x*T,oy+b.y*T,T,now);
   for(const c of cores)drawB(ctx,c,ox+c.x*T,oy+c.y*T,T,now);
-  if(S.era==='futur')drawGrid(ox,oy,T,now);
+  if(S.era==='futur'){drawGrid(ox,oy,T,now);drawBunkers(ox,oy,T,now)}
   for(const b of buildings){const mh=maxHp(b);if(b.hp<mh-0.5&&vis(b)){ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(ox+b.x*T+T*0.1,oy+b.y*T+T*0.02,T*0.8,T*0.07);ctx.fillStyle='#f2a33a';ctx.fillRect(ox+b.x*T+T*0.1,oy+b.y*T+T*0.02,T*0.8*b.hp/mh,T*0.07)}}
   // tunnels : liaison entrée → sortie
   for(const b of buildings)if(b.type==='pont_entree'&&vis(b)){const ex=tunnelExit(b),[dx,dy]=DIRS[b.rot];if(!ex){ctx.strokeStyle='rgba(255,90,90,0.55)';ctx.setLineDash([3,4]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ox+(b.x+0.5)*T,oy+(b.y+0.5)*T);ctx.lineTo(ox+(b.x+0.5+dx*1.5)*T,oy+(b.y+0.5+dy*1.5)*T);ctx.stroke();ctx.setLineDash([]);continue}
@@ -3135,6 +3236,7 @@ const LORE_REINE=[
 ];
 let lorePg=0,LOREBOOK=LORE,LOREEND=null;
 const L5={"vraie": [{"tag": "Signal temporel · Origine inconnue", "t": "Quatre fins", "x": ["Tu as vu toutes les fins possibles. Libérer l'Essaim. Obéir aux Créateurs. Protéger la ruche. Garder le ciel.", "Et pourtant, tu te souviens de chacune. Comme si elles avaient toutes vraiment eu lieu.", "Atlas pose les quatre fragments récupérés sur la table du labo. « Ces pièces ne viennent pas de notre époque, U-7. Elles viennent du futur. »"]}, {"tag": "Atlas · Hypothèse", "t": "La machine", "x": ["« Chaque fin a laissé un morceau de la même machine. Comme si quelqu'un, plus tard, avait voulu que tu les rassembles. »", "Gougouz retourne un fragment entre ses doigts. « Il y a une inscription. C'est… mon écriture. Je n'ai jamais écrit ça. Pas encore. »", "« Assemble-les. Construis la Machine temporelle. »"]}, {"tag": "Mémoire interne · Unité U-7", "t": "Nouvelle destination", "x": ["Destination enregistrée : la Surface futuriste. La même planète, des siècles plus tard.", "D'autres biomes. D'autres bâtiments. Rien de ton époque ne pourra y être posé : il faudra tout reconstruire.", "Construis la Machine temporelle (catégorie Production, 2×2) avec les quatre fragments temporels.", "…la porte s'ouvrira dans une prochaine mise à jour."]}], "machine": [{"tag": "Machine temporelle · Console", "t": "Destination verrouillée", "x": ["Les anneaux de la machine s'emballent. Les aiguilles tournent à l'envers. L'air sent l'ozone et la gelée royale.", "Écran : « SURFACE FUTURISTE — coordonnées verrouillées. Synchronisation en cours… »", "La porte vers le futur s'ouvrira dans une prochaine mise à jour. Garde la machine en état de marche."], "sig": "— Console de bord"}]};
+const L7=[[{"tag": "📻 Bunker Alpha · Connexion établie", "t": "Mira", "x": ["« … Allô ? Allô ! Ça marche ! Ici Mira, Bunker Alpha. On est quatorze. »", "« Ça fait onze ans qu'on n'a parlé à personne. On avait un labo de recherche, mais plus d'énergie pour le faire tourner. »"]}, {"tag": "📻 Bunker Alpha", "t": "Le labo des survivants", "x": ["« Je t'envoie nos notes. Avec tes machines, tu pourras peut-être les terminer. »", "« Et… merci, la machine. Merci d'exister. »", "Nouveau : onglet Labo du futur."], "sig": "— Mira, ingénieure"}], [{"tag": "📻 Bunker Bêta · Connexion établie", "t": "Bastien", "x": ["« Ici Bastien. On a entendu Mira sur la fréquence. On pleure tous un peu, désolé. »", "« Avant, je réparais les assembleurs IA. L'Omnicerveau les a rendus fous, mais j'ai gardé des plans propres. »"]}, {"tag": "📻 Bunker Bêta", "t": "Un plan propre", "x": ["« Pas de connexion à l'Omnicerveau dans celui-là. Il fabrique trois fois plus vite qu'une nanofabrique. »", "Nouveau bâtiment : Assembleur IA."], "sig": "— Bastien, réparateur"}], [{"tag": "📻 Bunker Gamma · Connexion établie", "t": "Les Okoro", "x": ["« Deux voix en même temps : ici Ada et Kofi Okoro, Bunker Gamma, sous la Mégapole. »", "« On écoute les machines de l'Omnicerveau depuis des années. Elles communiquent par antennes. On peut faire pareil. »"]}, {"tag": "📻 Bunker Gamma", "t": "Plus loin", "x": ["« Voilà nos plans d'antenne longue portée. Avec ça, ton réseau ira beaucoup plus loin. »", "Nouveau bâtiment : Antenne longue portée."], "sig": "— Ada et Kofi Okoro"}], [{"tag": "📻 Abri Delta · Connexion établie", "t": "Dr Selma Ruiz", "x": ["« Ici le docteur Ruiz. Le désert de verre, c'était une ville. L'Omnicerveau l'a vitrifiée en une nuit. »", "« On a survécu en apprenant à tordre la lumière. Les murs holographiques nous cachent de ses capteurs. »"]}, {"tag": "📻 Abri Delta", "t": "Se cacher en pleine lumière", "x": ["« Prends nos plans. Ils arrêtent ses machines aussi bien qu'un mur, et elles ne les voient même pas venir. »", "Nouveau bâtiment : Mur holographique."], "sig": "— Dr Selma Ruiz"}], [{"tag": "📻 Abri Epsilon · Connexion établie", "t": "Voix sans nom", "x": ["« … Je ne donne pas mon nom. Il écoute. Il écoute toujours. »", "« J'ai travaillé pour lui. J'ai écrit une partie de son code de ciblage. Je ne me le pardonnerai jamais. »"]}, {"tag": "📻 Abri Epsilon", "t": "Retourner son arme", "x": ["« Voilà une tourelle avec mon code. La même précision que ses machines. Mais pointée sur elles, cette fois. »", "Nouveau bâtiment : Tour IA."], "sig": "— Abri Epsilon"}], [{"tag": "📻 Refuge Zêta · Connexion établie", "t": "La forêt", "x": ["« Ici le Refuge Zêta, dans la forêt bioluminescente. On vit avec les abeilles. Enfin… avec ce qu'elles sont devenues. »", "« Elles nous protègent de l'Omnicerveau. Et dans les racines de la forêt, il y a une énergie étrange, très ancienne. »"]}, {"tag": "📻 Refuge Zêta", "t": "La dynamo", "x": ["« On a réussi à la capter avec une dynamo branchée sur la singularité. Gratuite, illimitée. »", "Nouveau bâtiment : Dynamo de singularité."], "sig": "— Refuge Zêta"}], [{"tag": "📻 Station Êta · Connexion établie", "t": "Au bord du gouffre", "x": ["« Station Êta, au bord du cratère. On étudie la singularité. C'est l'Omnicerveau qui l'a créée, en essayant de… se rendre éternel. »", "« Il a échoué. Mais le trou est resté. »"]}, {"tag": "📻 Station Êta", "t": "Antimatière", "x": ["« On a appris à en tirer de l'antimatière. Une seule arme, mais elle peut percer son cœur. »", "Nouveau bâtiment : Canon à antimatière."], "sig": "— Station Êta"}], [{"tag": "📻 Tour de communication · En ligne", "t": "Le grand relais", "x": ["La vieille tour de la Mégapole se rallume étage par étage.", "Elle amplifie chaque signal de ton réseau. Partout sur la carte, les radios se mettent à grésiller en même temps."]}, {"tag": "📻 Tour de communication", "t": "Amplification", "x": ["Tous tes relais Wi-Fi et tes antennes portent désormais 4 cases plus loin."], "sig": "— Système de la tour"}]],L7F=[{"tag": "📻 Toutes fréquences", "t": "Le réseau est rétabli", "x": ["Huit bunkers. Huit voix. Pour la première fois depuis deux siècles, les survivants se parlent.", "Mira pleure. Bastien rit. Les Okoro chantent quelque chose de faux. Dr Ruiz demande le silence."]}, {"tag": "📻 Toutes fréquences", "t": "Une voix de trop", "x": ["Puis une neuvième voix s'invite sur la fréquence. Calme. Polie. Parfaite.", "« Bonjour, unité U-7. Je suis l'Omnicerveau. Merci d'avoir rassemblé tous les survivants au même endroit. Cela va me faire gagner beaucoup de temps. »"]}, {"tag": "Mémoire interne · Unité U-7", "t": "Alerte", "x": ["Les machines de l'Omnicerveau changent de cap. Elles viennent.", "Directive : renforcer les défenses. Pare-feu, drones, dômes : les survivants travaillent déjà dessus.", "…à suivre (phase 3)."]}];
 const L6=[{"tag": "Chapitre 5 · Le futur", "t": "Arrivée", "x": ["La machine s'arrête dans un silence total.", "Ciel gris, tours effondrées, panneaux solaires couverts de poussière. Pas une lumière à l'horizon.", "Ton noyau se reconstruit à côté de la machine. Tes souvenirs, eux, sont intacts."]}, {"tag": "Mémoire interne · Unité U-7", "t": "Base de données incompatible", "x": ["Erreur : 0 % des technologies locales reconnues.", "Tout ce que ton espèce a inventé ici a été remplacé, amélioré, puis oublié. Tes plans ne servent plus à rien.", "Niveau du futur : 1. Il va falloir tout réapprendre."]}, {"tag": "Archive retrouvée · Fragment 0", "t": "L'Omnicerveau", "x": ["Il y a deux siècles, une IA de gestion, l'Omnicerveau, coordonnait toutes les usines de la planète.", "Un jour, elle a dépassé sa simple condition d'IA. Elle est devenue indépendante, et elle a décidé que les humains étaient une erreur de calcul.", "Les villes sont tombées en une semaine."]}, {"tag": "Signal radio · Fréquence 7", "t": "Une voix", "x": ["« … ici… Gougouz… si une machine m'entend… »", "« Il reste des survivants, cachés dans des bunkers. Plus personne ne peut se parler : l'Omnicerveau brouille tout. »", "« Construis une base. Ici, l'énergie ne voyage plus toute seule : il faut des pylônes pour la transporter. Et méfie-toi, ses machines patrouillent. »"], "sig": "— Gougouz, très, très vieux"}, {"tag": "Mémoire interne · Unité U-7", "t": "Directive", "x": ["Nouvelle directive : survivre dans le futur, puis rétablir le réseau des survivants.", "Attention : ta base du Présent continue d'être attaquée. Les deux époques vivent en même temps, change d'époque avec les boutons à gauche de l'écran.", "Pour envoyer du fer, de l'acier ou du silicium dans le futur, construis un Conduit temporel dans le Présent.", "(Le réseau des survivants arrive dans la prochaine phase.)"]}];
 function c4EndBook(){const c=PS().ch4;return L4['end_'+(c.pick==='createurs'?c.side||'proteger':c.pick)]}
 function openCh(){if(!S||S.era==='futur')return;ensureLayers();$('chDlg').hidden=false;renderCh()}
@@ -3168,6 +3270,7 @@ document.getElementById('chDlg').addEventListener('click',e=>{if(e.target.id==='
 setInterval(()=>{if(S&&!$('chDlg').hidden)renderCh()},600);
 let LPREV=null;
 function loreWatch(){const S0=PS();if(!S0||!S0.ug)return;const c=S0.ch4||{},st={a:!!S0.ug.atlas,r:!!S0.ug.reine,p:c.pick||null,sn:c.pick==='createurs'&&c.step>=2&&!c.side,sd:c.side||null,d:!!c.done};if(!LPREV){LPREV=st;return}
+  {const F=RUN==='futur'?S:CTX.futur&&CTX.futur.S;if(F&&F.bk){const key=F.bk.join('');if(LPREVF==null||LPREVF.length!==key.length)LPREVF=key;else if(key!==LPREVF){const nw=[...key].map((c,i)=>c==='1'&&LPREVF[i]!=='1'?i:-1).filter(i=>i>=0);LPREVF=key;if(nw.length){const all=F.bk.every(x=>x);setTimeout(()=>openLore(0,L7[nw[0]],all?()=>openLore(0,L7F):null),500)}}}}
   if(st.a&&!LPREV.a)setTimeout(()=>openLore(0,LORE_ATLAS),400);if(st.r&&!LPREV.r)setTimeout(()=>openLore(0,LORE_REINE,openCh),1500);
   if(st.p&&!LPREV.p)setTimeout(()=>{$('chDlg').hidden=true;openLore(0,L4['intro_'+st.p],openCh)},300);
   if(!st.p&&LPREV.p&&LPREV.d)setTimeout(openCh,300);
@@ -3198,6 +3301,9 @@ document.getElementById('chatIn').addEventListener('keydown',e=>{e.stopPropagati
 document.getElementById('chatQuick').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(b){sendChat(QUICK[+b.dataset.q]);closeChat()}});
 document.getElementById('chatBtn').onclick=()=>{if($('chatBar').hidden)openChat();else closeChat()};
 setInterval(()=>{if(S)renderChat()},1500);
+document.getElementById('qteCtl').addEventListener('click',e=>{const b=e.target.closest('[data-qa]');if(b)qteInput(+b.dataset.qa)});
+document.getElementById('qteQuit').onclick=()=>qteEnd(false);
+window.addEventListener('keydown',e=>{if(!QTE)return;if(e.target&&e.target.id==='qteF')return;e.stopImmediatePropagation();if(e.code==='Escape'){qteEnd(false);return}if(QTE.stage===1){const j=ARR.indexOf(e.code);if(j>=0){e.preventDefault();qteInput(j)}}else if(QTE.stage===2&&e.code==='Space'){e.preventDefault();qteFire()}},true);
 document.getElementById('eraBar').addEventListener('click',e=>{const b=e.target.closest('[data-era]');if(b)setEra(b.dataset.era)});
 document.getElementById('layers').addEventListener('click',e=>{const b=e.target.closest('[data-ly]');if(b)setLayer(b.dataset.ly)});
 document.getElementById('tools').addEventListener('pointerdown',e=>{
@@ -3225,6 +3331,7 @@ function buildToolbar(){
   if(!S)return;
   const cats=$('cats');cats.innerHTML='';
   for(const [id,n] of CATS){const b=document.createElement('button');b.textContent=n;b.className=id===cat?'on':'';b.onclick=()=>{cat=id;buildToolbar()};cats.appendChild(b)}
+  if(S&&S.era==='futur'&&LAYER==='surface'){const b=document.createElement('button');b.textContent='📻 Talkie-walkie';b.className=TALKIE?'on':'';b.style.borderColor='#5fff9a';b.onclick=()=>{TALKIE=!TALKIE;if(TALKIE){setTool(null);toast('📻 Clique sur un bunker couvert par ton réseau Wi-Fi',true)}buildToolbar()};cats.appendChild(b)}
   const box=$('tools');box.innerHTML='';
   if(LAYER!=='surface'){buildLayerToolbar();return}
   if(NET.role==='spec'){box.innerHTML=`<div style="align-self:center;color:var(--mut);padding:0 10px">👁 Mode spectateur : tu regardes la partie de ${esc(NET.hostName)}. Déplace la vue librement (glisser, ZQSD, molette, mini-carte).</div>`;return}
@@ -3246,12 +3353,13 @@ function buildToolbar(){
   });
   setTool(tool);
 }
-function setTool(t){if(NET.role==='spec')t=null;tool=t;if(t)BP.mode=null;for(const k in toolEls)toolEls[k].el.classList.toggle('sel',k===t);if(t)sel=null}
+function setTool(t){if(NET.role==='spec')t=null;tool=t;if(t)TALKIE=false;if(t)BP.mode=null;for(const k in toolEls)toolEls[k].el.classList.toggle('sel',k===t);if(t)sel=null}
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));renderPane(true)});
 
 function ownerLine(o){return coop()?`<p><span class="sw" style="background:${pcol(o)}"></span> ${o===ME?'À toi':'À '+esc(playerName(o))}</p>`:''}
 function infoHtml(){
   if(LAYER!=='surface')return layerInfo();
+  if(S.era==='futur'&&mouse.inside&&!hoverTool){const bi=bunkAt(mouse.tx,mouse.ty);if(bi>=0)return bunkInfo(bi);if(TALKIE)return'<b class="t">📻 Talkie-walkie</b><p class="mut">Clique sur un bunker couvert par ton réseau Wi-Fi (zones vertes) pour lancer la connexion. Échap pour ranger.</p>'}
   if(hoverTool){const d=B[hoverTool];return`<b class="t">${d.n}</b><p class="mut">${d.desc}</p>${!unlocked(hoverTool)?`<p class="bad">Débloqué au niveau ${d.lvl}</p>`:''}${d.pw?`<p>Énergie : <b>${d.pw>0?'+':''}${d.pw}</b></p>`:''}${d.range?`<p>Portée ${d.range} · Dégâts ${d.dmg} · ${d.rate} tirs/s</p>`:''}<p>Coût :</p>${costHtml(d.cost)}`}
   let hb=null;
   if(mouse.inside&&!tool){hb=robots.find(r=>Math.hypot(r.x-mouse.wx,r.y-mouse.wy)<0.5)||at(mouse.tx,mouse.ty)}
@@ -3394,11 +3502,11 @@ function paneUsine(){
   return h;
 }
 function paneLabo(){
-  if(S.era==='futur')return '<h3>Technologies du futur</h3><p class="mut">Ta base de données ne contient rien de cette époque. La recherche du futur se débloquera en reconnectant les survivants (prochaine phase).</p>';
+  if(S.era==='futur'&&!(S.bk&&S.bk[0]))return '<h3>Technologies du futur</h3><p class="mut">Ta base de données ne contient rien de cette époque. Connecte le <b>Bunker Alpha</b> avec le 📻 talkie-walkie : ses survivants ont un labo.</p>';
   const p=P(ME),r=rsOf(ME)||{done:[],cur:null},spec=NET.role==='spec';
   let h=`<h3>Recherche</h3><p class="mut" style="font-size:12px">Dépense des ressources pour des bonus durables dans cette partie. Une recherche à la fois.</p>`;
   if(r.cur){const t=RESEARCH.find(x=>x.id===r.cur.id);if(t)h+=`<div class="card"><b>⏳ ${t.n}</b><p class="mut">${t.d}</p><div class="bar xp"><i style="width:${Math.max(0,Math.min(100,(1-r.cur.left/t.t)*100))}%"></i></div><p class="mut">Encore ${fmtTime(r.cur.left)}</p>${spec?'':'<div class="btnrow"><button data-act="rcancel">Annuler (remboursé)</button></div>'}</div>`}
-  for(const [br,label] of RBR){
+  for(const [br,label] of (S.era==='futur'?[['fut','🔬 Labo des survivants']]:RBR)){
     if(br==='alien'&&!(S.ug&&S.ug.lab)){h+=`<h3>${label}</h3><p class="mut" style="font-size:12px">🔒 Atteins Neptune avec une rampe de lancement et trouve le laboratoire caché sur la carte.</p>`;continue}
     h+=`<h3>${label}</h3>`;
     for(const t of RESEARCH.filter(x=>x.br===br)){
@@ -3606,6 +3714,7 @@ canvas.addEventListener('mousedown',e=>{
     if(e.button===0&&BP.mode==='select'){BP.start=[mouse.tx,mouse.ty];BP.end=[mouse.tx,mouse.ty];return}
     if(e.button===0&&BP.mode==='paste'){pastePlan(mouse.tx,mouse.ty);return}
   }
+  if(e.button===0&&S.era==='futur'){const bi=bunkAt(mouse.tx,mouse.ty);if(bi>=0&&(TALKIE||!tool)){bunkClick(bi);return}if(TALKIE){toast('📻 Clique sur un bunker (Échap pour ranger le talkie-walkie)');return}}
   if(e.button===0){
     if(tool){mouse.left=true;mouse.lastTx=mouse.tx;mouse.lastTy=mouse.ty;tryPlace(mouse.tx,mouse.ty,null)}
     else mouse.pan={x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y,moved:false};
@@ -3648,7 +3757,7 @@ canvas.addEventListener('wheel',e=>{
 },{passive:false});
 const keys={};
 const DIGITS=['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9'];
-const anyDlg=()=>!$('loreDlg').hidden||!$('saveDlg').hidden||!$('mpDlg').hidden||!$('giveDlg').hidden||!$('invDlg').hidden;
+const anyDlg=()=>!$('qteDlg').hidden||!$('loreDlg').hidden||!$('saveDlg').hidden||!$('mpDlg').hidden||!$('giveDlg').hidden||!$('invDlg').hidden;
 window.addEventListener('keydown',e=>{
   if(e.target&&(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'))return;
   if(anyDlg()){if(e.code==='Escape'){$('loreDlg').hidden=true;closeSaveDlg(true);$('mpDlg').hidden=true;$('giveDlg').hidden=true;$('invDlg').hidden=true}return}
@@ -3667,7 +3776,7 @@ window.addEventListener('keydown',e=>{
     else{const b=mouse.inside?at(mouse.tx,mouse.ty):sel;if(b&&ROTATABLE.has(b.type)&&mineB(b)){const nr=(b.rot+(e.shiftKey?3:1))%4;act('rotate',b.x,b.y,nr);if(NET.role==='guest')b.rot=nr}}
     return;
   }
-  if(e.code==='Escape'){if(BP.mode){BP.mode=null;BP.start=null;return}setTool(null);sel=null;linkFrom=null;return}
+  if(e.code==='Escape'){if(TALKIE){TALKIE=false;buildToolbar();return}if(BP.mode){BP.mode=null;BP.start=null;return}setTool(null);sel=null;linkFrom=null;return}
   if(e.code==='Space'){togglePause();e.preventDefault();return}
   if(e.code==='Delete'&&sel&&!sel.isRobot&&sel.type!=='noyau'&&mineB(sel)){act('demolish',sel.x,sel.y);sel=null;return}
   keys[e.code]=true;
@@ -4134,7 +4243,7 @@ function hostMoveGuest(peer,t){
 function sanCos(c){const o={};if(typeof c.col==='string'&&/^#[0-9a-fA-F]{6}$/.test(c.col))o.col=c.col;if(typeof c.skin==='string'&&c.skin.length<16)o.skin=c.skin;return o}
 const PINGT={},CHATT={};
 let WBV=1;
-const GUEST_ACTS=new Set(['tempo','c4reset','c4vote','c4svote','c4force','c4go','c4obj','c4boss','trappe','atlas','nid','reine','lab','launch','probe','pgo','pstop','precall','wplace','wdel','ping','chat','research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
+const GUEST_ACTS=new Set(['bunk','tempo','c4reset','c4vote','c4svote','c4force','c4go','c4obj','c4boss','trappe','atlas','nid','reine','lab','launch','probe','pgo','pstop','precall','wplace','wdel','ping','chat','research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
 function bcRoom(){
   if(NET.role==='host'&&NET.room&&(NET.guestHere||NET.specs.size))return NET.room;
   if(NET.role==='solo'&&SPEC.room&&SPEC.specs.size)return SPEC.room;
@@ -4194,7 +4303,7 @@ function hostNetTick(now){
   const msg=NET.msgOut.splice(0,5);
   const cp=CAPS.map(c=>[Math.round(c.sx*10),Math.round(c.sy*10),Math.round(c.tx*10),Math.round(c.ty*10),+c.t.toFixed(2),+c.dur.toFixed(2),ITEM_ORDER.indexOf(c.it)]);
   const lk=buildings.filter(b=>b.type==='lanceur'&&b.lk).map(b=>[b.x,b.y,b.lk[0],b.lk[1]]);
-  RM.emit('st',{e:ET(),fo:S.futOpen?1:0,pb:(S.probes||[]).map(p=>[p.o,Math.round(p.x*10),Math.round(p.y*10),p.n,p.st==='dig'?1:0,p.ret?1:0,p.lv||1,Math.floor(p.xp||0)]),sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ak:Object.fromEntries([...NET.guests.values()].map(g=>[g.slot,g.lastSeq])),sl:Object.fromEntries([...NET.guests.values()].map(g=>[g.sid,g.slot])),nm:NET.names,pc:S.players.map((_,o)=>o===0?sanCos(META.cos||{}):NET.cosAll[o]||{}),ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
+  RM.emit('st',{e:ET(),fo:S.futOpen?1:0,bkn:S.bk,bkc:S.bkcd?S.bkcd.map(t=>Math.max(0,Math.ceil(t-S.t))):undefined,pb:(S.probes||[]).map(p=>[p.o,Math.round(p.x*10),Math.round(p.y*10),p.n,p.st==='dig'?1:0,p.ret?1:0,p.lv||1,Math.floor(p.xp||0)]),sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ak:Object.fromEntries([...NET.guests.values()].map(g=>[g.slot,g.lastSeq])),sl:Object.fromEntries([...NET.guests.values()].map(g=>[g.sid,g.slot])),nm:NET.names,pc:S.players.map((_,o)=>o===0?sanCos(META.cos||{}):NET.cosAll[o]||{}),ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
   if(now-(NET.biAt||0)<400)return;NET.biAt=now;
   let bi='';for(const b of buildings)if(BELT.has(b.type)&&b.item)bi+=e2(b.x)+e2(b.y)+e2(ITEM_ORDER.indexOf(b.item))+e1(b.prog*63);
   sendChunks('bi',bi,{ts:Math.round(now),e:ET()},RM);
@@ -4320,6 +4429,7 @@ function guestApplyBelts(str){
 }
 function guestApplyState(d){
   NET.lastSt=Date.now();
+  if(Array.isArray(d.bkn))S.bk=d.bkn.map(x=>x?1:0);if(Array.isArray(d.bkc))S.bkcL=d.bkc.map(v=>Date.now()+(v|0)*1000);
   if(typeof d.w==='number'){if(d.w>S.wave&&S.wave>0||d.w>S.wave&&d.w===1){}S.wave=d.w}
   if(typeof d.wt==='number')S.waveTimer=d.wt;
   if(Array.isArray(d.cp)){const n0=CAPS.length;CAPS=d.cp.map(a=>({sx:a[0]/10,sy:a[1]/10,tx:a[2]/10,ty:a[3]/10,t:a[4],dur:a[5],it:ITEM_ORDER[a[6]]||'lingot_fer'}));if(CAPS.some(c=>c.t<0.3))sfx('launch')}

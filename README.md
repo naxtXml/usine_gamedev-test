@@ -81,6 +81,13 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - 23 bâtiments du futur, 7 machines ennemies (boss : Colosse-Forge), 10 objectifs du futur, 3 succès.
 - Conduit temporel (dans le Présent) : envoie minerai de fer, lingots de fer, acier, silicium et cuivre vers ton stock du futur.
 
+## Chapitre 5 — Phase 2 : le Réseau des survivants
+- 8 lieux à reconnecter dans le futur : Bunkers Alpha et Bêta (Néo-plaines), Gamma et la Tour de communication (Mégapole), Delta (Verre), Epsilon (Nanites), Zêta (Forêt), Êta (Singularité).
+- Relais Wi-Fi (8 cases de signal, liaison 12) alimentés par pylône, reliés en chaîne depuis le noyau. Antenne longue portée (13/22) à débloquer.
+- Bouton « 📻 Talkie-walkie » (barre du bas) → clic sur un bunker couvert → 3 épreuves : fréquence, code, émission au bon moment. Échec = interférences 45 s + attaque de machines.
+- Récompenses : Labo des survivants (6 recherches du futur), Assembleur IA, Mur holographique, Tour IA, Dynamo de singularité, Canon à antimatière, signal amplifié.
+- Histoire : un message radio par survivant, puis l'Omnicerveau s'invite sur la fréquence…
+
 ## Commandes
 
 | Action | Touche |
