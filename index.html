@@ -40,7 +40,7 @@ button.blue{border-color:#2a5a75;color:#a9e3ff;background:#1a2a35}
 canvas#c{display:block;cursor:crosshair}
 #side{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 #tabs{display:flex;border-bottom:1px solid var(--line);flex:none}
-#tabs button{flex:1;border:0;border-radius:0;background:transparent;padding:9px 1px;font-size:11px;white-space:nowrap;color:var(--mut);border-bottom:2px solid transparent}
+#tabs button{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;border:0;border-radius:0;background:transparent;padding:9px 1px;font-size:11px;white-space:nowrap;color:var(--mut);border-bottom:2px solid transparent}
 #tabs button.on{color:var(--txt);border-bottom-color:var(--acc);background:var(--panel2)}
 #tabs button .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pur);margin-left:4px;vertical-align:1px}
 #pane{overflow-y:auto;padding:10px 12px 20px;flex:1}
@@ -120,6 +120,9 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
 #qteDlg .lore{width:min(620px,94%);background:linear-gradient(160deg,#061a20,#0b1430);border:1px solid #5fff9a;box-shadow:0 0 40px rgba(95,255,154,.3)}
 #qteDlg .lh{display:flex;justify-content:space-between;font:600 11px ui-monospace,monospace;letter-spacing:.12em;color:#5fff9a;text-transform:uppercase}#qteDlg h2{color:#e8fff2;margin:6px 0 4px}
 #qteCv{width:100%;height:auto;background:#050b12;border-radius:10px;border:1px solid #1d3a4a;display:block}
+.jrl{display:flex;flex-direction:column;gap:4px;margin-top:6px}.jre{display:flex;gap:8px;align-items:center;text-align:left;font-size:12px;padding:6px 8px;width:100%}.jre span:first-child{width:18px;text-align:center}.jrn{margin-left:auto;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--pur);font-weight:700}.jre.lk{color:var(--mut);opacity:.6;border:1px dashed var(--line);border-radius:6px}
+#hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);max-width:min(520px,80%);background:rgba(10,24,34,.95);border:1px solid #2fd0ff;border-radius:10px;padding:10px 12px;z-index:6;box-shadow:0 6px 24px rgba(0,0,0,.5);font-size:13px;line-height:1.4}
+#hint b{color:#5ff3ff}#hint .btnrow{margin-top:8px;display:flex;gap:6px;justify-content:flex-end}#hint button{font-size:12px;padding:4px 10px}
 #eraBar{position:absolute;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:3}
 #eraBar button{width:96px;padding:10px 6px;border-radius:12px;font-weight:700;border:1px solid #3b4a7a;background:rgba(10,14,24,.88);color:#cfd8ef;cursor:pointer;text-align:center}
 #eraBar button.on{background:linear-gradient(160deg,#1a6a8a,#3fd0ff);color:#04131c;border-color:#3fd0ff;box-shadow:0 0 16px rgba(63,208,255,.45)}
@@ -211,7 +214,7 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
       <div id="toast"></div>
       <div id="tagR"></div>
       <div id="layers"></div>
-      <div id="eraBar" hidden></div>
+      <div id="eraBar" hidden></div><div id="hint" hidden><div id="hintTxt"></div><div class="btnrow"><button id="hintOff">Ne plus afficher d'aides</button><button id="hintOk" class="prim">Compris</button></div></div>
       <div id="coeurDlg" class="dlg" hidden><div class="card lore" id="coeurCard"></div></div>
       <div id="qteDlg" class="dlg" hidden><div class="card lore"><div class="lh"><span id="qteTag"></span><span id="qteStep" class="mut"></span></div><h2 id="qteTitle"></h2><p id="qteHint" class="mut" style="font-size:13px"></p><canvas id="qteCv" width="560" height="170"></canvas><div id="qteCtl" class="btnrow" style="margin-top:10px"></div><div class="btnrow"><button id="qteQuit" class="danger">Couper la connexion (échec)</button></div></div></div>
       <div id="chDlg" class="dlg" hidden><div class="card lore" id="chCard"></div></div>
@@ -250,6 +253,7 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
         <button data-tab="prog">Niveaux</button>
         <button data-tab="atelier">Atelier</button>
         <button data-tab="talents">Talents</button>
+        <button data-tab="journal">Journal</button>
       </div>
       <div id="pane"></div>
     </aside>
@@ -483,7 +487,7 @@ B.cantine={cat:'prod',size:2,n:'Cantine de Gougouz',cost:{acier:200,gelee_royale
 B.emetteur_temporel={cat:'log',era:'futur',n:'Émetteur temporel',cost:{supraconducteur:4,puce_ia:4,cristal_donnees:20},hp:2000,pw:-30,col:'#ffd27a',lvl:28,desc:'Envoie vers ton stock du PRÉSENT ce que tu lui apportes par tapis, pour 1 chrono-sable par objet : graphène → 4 alliages, supraconducteur → 2 piles à fusion, puce IA → 1 module quantique, fibre optique → 10 circuits, plaque composite → 3 aciers.'};
 B.pare_feu={cat:'def',era:'futur',n:'Pare-feu',cost:{plaque_composite:10,verre_optique:4,nanites:6},hp:800,pw:-10,fw:6,col:'#3aff7a',lvl:4,desc:'Aucune tourelle à moins de 6 cases ne peut être piratée, et celles qui le sont déjà sont nettoyées. Doit être alimenté.'};
 B.hangar_drones={cat:'def',era:'futur',n:'Hangar à drones',cost:{graphene:8,plaque_composite:12,fibre_optique:2},hp:1500,pw:-20,range:8,rate:1.6,dmg:40,col:'#5ff3ff',lvl:14,desc:'3 drones de combat qui patrouillent autour du hangar et foncent sur les monstres à moins de 8 cases. Énergie.'};
-B.dome_bouclier={cat:'def',era:'futur',size:2,n:'Dôme-bouclier',cost:{graphene:20,verre_optique:20,supraconducteur:2},hp:3000,pw:-40,dome:6,pool:15000,regen:250,col:'#7fb8ff',lvl:20,desc:'Un dôme d\'énergie (rayon 6) qui encaisse jusqu\'à 15 000 dégâts à la place de tes bâtiments et de ton noyau. Se recharge (250/s) tant qu\'il est alimenté.'};
+B.dome_bouclier={cat:'def',era:'futur',size:2,n:'Dôme-bouclier',cost:{graphene:20,verre_optique:20,puce_ia:4},hp:3000,pw:-40,dome:6,pool:15000,regen:250,col:'#7fb8ff',lvl:20,desc:'Un dôme d\'énergie (rayon 6) qui encaisse jusqu\'à 15 000 dégâts à la place de tes bâtiments et de ton noyau. Se recharge (250/s) tant qu\'il est alimenté.'};
 B.puits_gravite={cat:'trap',era:'futur',n:'Puits gravitationnel',cost:{graphene:8,nanites:20},hp:800,pw:-15,range:5,col:'#9a5cff',lvl:16,desc:'Aspire les monstres à moins de 5 cases vers son centre et les ralentit (sauf les boss). Énergie.'};
 B.portail_piege={cat:'trap',era:'futur',n:'Portail-piège',cost:{fibre_optique:4,puce_ia:2},hp:600,pw:-12,walk:true,cd:3,col:'#ff6ad5',lvl:24,desc:'Un monstre au sol qui marche dessus est renvoyé au bord de la carte (toutes les 3 s). Énergie.'};
 B.relais_wifi={cat:'log',era:'futur',n:'Relais Wi-Fi',cost:{ferraille:10,nanites:3},hp:400,pw:-6,wifi:8,wlink:12,col:'#5fff9a',lvl:1,desc:'Diffuse le signal radio à 8 cases et se relie aux autres relais (et au noyau) à 12 cases. Doit être alimenté par un pylône. Un bunker couvert par le réseau peut être contacté avec le 📻 talkie-walkie.'};
@@ -507,6 +511,7 @@ B.excavatrice={cat:'prod',era:'futur',base:'foreuse',n:'Excavatrice',cost:{ferra
 B.excavatrice_plasma={cat:'prod',era:'futur',base:'foreuse',n:'Excavatrice à plasma',cost:{plaque_composite:6,graphene:2},hp:800,pw:-14,col:'#ff6ad5',spd:4,lvl:14,desc:'Extrait 4× plus vite.'};
 B.recycleur={cat:'prod',era:'futur',base:'fonderie',rs:'recycleur',n:'Recycleur',cost:{ferraille:10},hp:300,pw:-4,col:'#5a8a6a',spd:1,lvl:1,desc:'Recycle selon ce qui entre : 2 ferraille → plaque composite, 2 sable vitrifié → verre optique. Accepte aussi l\'acier et le fer venus du Présent.'};
 B.nanofabrique={cat:'prod',era:'futur',base:'assembleur',rs:'nanofab',n:'Nanofabrique',cost:{plaque_composite:8,nanites:6},hp:500,pw:-8,col:'#8a6ad8',spd:1,lvl:3,desc:'Assemble atome par atome : graphène, fibre optique, puces IA, supraconducteurs. Clique pour choisir la recette.'};
+B.nano_reparateur={cat:'def',era:'futur',base:'reparateur',n:'Nano-réparateur',cost:{plaque_composite:6,nanites:10},hp:500,pw:-8,range:4,heal:30,col:'#3aff9a',lvl:6,desc:'Un nuage de nanites qui répare tes bâtiments et ton noyau à moins de 4 cases. Énergie. (Le noyau du futur ne se répare pas tout seul !)'};
 B.mur_composite={cat:'def',era:'futur',base:'mur',n:'Mur composite',cost:{ferraille:3},hp:900,col:'#5a6270',lvl:1,desc:'Un mur de plaques recyclées.'};
 B.mur_graphene={cat:'def',era:'futur',base:'mur',n:'Mur en graphène',cost:{graphene:2},hp:6000,col:'#3a3e46',lvl:15,desc:'Très léger, extrêmement solide.'};
 B.tourelle_faisceau={cat:'def',era:'futur',base:'laser',n:'Tourelle à faisceau',cost:{ferraille:12,nanites:2},hp:400,pw:-6,range:6.5,rate:2,dmg:22,col:'#2fd0ff',lvl:1,desc:'Rayon d\'énergie rapide. Doit être reliée au réseau.'};
@@ -844,7 +849,7 @@ const NET={guests:new Map(),names:[],metas:{},cosAll:[],np:2,fxQ:[],off:null,jit
 function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function hsh(x,y,k){let n=Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(k,1442695041);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
-const xpNeed=l=>40+25*l;
+const xpNeed=l=>S&&S.era==='futur'?Math.round(40+4.6*Math.pow(l,2.3)):40+25*l;
 const P=o=>S.players[o];
 const coop=()=>S&&S.mode==='coop';
 const other=o=>1-o;
@@ -1081,7 +1086,7 @@ const PS=()=>RUN==='present'?S:(CTX.present&&CTX.present.S);
 const futOpen=()=>{const ps=PS();return !!(ps&&ps.futOpen)};
 function resetEras(){LPREVF=null;LPREVH=null;ERA='present';RUN='present';CTX.present=null;CTX.futur=null;GRID=null;const eb=document.getElementById('eraBar');if(eb)eb.hidden=true}
 const futSeed=sd=>((sd|0)^0x5f17c0de)>>>0;
-function newFutState(ps){const np=ps.players.length;const s2=newState(futSeed(ps.seed),ps.mode,np,false);s2.era='futur';s2.interval=ps.mode==='coop'?1200:2400;s2.waveTimer=s2.interval;for(const p of s2.players){p.inv={ferraille:60,nanites:10};p.level=1;p.xp=0;p.fresh=false}s2.bk=Array(BUNKDEF.length).fill(0);s2.bkcd=Array(BUNKDEF.length).fill(0);return s2}
+function newFutState(ps){const np=ps.players.length;const s2=newState(futSeed(ps.seed),ps.mode,np,false);s2.era='futur';s2.interval=ps.mode==='coop'?900:1200;s2.waveTimer=s2.interval;for(const p of s2.players){p.inv={ferraille:60,nanites:10};p.level=1;p.xp=0;p.fresh=false}s2.bk=Array(BUNKDEF.length).fill(0);s2.bkcd=Array(BUNKDEF.length).fill(0);return s2}
 function zoneFut(x,y){const cx2=x+0.5,cy2=y+0.5,R2=17*17;if(cx2**2+cy2**2<R2||(cx2-W)**2+cy2**2<R2||cx2**2+(cy2-H)**2<R2||(cx2-W)**2+(cy2-H)**2<R2)return'singul';
   const dx=(cx2-48)/30,dy=(cy2-56)/22;if(dx*dx+dy*dy<1)return'neo';const a=Math.atan2(cy2-56,cx2-48)*180/Math.PI;if(a>-45&&a<=45)return'megapole';if(a>45&&a<=135)return'verre';if(a>-135&&a<=-45)return'foret';return'nanite'}
 function genMapFut(seed,mode,np){
@@ -1091,7 +1096,7 @@ function genMapFut(seed,mode,np){
     const n=mn+((r()*(mx-mn+1))|0);for(let j=0;j<n;j++){if(ZMAP[y][x]===zone&&!inCoreZone(x,y,1))deposit[y][x]=item;if(r()<0.5){const [dx,dy]=DIRS[(r()*4)|0];const nx=x+dx,ny=y+dy;if(nx>=1&&ny>=1&&nx<W-1&&ny<H-1&&ZMAP[ny][nx]===zone&&!inCoreZone(nx,ny,1))deposit[ny][nx]=item}const [dx,dy]=DIRS[(r()*4)|0];x=clamp(x+dx,1,W-2);y=clamp(y+dy,1,H-2)}}};
   place('neo','ferraille',2,14,18,[5,8]);place('neo','sable_vitrifie',1,9,12,[7,11]);place('neo','nanites',1,7,10,[8,13]);place('neo','ferraille',N(2),10,14,[10,20]);
   place('megapole','ferraille',5,12,18);place('megapole','cristal_donnees',3,6,9);place('verre','sable_vitrifie',6,10,15);place('verre','cristal_donnees',1,5,8);
-  place('nanite','nanites',6,10,14);place('foret','nanites',3,8,12);place('foret','cristal_donnees',3,6,9);place('singul','matiere_noire',4,5,8);
+  place('nanite','nanites',6,10,14);place('foret','nanites',3,8,12);place('foret','cristal_donnees',3,6,9);place('foret','matiere_noire',1,4,6);place('singul','matiere_noire',4,5,8);
   // bunkers des survivants (positions déterministes à partir de la graine)
   const rb=rng((seed^0xb0b5eed)>>>0);BUNKS=[];
   for(const D of BUNKDEF){let x=0,y=0,k=0,ok=false;while(k++<1500&&!ok){if(D.d){const a=rb()*Math.PI*2,d=D.d[0]+rb()*(D.d[1]-D.d[0]);x=Math.round(48+Math.cos(a)*d);y=Math.round(56+Math.sin(a)*d*0.75)}else{x=4+((rb()*(W-8))|0);y=4+((rb()*(H-8))|0)}
@@ -1109,7 +1114,7 @@ function setupFuture(seed,mode,np){
   flow=new Float32Array(W*H);flowDirty=true;flowTimer=0;renderGround();computeFlow();flowDirty=false;
 }
 function buildFutureCtx(fs){const keep=ctxSave(),keepNet=keep.net;S=fs;for(const k of NK)NET[k]=newNetE()[k];setupFuture(fs.seed,fs.mode,fs.players.length);CTX.futur=ctxSave();ctxLoad(keep);for(const k of NK)NET[k]=keepNet[k]}
-function applyFut(F){setTimeout(()=>withEra('futur',()=>applyEchoes(S.echo)),0);const fs=Object.assign(newFutState(S),F.S||{});fs.era='futur';fs.paused=false;fs.over=false;for(const p of fs.players){p.craftQ=p.craftQ||[];p.goalsDone=p.goalsDone||[];p.made=p.made||{};p.inv=p.inv||{}}
+function applyFut(F){setTimeout(()=>withEra('futur',()=>applyEchoes(S.echo)),0);const fs=Object.assign(newFutState(S),F.S||{});fs.era='futur';if(fs.interval===2400)fs.interval=1200;else if(fs.interval===1200&&fs.mode==='coop')fs.interval=900;fs.waveTimer=Math.min(fs.waveTimer,fs.interval);fs.paused=false;fs.over=false;for(const p of fs.players){p.craftQ=p.craftQ||[];p.goalsDone=p.goalsDone||[];p.made=p.made||{};p.inv=p.inv||{}}
   buildFutureCtx(fs);
   withEra('futur',()=>{for(const o of F.b||[]){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}}
     monsters=[];spawnQ=[];if(!isFinite(S.waveTimer)||S.waveTimer<180)S.waveTimer=180;for(const p of S.players)if(p.dead){p.dead=false;p.coreHp=p.coreMax*0.5}computeFlow();flowDirty=false})}
@@ -1401,6 +1406,7 @@ const ACT={
   c4vote(o,k){ensureLayers();const c=S.ch4;if(!S.ug.reine||c.pick||!CH4[k])return null;if(storyLocked(k))return 'Tu as déjà terminé cette histoire';c.votes[o]=k;UGV++;c4resolve('votes','pick',false);return null},
   c4svote(o,k){ensureLayers();const c=S.ch4;if(c.pick!=='createurs'||c.side||c.step<2||!SIDES[k])return null;if(c.ends[k])return 'Tu as déjà terminé cette fin';c.svotes[o]=k;UGV++;c4resolve('svotes','side',false);return null},
   bunk(o,i,ok){if(S.era!=='futur')return null;i=i|0;const D=BUNKDEF[i];if(!D||!BUNKS[i])return null;S.bk=S.bk||Array(BUNKDEF.length).fill(0);S.bkcd=S.bkcd||Array(BUNKDEF.length).fill(0);if(S.bk[i])return null;
+    {const Z=ZONES[D.z];if(Z&&P(o).level<Z.lvl)return `${D.n} est dans la zone « ${Z.n} » : connexion possible au niveau ${Z.lvl}`}
     if(!sigCovered(i,true))return 'Ce bunker est hors de portée du réseau Wi-Fi';if((S.bkcd[i]||0)>S.t)return `Interférences : réessaie dans ${Math.ceil(S.bkcd[i]-S.t)} s`;
     if(ok){S.bk[i]=1;for(let k=0;k<NP();k++){for(const it in D.loot)addInv(k,it,D.loot[it]);notify(k,`📻 ${D.n} connecté ! ${D.rw}`)}gainXp(300*D.tier);if(S.bk.every(x=>x)){for(let k=0;k<NP();k++)notify(k,'📻 Les 8 bunkers sont connectés : le réseau des survivants est rétabli !')}}
     else{S.bkcd[i]=S.t+45;const n=Math.max(S.wave,1),hm=Math.pow(1.24,Math.min(n,10)-1)*Math.pow(1.15,Math.max(0,n-10)),b=BUNKS[i];for(let j=0;j<3+3*D.tier;j++)spawnMonster({type:j%3?'drone_rouge':'chasseur_ia',hpMul:hm,dmgMul:1+0.08*(n-1)},b.x+0.5+(Math.random()-0.5)*3,b.y+0.5+(Math.random()-0.5)*3);for(let k=0;k<NP();k++)notify(k,`⚡ Connexion ratée avec ${D.n} : l\'Omnicerveau a repéré le signal et envoie ses machines !`)}
@@ -1610,7 +1616,7 @@ function updB(b,dt){
   if(t==='brouilleur'){b.active=false;const R2=d.range*d.range;if(pr>0.3)for(const m of monsters){if((m.x-b.x-0.5)**2+(m.y-b.y-0.5)**2<=R2){m.slow=0.3;m.jam=0.3;b.active=true}}return}
   if(t==='cantine'){b.tm=(b.tm||0)-dt;if(b.tm<=0){if(total('gelee_royale',o)>=1){take('gelee_royale',1,o);stat(o,'c','gelee_royale');b.fed=true;CANT[o]=Math.max(CANT[o],S.t+21)}else b.fed=false;b.tm=20}if(cantOn(o))b.fed=true;return}
   if(t==='bouclier')return;
-  if(t==='reparateur'){
+  if(kind(t)==='reparateur'){
     b.healing=false;const R2=d.range*d.range,amt=d.heal*dt*pr;
     for(const o2 of buildings){if(o2.owner!==o||o2===b)continue;const mh=maxHp(o2);if(o2.hp<mh&&(o2.x-b.x)**2+(o2.y-b.y)**2<=R2){o2.hp=Math.min(mh,o2.hp+amt);b.healing=true}}
     for(const r of robots)if(r.owner===o&&r.hp<r.maxhp&&(r.x-b.x-0.5)**2+(r.y-b.y-0.5)**2<=R2){r.hp=Math.min(r.maxhp,r.hp+amt);b.healing=true}
@@ -2139,7 +2145,7 @@ function cosmeticUpdate(dt){
     else if(t==='raffinerie'&&b.crafting&&r<dt*2)addPart({kind:'smoke',x:b.x+0.35,y:b.y+0.3,vx:0.1,vy:-0.5,life:1.2,max:1.2,size:0.12,col:'220,230,235'});
     else if(GENS.has(t)&&b.burn>0&&r<dt*4)addPart({kind:'smoke',x:b.x+0.5,y:b.y+0.3,vx:0.18,vy:-0.5,life:1.8,max:1.8,size:0.18,col:t==='super_generateur'?'90,60,90':'60,58,60'});
     else if(DRILLS.has(t)&&P(b.owner).pr>0.2&&r<dt*1.5)addPart({kind:'smoke',x:b.x+0.5+(Math.random()-0.5)*0.6,y:b.y+0.85,vx:(Math.random()-0.5)*0.3,vy:-0.1,life:0.8,max:0.8,size:0.1,col:t==='pompe'?'60,50,80':'150,110,80'});
-    else if(t==='reparateur'&&b.healing&&r<dt*4)addPart({kind:'heal',x:b.x+0.5+(Math.random()-0.5)*2.5,y:b.y+0.5+(Math.random()-0.5)*2.5,vx:0,vy:-0.6,life:0.8,max:0.8,size:0.12,col:'#5cf0a0'});
+    else if(kind(t)==='reparateur'&&b.healing&&r<dt*4)addPart({kind:'heal',x:b.x+0.5+(Math.random()-0.5)*2.5,y:b.y+0.5+(Math.random()-0.5)*2.5,vx:0,vy:-0.6,life:0.8,max:0.8,size:0.12,col:'#5cf0a0'});
   }
   for(const p of parts){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.kind==='debris'||p.kind==='spark'){p.vx*=1-dt*4;p.vy*=1-dt*4}}
   parts=parts.filter(p=>p.life>0);
@@ -2905,7 +2911,7 @@ function draw(now){
       if(TURRETS.has(t))light(b.x+0.5,b.y+0.5,t==='tesla'?2.6:1.8,0.8);
       else if(GENS.has(t)&&b.burn>0)light(b.x+0.5,b.y+0.5,2.2,0.9);
       else if(MACHINES.has(t)&&b.crafting)light(b.x+0.5,b.y+0.5,1.5,0.75);
-      else if(t==='reparateur'||t==='cryo'||t==='bouclier')light(b.x+0.5,b.y+0.5,t==='bouclier'?2.5:1.8,0.75);
+      else if(kind(t)==='reparateur'||t==='cryo'||t==='bouclier')light(b.x+0.5,b.y+0.5,t==='bouclier'?2.5:1.8,0.75);
       else if(DRILLS.has(t))light(b.x+0.5,b.y+0.5,1,0.4);}
     for(const r of robots)light(r.x,r.y,2,0.85);
     for(const c of CAPS){const f=Math.min(1,c.t/c.dur);light(c.sx+(c.tx-c.sx)*f,c.sy+(c.ty-c.sy)*f,1.4,0.8)}
@@ -2923,7 +2929,7 @@ function draw(now){
   const vg=ctx.createRadialGradient(cw/2,ch/2,Math.min(cw,ch)*0.45,cw/2,ch/2,Math.max(cw,ch)*0.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.35)');ctx.fillStyle=vg;ctx.fillRect(0,0,cw,ch);
   if(sel){
     if(sel.isRobot){ctx.strokeStyle='#f2a33a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(ox+sel.x*T,oy+sel.y*T,T*0.55,0,7);ctx.stroke();if(sel.tx!=null&&sel.tx>=0){ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(ox+sel.x*T,oy+sel.y*T);ctx.lineTo(ox+(sel.tx+0.5)*T,oy+(sel.ty+0.5)*T);ctx.stroke();ctx.setLineDash([])}}
-    else{const sz=sel.type==='noyau'?3:bsz(sel.type);ctx.strokeStyle='#f2a33a';ctx.lineWidth=2;ctx.strokeRect(ox+sel.x*T+1,oy+sel.y*T+1,T*sz-2,T*sz-2);if(TURRETS.has(sel.type)||sel.type==='reparateur'||sel.type==='cryo')rangeCircle(sel.type,ox+(sel.x+0.5)*T,oy+(sel.y+0.5)*T,T)}
+    else{const sz=sel.type==='noyau'?3:bsz(sel.type);ctx.strokeStyle='#f2a33a';ctx.lineWidth=2;ctx.strokeRect(ox+sel.x*T+1,oy+sel.y*T+1,T*sz-2,T*sz-2);if(TURRETS.has(sel.type)||kind(sel.type)==='reparateur'||sel.type==='cryo')rangeCircle(sel.type,ox+(sel.x+0.5)*T,oy+(sel.y+0.5)*T,T)}
   }
   if(mouse.inside&&mouse.tx>=0&&mouse.ty>=0&&mouse.tx<W&&mouse.ty<H){
     const hx=ox+mouse.tx*T,hy=oy+mouse.ty*T;
@@ -2938,7 +2944,7 @@ function draw(now){
       const gz=B[tool].unit?1:bsz(tool);
       if(!ok){ctx.fillStyle='rgba(229,72,77,0.35)';ctx.fillRect(hx,hy,T*gz,T*gz)}
       ctx.strokeStyle=ok?'rgba(255,255,255,0.8)':'#e5484d';ctx.lineWidth=1.5;ctx.strokeRect(hx+0.5,hy+0.5,T*gz-1,T*gz-1);
-      if(TURRETS.has(tool)||tool==='reparateur'||tool==='cryo')rangeCircle(tool,hx+T/2,hy+T/2,T);
+      if(TURRETS.has(tool)||kind(tool)==='reparateur'||tool==='cryo')rangeCircle(tool,hx+T/2,hy+T/2,T);
       if(LINKS[tool]||LINKR[tool]){const [dx,dy]=DIRS[rot],sg=LINKS[tool]?1:-1,rn=B[LINKS[tool]?tool:LINKR[tool]].reach;ctx.fillStyle='rgba(201,184,255,0.12)';for(let k2=1;k2<=rn;k2++){const X=mouse.tx+dx*k2*sg,Y=mouse.ty+dy*k2*sg;ctx.fillRect(ox+X*T,oy+Y*T,T,T)}}
     }else{
       ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=1;ctx.strokeRect(hx+0.5,hy+0.5,T-1,T-1);
@@ -3419,7 +3425,63 @@ function loreWatch(){const S0=PS();if(!S0||!S0.ug)return;const c=S0.ch4||{},st={
   if(st.sd&&!LPREV.sd)setTimeout(()=>{if(!$('chDlg').hidden)renderCh()},300);
   if(st.d&&!LPREV.d){META.c4=META.c4||{};META.c4[c.pick==='createurs'?c.side:c.pick]=1;saveMeta();setTimeout(()=>openLore(0,c4EndBook(),openCh),1500)}
   LPREV=st}
-function openLore(p=0,book=LORE,end=null){LOREEND=end;LOREBOOK=book;lorePg=p;renderLore();$('loreDlg').hidden=false}
+
+// ================= JOURNAL : toute l'histoire déjà vue, à relire =================
+function jrList(){const ps=PS()||{},ug=ps.ug||{},c4=ps.ch4||{},en=c4.ends||{},F=RUN==='futur'?S:(CTX.futur&&CTX.futur.S),bk=(F&&F.bk)||[];
+  const L=[
+   ['Chapitre 1 · Le chantier',[['c1','🧠','Qui es-tu ?',LORE,()=>!!ug.lab]]],
+   ['Chapitre 2 · Sous la glace',[['c2','🧊','La trappe',LORE2,()=>!!ug.trappe]]],
+   ['Chapitre 3 · La Ruche',[['c3','🐝','L\'escalier de glace',LORE3,()=>!!(ug.found&&ug.found.ruche)],['c3a','🧑‍🚀','Atlas',LORE_ATLAS,()=>!!ug.atlas],['c3r','👑','La Reine est tombée',LORE_REINE,()=>!!ug.reine]]],
+   ['Chapitre 4 · Choisis ton histoire',[
+     ['c4ie','🪐','L\'Essaim-Mère · Le signal',L4.intro_essaim,()=>c4.pick==='essaim'||!!en.essaim],['c4ee','🪐','L\'Essaim-Mère · Fin',L4.end_essaim,()=>!!en.essaim],
+     ['c4ic','🛸','Les Créateurs · Ils sont là',L4.intro_createurs,()=>c4.pick==='createurs'||!!en.obeir||!!en.proteger],['c4s','🛸','Les Créateurs · Directrice Vael',L4.side,()=>!!c4.side||!!en.obeir||!!en.proteger],
+     ['c4eo','🫡','Fin · Obéir aux Créateurs',L4.end_obeir,()=>!!en.obeir],['c4ep','🐝','Fin · Protéger la ruche',L4.end_proteger,()=>!!en.proteger],
+     ['c4io','🛰','Station orbitale · Ce qui arrive',L4.intro_orbite,()=>c4.pick==='orbite'||!!en.orbite],['c4eb','🛰','Station orbitale · Fin',L4.end_orbite,()=>!!en.orbite],
+     ['c4v','✨','La vraie suite',L5.vraie,()=>Object.keys(en).length>=4]]],
+   ['Chapitre 5 · Le futur',[['c5','🌐','Arrivée',L6,()=>!!ps.futOpen],
+     ...L7.map((b,i)=>['c5b'+i,'📻',BUNKDEF[i].n,b,()=>!!bk[i]]),
+     ['c5r','📡','Le réseau est rétabli',L7F,()=>bk.length&&bk.every(x=>x)],['c5h','🕵','Il pirate tes tourelles',L8H,()=>!!(F&&F.hk1)],['c5t','🧵','Le Tisseur est tombé',L8T,()=>!!(F&&F.tis1)],
+     ['c5p','🕳','Le Puits du Cœur',L9,()=>!!bk[6]],['c5f','🧠','Débranché (fin du chapitre 5)',null,()=>!!(F&&F.omni)]]]];
+  return L}
+function jrBook(e){return e[3]||(e[0]==='c5f'?endBook5():null)}
+function jrMark(book){if(!book||!book.length)return;META.jr=META.jr||{};let ch=false;for(const [,es] of jrList())for(const e of es){const b=e[3];if(b===book||(e[0]==='c5f'&&book[0]===L10.base[0])||(b&&b[0]===book[0])){if(!META.jr[e[0]]){META.jr[e[0]]=1;ch=true}}}if(ch)saveMeta()}
+const jrOk=e=>!!((META.jr&&META.jr[e[0]])||e[4]());
+function paneJournal(){let h='<h3>📖 Journal d\'U-7</h3><p class="mut">Tout ce que tu as découvert, à relire quand tu veux. Les pages se débloquent en avançant dans l\'histoire.</p>';let tot=0,got=0;
+  for(const [ch,es] of jrList()){const ok=es.filter(jrOk);tot+=es.length;got+=ok.length;if(!ok.length){h+=`<div class="tier locked"><h4><span>${ch}</span><span class="mut">🔒</span></h4></div>`;continue}
+    h+=`<div class="tier"><h4><span>${ch}</span><span class="mut">${ok.length}/${es.length}</span></h4><div class="jrl">`;
+    for(const e of es){const o=jrOk(e);h+=o?`<button class="jre" data-jr="${e[0]}"><span>${e[1]}</span>${e[2]}${META.jr&&META.jr[e[0]]?'':'<span class="jrn">nouveau</span>'}</button>`:`<div class="jre lk"><span>🔒</span>???</div>`}
+    h+='</div></div>'}
+  h+=`<h3>Aides</h3><div class="card"><p class="mut">Les bulles d'aide du futur apparaissent une seule fois chacune.</p><div class="btnrow"><button data-act="hintsReset">${META.noHints?'Réactiver les aides':'Revoir toutes les aides'}</button></div></div>`;
+  return `<div class="card"><b>${got}</b> <span class="mut">/ ${tot} pages retrouvées</span><div class="bar xp" style="margin-top:6px"><i style="width:${got/tot*100}%"></i></div></div>`+h}
+function openLore(p=0,book=LORE,end=null){try{jrMark(book)}catch(e){}LOREEND=end;LOREBOOK=book;lorePg=p;renderLore();$('loreDlg').hidden=false}
+
+// ================= AIDES DU FUTUR (une seule fois chacune) =================
+const HINTS=[
+ ['f_pyl','🔌 <b>Bienvenue dans le futur.</b> Ici, tout fonctionne à l\'électricité. Ton noyau alimente les cases autour de lui ; plus loin, pose des <b>pylônes</b> (ils se relient entre eux jusqu\'à 10 cases) et des <b>panneaux photoniques</b> pour produire du courant.',()=>true],
+ ['f_ore','⛏ Les ressources du passé ne servent plus (sauf le fer et l\'acier). Pose une <b>excavatrice</b> sur la <b>ferraille</b> (gisements gris) et relie-la au noyau par un tapis magnétique.',o=>P(o).level<=2&&!buildings.some(b=>b.owner===o&&kind(b.type)==='foreuse')],
+ ['f_net',o=>{const b=buildings.find(b=>b.owner===o&&b.net<0&&(B[b.type].pw<0||B[b.type].wifi)&&(b.age||0)>4);return b?`⚡ Ta machine « <b>${B[b.type].n}</b> » n\'est pas raccordée au réseau : sans courant, elle ne fait rien. Pose un pylône à moins de ${B.pylone.node} cases.`:null}],
+ ['f_low',o=>{const p=P(o);return p.cons>p.prod&&buildings.filter(b=>b.owner===o).length>4?`🔋 <b>Pas assez d\'énergie</b> (${p.prod} produits / ${p.cons} demandés) : toutes tes machines ralentissent. Ajoute des panneaux photoniques${p.level>=8?' ou des turbines ioniques':''}.`:null}],
+ ['f_rec','♻ Pour fabriquer des <b>plaques composites</b> : excavatrice sur la ferraille → <b>recycleur</b> (posé juste devant la flèche) → tapis → noyau. Le recycleur transforme aussi le sable vitrifié en verre optique.',o=>(P(o).made.ferraille||0)>=15&&!buildings.some(b=>b.owner===o&&b.type==='recycleur')],
+ ['f_bk','📡 Des survivants se cachent dans les <b>bunkers</b> (les abris sur la carte). Construis une chaîne de <b>relais Wi-Fi</b> alimentés jusqu\'à eux : chaque relais porte le signal à 8 cases et se relie au suivant jusqu\'à 12 cases.',o=>P(o).level>=2&&!(S.bk&&S.bk.some(x=>x))&&!buildings.some(b=>b.owner===o&&B[b.type].wifi)],
+ ['f_tk',o=>{const i=BUNKS.findIndex((_,i)=>!(S.bk&&S.bk[i])&&sigCovered(i));return i>=0&&!TALKIE?`📻 <b>${BUNKDEF[i].n}</b> capte ton signal ! Sélectionne le <b>talkie-walkie</b> (en bas de l\'écran), puis clique sur le bunker pour lancer la connexion.`:null}],
+ ['f_lab','🔬 Le Bunker Alpha t\'a ouvert le <b>Labo des survivants</b> : de nouvelles recherches sont dans l\'onglet Labo.',()=>!!(S.bk&&S.bk[0])],
+ ['f_nf','⚛ <b>Nanofabrique</b> débloquée : plaques composites + nanites → graphène. Clique sur la machine pour changer de recette (fibre optique, puces IA…).',o=>P(o).level>=3],
+ ['f_hk','🕵 <b>Des hackers arrivent !</b> Ces machines vertes piratent tes tourelles qui tirent alors sur ta base. Le <b>pare-feu</b> (niveau 4, alimenté) protège toutes les tourelles à 6 cases.',o=>monsters.some(m=>m.type==='hacker')&&!buildings.some(b=>b.owner===o&&b.type==='pare_feu')],
+ ['f_hkd','⚠ Une de tes tourelles est <b>piratée</b> (contour vert) ! Elle se répare seule au bout de quelques secondes, ou tout de suite à côté d\'un pare-feu alimenté.',o=>buildings.some(b=>b.owner===o&&b.hacked>0)],
+ ['f_ct','⏳ <b>Astuce :</b> le <b>conduit temporel</b> (à construire dans le Présent) envoie fer et acier dans ton stock du futur. Un acier donne 2 plaques composites au recycleur !',o=>P(o).level>=4&&!(CTX.present&&CTX.present.buildings.some(b=>b.type==='conduit_temporel'))],
+ ['f_emp','⚡ <b>Impulsion EMP !</b> Les machines électriques sont coupées quelques secondes. Les murs et les pièges sans énergie, eux, continuent de marcher.',()=>S.emp>0],
+ ['f_rep','🩹 <b>Ton noyau du futur est abîmé</b> et il ne se répare pas tout seul. Construis un <b>nano-réparateur</b> (niveau 6, alimenté) à côté : il soigne le noyau et les bâtiments à 4 cases.',o=>{const p=P(o);return p.coreHp<p.coreMax*0.8&&!monsters.length&&!buildings.some(b=>b.owner===o&&b.type==='nano_reparateur')}],
+ ['f_dome','🫧 Les <b>drones kamikazes</b> volent par-dessus les murs et explosent fort. Au niveau 20, le <b>dôme-bouclier</b> encaisse les dégâts à la place de ta base.',o=>monsters.some(m=>m.type==='drone_kamikaze')&&P(o).level<20],
+];
+let HINTCUR=null,hintAcc=0;
+function hintTick(){if(!S||ERA!=='futur'||RUN!=='futur'||S.era!=='futur')return;META.hints=META.hints||{};if(META.noHints)return;
+  if(!$('hint').hidden||!$('loreDlg').hidden||(QTE))return;
+  for(const b of buildings)b.age=(b.age||0)+1.5;
+  for(const h of HINTS){if(META.hints[h[0]])continue;let txt=null;try{txt=typeof h[1]==='function'?h[1](ME):(h[2](ME)?h[1]:null)}catch(e){txt=null}
+    if(txt){HINTCUR=h[0];$('hintTxt').innerHTML=txt;$('hint').hidden=false;sfx('click');return}}}
+setTimeout(()=>{document.getElementById('hintOk').onclick=()=>{if(HINTCUR){META.hints=META.hints||{};META.hints[HINTCUR]=1;saveMeta()}$('hint').hidden=true};
+$('hintOff').onclick=()=>{META.noHints=true;saveMeta();$('hint').hidden=true;toast('Aides désactivées (réactivables dans l\'onglet Journal)')}},0);
+setInterval(()=>{try{hintTick()}catch(e){console.error(e)}},1500);
 function renderLore(){const LORE=LOREBOOK,L=LORE[lorePg];$('loreTag').textContent=L.tag;$('lorePg').textContent=`${lorePg+1} / ${LORE.length}`;$('loreTitle').textContent=L.t;
   $('loreTxt').innerHTML=L.x.map((t,i)=>`<span class="ln" style="animation-delay:${i*0.45}s">${esc(t)}</span>`).join('\n\n')+(L.sig?`<span class="sig ln" style="animation-delay:${L.x.length*0.45}s">${esc(L.sig)}</span>`:'');
   $('lorePrev').style.visibility=lorePg?'visible':'hidden';$('loreNext').textContent=lorePg<LORE.length-1?'Suivant →':LOREBOOK===LORE2?'🐝 Descendre dans la ruche':LOREBOOK!==window.LORE0?'Fermer':'🔬 Ouvrir les recherches du labo';}
@@ -3694,10 +3756,11 @@ function paneTalents(){
 let lastPane='',rbArm=0;
 function renderPane(force){
   if(!S)return;
-  const h=tab==='base'?paneBase():tab==='usine'?paneUsine():tab==='labo'?paneLabo():tab==='prog'?paneProg():tab==='atelier'?paneAtelier():paneTalents();
+  const h=tab==='base'?paneBase():tab==='usine'?paneUsine():tab==='labo'?paneLabo():tab==='prog'?paneProg():tab==='atelier'?paneAtelier():tab==='journal'?paneJournal():paneTalents();
   if(h!==lastPane||force){$('pane').innerHTML=h;lastPane=h}
 }
 $('pane').addEventListener('pointerdown',e=>{
+  const jr=e.target.closest('[data-jr]');if(jr){for(const [,es] of jrList())for(const x of es)if(x[0]===jr.dataset.jr&&jrOk(x)){const b=jrBook(x);if(b){openLore(0,b);setTimeout(()=>renderPane(true),50)}}return}
   const rec=e.target.closest('[data-rec]');
   if(rec&&!rec.disabled&&sel&&(B[sel.type]?.rs==='assembleur'||B[sel.type]?.rs==='forge'||B[sel.type]?.rs==='centrifugeuse'||B[sel.type]?.rs==='synthetiseur')){const i=+rec.dataset.rec;act('recipe',sel.x,sel.y,i);if(NET.role==='guest')sel.recipe=i;renderPane(true);return}
   const fl=e.target.closest('[data-flt]');
@@ -3724,6 +3787,7 @@ $('pane').addEventListener('pointerdown',e=>{
   if(k==='launch'&&sel&&sel.type==='rampe'){const err=act('launch',sel.x,sel.y);if(err)toast(err);else{sel.launchT=4;sfx('launch');sfx('boom')}}
   if(k==='goneptune')setLayer('neptune');
   if(k==='ch4')openCh();
+  if(k==='hintsReset'){META.hints={};META.noHints=false;saveMeta();renderPane(true);toast('Les aides du futur réapparaîtront',true)}
   if(k==='tardis'){if(futOpen()&&CTX.futur){setEra('futur');return}const err=act('tempo');if(err){toast(err);return}sfx('level');sfx('launch');let n=0;const iv=setInterval(()=>{n++;if(CTX.futur){clearInterval(iv);setEra('futur')}else if(n>60)clearInterval(iv)},100)}
   if(k==='rcancel')act('rcancel');
   if(k==='bpsel')startSelect();
@@ -3801,6 +3865,7 @@ function refreshUI(force){
   $('bRevive').style.display=canRevive&&!spec?'':'none';
   for(const t in toolEls)toolEls[t].el.classList.toggle('poor',unlocked(t)&&!canAfford(B[t].cost));
   const lb=document.querySelector('#tabs [data-tab=labo]');{const r=rsOf(ME);const avail=r&&!r.cur&&RESEARCH.some(t=>!r.done.includes(t.id)&&p.level>=t.lvl&&(t.req||[]).every(q=>r.done.includes(q))&&canAfford(t.cost));lb.innerHTML='Labo'+(r&&r.cur?' ⏳':avail?'<span class="dot"></span>':'')}
+  {const jb=document.querySelector('#tabs [data-tab=journal]');let un=false;try{un=jrList().some(([,es])=>es.some(e=>e[4]()&&!(META.jr&&META.jr[e[0]])))}catch(e){}jb.innerHTML='Journal'+(un?'<span class="dot"></span>':'')}
   const tb=document.querySelector('#tabs [data-tab=talents]');tb.innerHTML='Talents'+(META.points>=15?'<span class="dot"></span>':'');
   const pg=document.querySelector('#tabs [data-tab=prog]');pg.innerHTML='Niveaux'+(p.level>=capOf(ME)&&!coop()?'<span class="dot"></span>':'');
   // étiquette droite
@@ -4417,7 +4482,7 @@ function encBuildings(){
     else if(b.type==='recepteur')ex=Math.round((b.count||0)/40*63);
     else if(GENS.has(b.type))ex=b.burn>0?1:0;
     else if(kind(b.type)==='coffre')ex=Math.round(b.used/B[b.type].cap*63);
-    else if(b.type==='reparateur')ex=b.healing?1:0;
+    else if(kind(b.type)==='reparateur')ex=b.healing?1:0;
     else if(b.type==='dome_bouclier')ex=Math.round((b.pool??B.dome_bouclier.pool)/B.dome_bouclier.pool*63);
     else if(b.type==='hangar_drones')ex=(b.dr||[0,0,0]).length;
     if(TURRETS.has(b.type))ex=b.hacked>0?1:0;
@@ -4520,7 +4585,7 @@ function guestApplyBuildings(str){
     if(t==='extracteur')b.filter=ex>0?ITEM_ORDER[ex-1]||null:null;
     if(t==='lanceur')b.count=ex/63*20;if(t==='recepteur')b.count=ex/63*40;
     b.warn=!!(ex&32);if(TURRETS.has(t)){b.hacked=ex&1;b.warn=false}if(t==='dome_bouclier'){b.pool=ex/63*B[t].pool;b.warn=false}if(t==='hangar_drones'){b.dn=ex;b.warn=false}
-    if(MACHINES.has(t)){b.recipe=ex&15;b.crafting=ex&16?{t:1}:null;b.prog=0.5}else if(GENS.has(t))b.burn=ex?1:0;else if(kind(t)==='coffre')b.used=ex/63*B[t].cap;else if(t==='reparateur')b.healing=!!ex;
+    if(MACHINES.has(t)){b.recipe=ex&15;b.crafting=ex&16?{t:1}:null;b.prog=0.5}else if(GENS.has(t))b.burn=ex?1:0;else if(kind(t)==='coffre')b.used=ex/63*B[t].cap;else if(kind(t)==='reparateur')b.healing=!!ex;
     if(DRILLS.has(t))b.spin=0;
     const k=x+','+y;if(keepItems[k]&&BELT.has(t)){b.item=keepItems[k][0];b.prog=keepItems[k][1]}
     {const z=bsz(t);for(let j=0;j<z;j++)for(let i=0;i<z;i++)if(y+j<H&&x+i<W)grid[y+j][x+i]=b}buildings.push(b);if(kind(t)==='coffre')chests.push(b);

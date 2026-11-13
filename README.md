@@ -103,6 +103,16 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - Puits du Cœur (coin du Cratère) : avec les 8 bunkers, le Tisseur vaincu, le niveau 35 et une charge de rupture, lance l'assaut final contre l'Omnicerveau (1,4 M PV, boucliers, piratage de 6 tourelles, impulsions qui coupent l'énergie 3 s).
 - Victoire : fin du chapitre 5 (4 variantes), +50 % de dégâts dans le futur, teaser du chapitre 6.
 
+## Équilibrage, Journal et aides (v44)
+- Équilibrage vérifié par une partie simulée « honnête » dans le futur (niveau 1, aucune triche, ressources de départ seulement) :
+  - L'XP du futur montait beaucoup trop vite (niveau 50 en 1 h) : la courbe d'XP du futur est maintenant plus raide (environ niveau 20 en 1 h et niveau 35 en 2 h en lançant les vagues tôt).
+  - Vagues du futur toutes les 20 min en solo (15 min en coop) au lieu de 40/20 min : on n'attend plus sans rien faire.
+  - Les bunkers ne se connectent qu'au niveau de leur zone (on ne pouvait pas récupérer le butin du Marais au niveau 9).
+  - Le dôme-bouclier (niv 20) coûte des puces IA au lieu de supraconducteurs (introuvables avant le niveau 35), et la Forêt bioluminescente a maintenant un petit gisement de matière noire.
+  - Nouveau : Nano-réparateur (défense, niv 6) — le noyau du futur ne pouvait pas être réparé.
+- Journal (nouvel onglet) : toutes les pages d'histoire déjà découvertes, du chapitre 1 au chapitre 5, à relire quand on veut (28 pages, compteur et marque « nouveau »).
+- Aides du futur : 15 bulles qui s'affichent une seule fois au bon moment (pylônes, machine non raccordée, manque d'énergie, recycleur, bunkers et talkie-walkie, hackers et pare-feu, EMP, réparation…). Bouton pour les désactiver ou les revoir dans l'onglet Journal.
+
 ## Commandes
 
 | Action | Touche |
