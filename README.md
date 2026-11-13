@@ -175,6 +175,17 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - En spectateur (quand tu regardes la partie d'un ami, solo ou multi), l'onglet ⚙ Param. affiche aussi le Give et l'Espace développeur : tes actions sont envoyées à l'hôte, qui vérifie ton mot de passe avant de les appliquer (v53).
 - Boutons « Annuler l'event » et « Voir le boss ». Un seul event à la fois ; le boss apparaît dans l'époque que tu regardes.
 
+## Musique (v54)
+- Musique originale générée en direct par le jeu (aucun fichier à télécharger), qui change selon l'endroit :
+  - Présent : thème calme d'usine (arpèges, nappes, basse douce) ;
+  - Lune, Mars, Europe, Neptune, Essaim, Colonie, Station : ambiance spatiale lente ;
+  - Ruche : thème grave et organique ;
+  - Futur : synthwave avec batterie ;
+  - Origine : cloches pentatoniques et nappes éthérées.
+- Pendant une vague, la musique accélère avec batterie et basse plus présentes ; pendant un boss, des notes graves menaçantes s'ajoutent.
+- Dans le Futur, à la place de la musique générée, 4 morceaux fournis (MP3 intégrés au fichier, v55) : « Calm theme Chinese Street » quand il n'y a aucun ennemi, « Battle theme Chinese Street » quand il n'y a que des monstres, « Riot theme » contre un boss robot ou humain (Colosse-Forge, Tisseur, Omnicerveau…), « Bar Street Battle theme » contre les autres boss. Fondu enchaîné entre les morceaux ; retour au calme 3 s après le dernier ennemi.
+- Bouton 🎵 en haut : musique forte → douce (🎶) → coupée (🔕). Le bouton 🔊 coupe tout le son.
+
 ## Commandes
 
 | Action | Touche |
