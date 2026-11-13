@@ -123,6 +123,10 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
 .jrl{display:flex;flex-direction:column;gap:4px;margin-top:6px}.jre{display:flex;gap:8px;align-items:center;text-align:left;font-size:12px;padding:6px 8px;width:100%}.jre span:first-child{width:18px;text-align:center}.jrn{margin-left:auto;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--pur);font-weight:700}.jre.lk{color:var(--mut);opacity:.6;border:1px dashed var(--line);border-radius:6px}
 #hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);max-width:min(520px,80%);background:rgba(10,24,34,.95);border:1px solid #2fd0ff;border-radius:10px;padding:10px 12px;z-index:6;box-shadow:0 6px 24px rgba(0,0,0,.5);font-size:13px;line-height:1.4}
 #hint b{color:#5ff3ff}#hint .btnrow{margin-top:8px;display:flex;gap:6px;justify-content:flex-end}#hint button{font-size:12px;padding:4px 10px}
+.card.reg{width:min(760px,95%);max-height:88%}.rtabs{display:flex;gap:6px;margin:10px 0}.rtabs button{flex:1}.rtabs button.on{border-color:#3fd0ff;color:#3fd0ff}
+.rg h4{margin:12px 0 6px;font-size:13px;color:#8fb0c0;text-transform:uppercase;letter-spacing:.05em}.rgrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:5px 6px;border-bottom:1px solid var(--line);font-size:12px}.rgrow .nm{flex:1;min-width:120px}
+.rg details{border:1px solid var(--line);border-radius:8px;margin:5px 0;padding:4px 8px}.rg summary{cursor:pointer;font-size:13px;padding:3px 0}.rg select,.rg input[type=range]{font-size:12px;max-width:190px}.rg button{font-size:12px;padding:3px 8px}
+.trc{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0}.trc .top{display:flex;gap:8px;align-items:center}.trc .gs{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.trc label{font-size:12px}
 #eraBar{position:absolute;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:3}
 #eraBar button{width:96px;padding:10px 6px;border-radius:12px;font-weight:700;border:1px solid #3b4a7a;background:rgba(10,14,24,.88);color:#cfd8ef;cursor:pointer;text-align:center}
 #eraBar button.on{background:linear-gradient(160deg,#1a6a8a,#3fd0ff);color:#04131c;border-color:#3fd0ff;box-shadow:0 0 16px rgba(63,208,255,.45)}
@@ -216,6 +220,7 @@ ol.goals li.cur{color:var(--txt);font-weight:600}
       <div id="layers"></div>
       <div id="eraBar" hidden></div><div id="hint" hidden><div id="hintTxt"></div><div class="btnrow"><button id="hintOff">Ne plus afficher d'aides</button><button id="hintOk" class="prim">Compris</button></div></div>
       <div id="coeurDlg" class="dlg" hidden><div class="card lore" id="coeurCard"></div></div>
+      <div id="regDlg" class="dlg" hidden><div class="card reg"><div class="lh"><b id="regTitle">📟 Régulateur d'infos</b><button id="regX" style="margin-left:auto">Fermer</button></div><div id="regTabs" class="rtabs"></div><div id="regBody"></div></div></div>
       <div id="qteDlg" class="dlg" hidden><div class="card lore"><div class="lh"><span id="qteTag"></span><span id="qteStep" class="mut"></span></div><h2 id="qteTitle"></h2><p id="qteHint" class="mut" style="font-size:13px"></p><canvas id="qteCv" width="560" height="170"></canvas><div id="qteCtl" class="btnrow" style="margin-top:10px"></div><div class="btnrow"><button id="qteQuit" class="danger">Couper la connexion (échec)</button></div></div></div>
       <div id="chDlg" class="dlg" hidden><div class="card lore" id="chCard"></div></div>
       <div id="loreDlg" class="dlg" hidden><div class="card lore"><div class="lh"><span id="loreTag"></span><span id="lorePg" class="mut"></span></div><h2 id="loreTitle"></h2><div id="loreTxt"></div><div class="btnrow"><button id="lorePrev">← Précédent</button><button id="loreNext" class="prim" style="margin-left:auto">Suivant →</button></div></div></div>
@@ -521,6 +526,34 @@ B.lance_rail={cat:'def',era:'futur',base:'railgun',n:'Lance-rail',cost:{graphene
 B.sol_electrifie={cat:'trap',era:'futur',base:'pics',n:'Sol électrifié',cost:{ferraille:3,nanites:1},hp:500,walk:true,dps:35,col:'#2fd0ff',lvl:5,desc:'Blesse et ralentit les machines qui marchent dessus.'};
 B.mine_plasma={cat:'trap',era:'futur',base:'mine',n:'Mine à plasma',cost:{plaque_composite:2,nanites:2},hp:150,walk:true,radius:1.8,blast:300,col:'#ff6ad5',lvl:10,desc:'Explose quand une machine marche dessus.'};
 B.champ_stase={cat:'trap',era:'futur',base:'cryo',n:'Champ de stase',cost:{graphene:4,puce_ia:1},hp:600,pw:-12,range:4.5,col:'#bfefff',lvl:18,desc:'Ralentit de moitié tout ce qui entre dans le champ. Énergie.'};
+
+// ================= TRAINS, BRAS ROBOTS, FUSÉES, RÉGULATEUR (v45) =================
+B.rail={cat:'train',n:'Voie ferrée',cost:{lingot_fer:1,acier:1},hp:300,col:'#8a7a66',lvl:15,rail:1,desc:'Les trains roulent dessus. Les voies se relient toutes seules aux voies voisines. Les monstres peuvent marcher dessus.'};
+B.gare={cat:'train',n:'Gare',cost:{acier:10,circuit:4},hp:800,col:'#d0a040',lvl:15,rail:1,desc:'Une voie où les trains peuvent s\'arrêter. Chaque gare a un numéro : règle les arrêts dans le régulateur d\'infos. Pose des bras robots à côté pour charger ou vider les wagons.'};
+B.rail_tunnel_e={cat:'train',n:'Tunnel ferroviaire (entrée)',cost:{acier:15,engrenage:6},hp:600,col:'#5a4a3a',lvl:20,rail:1,rlink:'rail_tunnel_s',reach:12,desc:'Voie souterraine : le train passe sous tout (bâtiments, eau) jusqu\'à une sortie de tunnel orientée pareil, à 12 cases maximum dans le sens de la flèche.'};
+B.rail_tunnel_s={cat:'train',n:'Tunnel ferroviaire (sortie)',cost:{acier:15,engrenage:6},hp:600,col:'#5a4a3a',lvl:20,rail:1,rlinkOf:'rail_tunnel_e',desc:'Sortie du tunnel ferroviaire (même orientation que l\'entrée).'};
+B.viaduc_e={cat:'train',n:'Viaduc (rampe de montée)',cost:{acier:20,circuit:4},hp:900,col:'#9aa4b0',lvl:22,rail:1,rlink:'viaduc_s',reach:14,desc:'Voie en hauteur : le train passe au-dessus de tout jusqu\'à une rampe de descente orientée pareil, à 14 cases maximum dans le sens de la flèche.'};
+B.viaduc_s={cat:'train',n:'Viaduc (rampe de descente)',cost:{acier:20,circuit:4},hp:900,col:'#9aa4b0',lvl:22,rail:1,rlinkOf:'viaduc_e',desc:'Fin du viaduc (même orientation que la rampe de montée).'};
+B.locomotive={cat:'train',n:'Locomotive',cost:{acier:40,moteur:6,circuit:10},hp:2000,col:'#c0392b',lvl:15,car:'loco',desc:'Pose-la sur une voie. Elle part à l\'arrêt : accroche tes wagons et démarre-la dans le régulateur d\'infos. Elle fait demi-tour au bout des voies. Vitesse, arrêts et attelage : dans le régulateur d\'infos.'};
+B.wagon={cat:'train',n:'Wagon',cost:{acier:20,engrenage:6},hp:1000,col:'#6a7a8a',lvl:15,car:'wagon',desc:'Stocke 200 objets. Pose-le sur la voie juste derrière une locomotive puis accroche-le dans le régulateur d\'infos. Se charge par tapis ou bras robot quand le train est arrêté.'};
+B.bras_robot={cat:'log',n:'Bras robot',cost:{acier:6,engrenage:4,circuit:3},hp:400,pw:-3,rate:2,col:'#e0b341',lvl:12,desc:'Prend un objet derrière lui (coffre, wagon arrêté, réceptionneur, ou ton noyau si un filtre est choisi) et le pose devant (noyau, tapis, machine, coffre, wagon). 2 objets/s. Filtre réglable.'};
+B.regulateur={cat:'log',n:'Régulateur d\'infos',cost:{acier:15,circuit:10},hp:600,pw:-2,col:'#3fd0ff',lvl:12,desc:'Le tableau de bord de ton usine : liste toutes tes machines (marche/arrêt, recettes, filtres, ce que miment tes robots), règle tes trains (vitesse, attelage, arrêts) et tes fusées.'};
+B.silo_fusee={cat:'log',base:'lanceur',n:'Silo à fusée cargo',cost:{acier:60,moteur:8,circuit:20,batterie:10},hp:1500,pw:-15,cap:100,batch:25,lcd:5,rocket:1,col:'#e8e8f0',lvl:25,desc:'Reçoit des objets par tapis et les envoie par fusée, 25 à la fois, vers une plateforme d\'atterrissage (ou un réceptionneur). Distance illimitée.'};
+B.pad_fusee={cat:'log',base:'recepteur',n:'Plateforme d\'atterrissage',cost:{acier:30,circuit:8},hp:1200,cap:200,col:'#5a6a7a',lvl:25,desc:'Les fusées cargo s\'y posent. Ressort les objets côté flèche : vers ton noyau, un tapis, une machine ou un wagon.'};
+
+// --- Futur : trains maglev, bras nano, lanceur orbital, régulateur IA (v46)
+B.rail_mag={cat:'train',era:'futur',base:'rail',n:'Rail magnétique',cost:{plaque_composite:1,ferraille:1},hp:400,col:'#2fd0ff',lvl:6,rail:1,desc:'Rail de lévitation. Se relie tout seul aux rails voisins. Les monstres peuvent passer dessus.'};
+B.gare_mag={cat:'train',era:'futur',base:'gare',n:'Station maglev',cost:{plaque_composite:8,verre_optique:2},hp:1000,col:'#5ff3ff',lvl:6,rail:1,desc:'Une station numérotée où les trains maglev s\'arrêtent. Pose des bras nano à côté pour charger ou vider les wagons.'};
+B.tube_e={cat:'train',era:'futur',base:'rail_tunnel_e',n:'Tube souterrain (entrée)',cost:{graphene:4,plaque_composite:6},hp:800,col:'#1f4a6a',lvl:12,rail:1,rlink:'tube_s',reach:12,desc:'Le train file sous terre jusqu\'à une sortie de tube orientée pareil, à 12 cases maximum dans le sens de la flèche.'};
+B.tube_s={cat:'train',era:'futur',base:'rail_tunnel_s',n:'Tube souterrain (sortie)',cost:{graphene:4,plaque_composite:6},hp:800,col:'#1f4a6a',lvl:12,rail:1,rlinkOf:'tube_e',desc:'Sortie du tube souterrain (même orientation que l\'entrée).'};
+B.pont_mag_e={cat:'train',era:'futur',base:'viaduc_e',n:'Rail suspendu (montée)',cost:{graphene:6,verre_optique:4},hp:1000,col:'#7fb8ff',lvl:15,rail:1,rlink:'pont_mag_s',reach:14,desc:'Le train passe au-dessus de tout jusqu\'à une descente orientée pareil, à 14 cases maximum dans le sens de la flèche.'};
+B.pont_mag_s={cat:'train',era:'futur',base:'viaduc_s',n:'Rail suspendu (descente)',cost:{graphene:6,verre_optique:4},hp:1000,col:'#7fb8ff',lvl:15,rail:1,rlinkOf:'pont_mag_e',desc:'Fin du rail suspendu (même orientation que la montée).'};
+B.loco_mag={cat:'train',era:'futur',n:'Locomotive maglev',cost:{plaque_composite:30,graphene:6,nanites:20},hp:2500,col:'#2fd0ff',lvl:8,car:'loco',desc:'Pose-la sur un rail magnétique. Elle part à l\'arrêt : accroche tes wagons et démarre-la dans le régulateur IA. Demi-tour automatique au bout des rails.'};
+B.wagon_mag={cat:'train',era:'futur',n:'Wagon maglev',cost:{plaque_composite:15,nanites:10},hp:1200,col:'#5a7a9a',lvl:8,car:'wagon',desc:'Stocke 200 objets. Se charge par tapis ou bras nano quand le train est arrêté.'};
+B.bras_nano={cat:'log',era:'futur',base:'bras_robot',n:'Bras nano',cost:{plaque_composite:6,nanites:4},hp:500,pw:-4,rate:3,col:'#5fff9a',lvl:5,desc:'Prend un objet derrière lui (soute, wagon arrêté, quai, ou ton noyau avec un filtre) et le pose devant. 3 objets/s. Filtre réglable. Doit être alimenté.'};
+B.regulateur_ia={cat:'log',era:'futur',base:'regulateur',n:'Régulateur IA',cost:{plaque_composite:10,verre_optique:4},hp:700,pw:-3,col:'#5fff9a',lvl:4,desc:'Le tableau de bord de ta base du futur : machines (marche/arrêt, recettes, filtres), trains maglev (vitesse, attelage, arrêts) et lanceurs orbitaux.'};
+B.silo_orbital={cat:'log',era:'futur',base:'lanceur',n:'Lanceur orbital',cost:{graphene:20,fibre_optique:6,plaque_composite:30},hp:1800,pw:-20,cap:100,batch:25,lcd:5,rocket:1,col:'#e8f4ff',lvl:18,desc:'Reçoit des objets par tapis et les envoie par fusée, 25 à la fois, vers un quai orbital. Distance illimitée. Doit être alimenté.'};
+B.pad_orbital={cat:'log',era:'futur',base:'recepteur',n:'Quai orbital',cost:{graphene:8,plaque_composite:12},hp:1400,cap:200,col:'#3a5a7a',lvl:18,desc:'Les fusées du lanceur orbital s\'y posent. Ressort les objets côté flèche.'};
 // --- Présent : conduit vers le futur
 B.conduit_temporel={cat:'log',n:'Conduit temporel',cost:{acier:30,circuit:15,module_quantique:2},hp:2000,col:'#3fd0ff',lvl:1,req:'fut',desc:'Envoie dans ton stock du FUTUR ce que tu lui apportes par tapis : minerai de fer, lingots de fer, acier, silicium et lingots de cuivre (le reste est refusé).'};
 // --- après la Reine (req reine)
@@ -556,14 +589,14 @@ B.drone={cat:'log',unit:true,n:'Drone collecteur',cost:{lingot_mithril:10,module
 B.bouclier={cat:'def',n:'Générateur de bouclier',cost:{pile_fusion:2,plaque_titane:10},hp:1500,pw:-60,col:'#5ad1ff',lvl:35,desc:'Réduit de 25 % les dégâts subis par ton noyau (jusqu\'à 3 boucliers : −75 %). Énergie.'};
 for(const k in B){B[k].lvl=B[k].lvl||1}
 const TYPES=Object.keys(B);
-const CATS=[['log','Logistique'],['prod','Production'],['nrj','Énergie'],['def','Défense'],['trap','Pièges']];
+const CATS=[['log','Logistique'],['prod','Production'],['nrj','Énergie'],['def','Défense'],['trap','Pièges'],['train','Trains']];
 const kind=t=>(B[t]&&B[t].base)||t;
 const BELT=new Set(['tapis_mag','tapis_mag2','tapis','tapis_rapide','tapis_express','tapis_quantique','tapis_stellaire']);
-const ROTATABLE=new Set(['assembleur_ia','tapis_mag','tapis_mag2','jonction','aiguillage','excavatrice','excavatrice_plasma','recycleur','nanofabrique','tapis_quantique','tapis_stellaire','foreuse_ruche','assembleur_psy','fonderie_orbitale','pont_entree','pont_sortie','compacteur','synthetiseur','tunnel_entree','tunnel_sortie','extracteur','recepteur','tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
+const ROTATABLE=new Set(['bras_nano','tube_e','tube_s','pont_mag_e','pont_mag_s','silo_orbital','pad_orbital','bras_robot','rail_tunnel_e','rail_tunnel_s','viaduc_e','viaduc_s','silo_fusee','pad_fusee','assembleur_ia','tapis_mag','tapis_mag2','jonction','aiguillage','excavatrice','excavatrice_plasma','recycleur','nanofabrique','tapis_quantique','tapis_stellaire','foreuse_ruche','assembleur_psy','fonderie_orbitale','pont_entree','pont_sortie','compacteur','synthetiseur','tunnel_entree','tunnel_sortie','extracteur','recepteur','tapis_express','foreuse_laser','forge','centrifugeuse','tapis','tapis_rapide','foreuse','foreuse_avancee','pompe','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','fusionneur','repartiteur']);
 const MACHINES=new Set(['assembleur_ia','recycleur','nanofabrique','assembleur_psy','fonderie_orbitale','compacteur','synthetiseur','fonderie','fonderie_rapide','raffinerie','assembleur','assembleur_rapide','forge','centrifugeuse']);
 const DRILLS=new Set(['excavatrice','excavatrice_plasma','foreuse_ruche','foreuse','foreuse_avancee','foreuse_laser','pompe']);
 const TURRETS=new Set(['tour_ia','canon_antimatiere','tourelle_faisceau','canon_ionique','arc_tesla','lance_rail','mitrailleuse_vael','tour_echo','canon_createurs','relais_orbital','lance_dard','canon_garik','canon_prisme','mitrailleuse','mitrailleuse_lourde','laser','plasma','tesla','lance_flammes','railgun']);
-const WALK=new Set(['portail_piege','sol_electrifie','mine_plasma','mine','pics','piege_resine','mine_psy','nid_piege']);
+const WALK=new Set(['rail_mag','gare_mag','tube_e','tube_s','pont_mag_e','pont_mag_s','rail','gare','rail_tunnel_e','rail_tunnel_s','viaduc_e','viaduc_s','portail_piege','sol_electrifie','mine_plasma','mine','pics','piege_resine','mine_psy','nid_piege']);
 const GENS=new Set(['reacteur_compact','cellule_gelee','reacteur_gelee','generateur','super_generateur','reacteur','reacteur_helium']);
 const MT={
   rampant:{n:'Rampant',hp:40,sp:1.1,dmg:12,r:0.28,col:'#7bc043',xp:5},
@@ -1116,7 +1149,7 @@ function setupFuture(seed,mode,np){
 function buildFutureCtx(fs){const keep=ctxSave(),keepNet=keep.net;S=fs;for(const k of NK)NET[k]=newNetE()[k];setupFuture(fs.seed,fs.mode,fs.players.length);CTX.futur=ctxSave();ctxLoad(keep);for(const k of NK)NET[k]=keepNet[k]}
 function applyFut(F){setTimeout(()=>withEra('futur',()=>applyEchoes(S.echo)),0);const fs=Object.assign(newFutState(S),F.S||{});fs.era='futur';if(fs.interval===2400)fs.interval=1200;else if(fs.interval===1200&&fs.mode==='coop')fs.interval=900;fs.waveTimer=Math.min(fs.waveTimer,fs.interval);fs.paused=false;fs.over=false;for(const p of fs.players){p.craftQ=p.craftQ||[];p.goalsDone=p.goalsDone||[];p.made=p.made||{};p.inv=p.inv||{}}
   buildFutureCtx(fs);
-  withEra('futur',()=>{for(const o of F.b||[]){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}}
+  withEra('futur',()=>{for(const o of F.b||[]){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}if(o.lk)b.lk=o.lk;if(o.fl&&ITEMS[o.fl])b.filter=o.fl;if(o.of)b.off=true;if(o.gi)b.gid=o.gi}
     monsters=[];spawnQ=[];if(!isFinite(S.waveTimer)||S.waveTimer<180)S.waveTimer=180;for(const p of S.players)if(p.dead){p.dead=false;p.coreHp=p.coreMax*0.5}computeFlow();flowDirty=false})}
 function setEra(e){
   if(e===ERA||!S||!CTX[e]&&e!==RUN)return;if(isRemote()&&e==='futur'&&!CTX.futur)return;
@@ -1249,9 +1282,9 @@ function startQTE(i){const D=BUNKDEF[i];QTE={i,tier:D.tier,stage:0,t:0,last:perf
 function qteStage(k){const q=QTE;q.stage=k;q.t=0;$('qteStep').textContent=`Épreuve ${k+1} / 3`;const ctl=$('qteCtl');
   if(k===0){q.target=1+Math.random()*3;q.f=Math.random()<0.5?0.6:4.4;q.hold=0;q.tol=0.17/Math.pow(q.tier,0.45);q.lim=22;$('qteTitle').textContent='Accorder la fréquence';$('qteHint').textContent='Fais glisser le curseur pour aligner ton onde (orange) sur celle du bunker (bleue), puis garde-la stable.';ctl.innerHTML='<input id="qteF" type="range" min="0.5" max="4.5" step="0.005" style="flex:1">';const r=$('qteF');r.value=q.f;r.oninput=()=>{q.f=+r.value}}
   else if(k===1){const n=3+q.tier;q.seq=Array.from({length:n},()=>(Math.random()*4)|0);q.pos=0;q.show=1.8+0.35*n;q.lim=q.show+9;$('qteTitle').textContent='Code de connexion';$('qteHint').textContent='Mémorise la séquence, puis tape-la avec les flèches du clavier (ou les boutons).';ctl.innerHTML=ARRG.map((a,j)=>`<button data-qa="${j}" style="flex:1;font-size:20px">${a}</button>`).join('')}
-  else{q.hits=0;q.miss=0;q.need=3;q.maxMiss=q.tier>=3?1:2;q.zone=0.2/Math.sqrt(q.tier);q.zc=0.2+Math.random()*0.6;q.ph=0;q.speed=0.8+0.35*q.tier;q.lim=25;$('qteTitle').textContent='Émettre au bon moment';$('qteHint').textContent='Appuie sur Espace (ou le bouton) quand le curseur est dans la zone verte. 3 fois.';ctl.innerHTML='<button id="qteGo" class="prim" style="flex:1">📡 Émettre</button>';$('qteGo').onclick=qteFire}}
+  else{q.hits=0;q.miss=0;q.need=3;q.maxMiss=q.tier>=3?2:3;q.zone=0.27/Math.pow(q.tier,0.35);q.zc=0.2+Math.random()*0.6;q.ph=0;q.speed=0.42+0.1*q.tier;q.lim=40;$('qteTitle').textContent='Émettre au bon moment';$('qteHint').textContent='Appuie sur Espace (ou le bouton) quand le curseur est dans la zone verte. 3 fois.';ctl.innerHTML='<button id="qteGo" class="prim" style="flex:1">📡 Émettre</button>';$('qteGo').onclick=qteFire}}
 function qteInput(j){const q=QTE;if(!q||q.stage!==1||q.t<q.show)return;if(q.seq[q.pos]===j){q.pos++;sfx('build');if(q.pos>=q.seq.length)qteNext()}else qteEnd(false)}
-function qteFire(){const q=QTE;if(!q||q.stage!==2)return;const x=0.5+0.5*Math.sin(q.ph);if(Math.abs(x-q.zc)<=q.zone/2){q.hits++;sfx('level');q.zc=0.15+Math.random()*0.7;q.flash=0.3;if(q.hits>=q.need)qteNext()}else{q.miss++;q.flashBad=0.3;sfx('demolish');if(q.miss>q.maxMiss)qteEnd(false)}}
+function qteFire(){const q=QTE;if(!q||q.stage!==2)return;const x=0.5+0.5*Math.sin(q.ph);if(Math.abs(x-q.zc)<=q.zone/2+0.025){q.hits++;sfx('level');q.zc=0.15+Math.random()*0.7;q.flash=0.3;q.pause=0.6;if(q.hits>=q.need)qteNext()}else{q.miss++;q.flashBad=0.3;sfx('demolish');if(q.miss>q.maxMiss)qteEnd(false)}}
 function qteNext(){if(QTE.stage<2)qteStage(QTE.stage+1);else qteEnd(true)}
 function qteEnd(ok){const q=QTE;if(!q)return;QTE=null;$('qteDlg').hidden=true;TALKIE=false;buildToolbar();const err=act('bunk',q.i,ok?1:0);if(err)toast(err);else if(ok){sfx('level');banner('📻 Connexion établie !',false,3,'pur');if(NET.role==='guest'){S.bk=S.bk||[];S.bk[q.i]=1}}else banner('⚡ Connexion ratée : interférences !',true,3)}
 function qteLoop(now){const q=QTE;if(!q)return;const dt=Math.min(0.05,(now-q.last)/1000);q.last=now;q.t+=dt;
@@ -1262,7 +1295,7 @@ function qteLoop(now){const q=QTE;if(!q)return;const dt=Math.min(0.05,(now-q.las
     g.fillStyle='rgba(95,255,154,0.85)';g.fillRect(10,Hc-14,(Wc-20)*Math.min(1,q.hold/need),7);g.strokeStyle='#2a4a5a';g.strokeRect(10,Hc-14,Wc-20,7);
     g.fillStyle=d<q.tol?'#5fff9a':d<q.tol*3?'#ffd23f':'#ff6b6b';g.font='700 14px system-ui';g.textAlign='left';g.fillText(d<q.tol?'Signal verrouillé… ne bouge plus':d<q.tol*3?'Presque…':'Brouillé',12,22);if(q.hold>=need)qteNext()}
   else if(q.stage===1){g.font='700 34px system-ui';g.textAlign='center';const n=q.seq.length,sp=Math.min(70,(Wc-40)/n);for(let k=0;k<n;k++){const x=Wc/2+(k-(n-1)/2)*sp,show=q.t<q.show||k<q.pos;g.fillStyle=k<q.pos?'#5fff9a':show?'#bff8ff':'#2a3a4a';g.fillText(show?ARRG[q.seq[k]]:'?',x,Hc/2+12)}g.textAlign='left';g.font='600 13px system-ui';g.fillStyle='#8fb0c0';g.fillText(q.t<q.show?`Mémorise… ${Math.ceil(q.show-q.t)}`:`À toi ! ${q.pos}/${n}`,12,22)}
-  else{q.ph+=dt*q.speed*Math.PI;const x=0.5+0.5*Math.sin(q.ph),bx=20,bw=Wc-40,by=Hc/2-14;g.fillStyle='#14202a';g.fillRect(bx,by,bw,28);g.fillStyle='rgba(95,255,154,0.5)';g.fillRect(bx+bw*(q.zc-q.zone/2),by,bw*q.zone,28);g.fillStyle=q.flash>0?'#5fff9a':q.flashBad>0?'#ff6b6b':'#ffd23f';g.fillRect(bx+bw*x-3,by-8,6,44);q.flash=Math.max(0,(q.flash||0)-dt);q.flashBad=Math.max(0,(q.flashBad||0)-dt);g.font='600 13px system-ui';g.textAlign='left';g.fillStyle='#8fb0c0';g.fillText(`Émissions réussies : ${q.hits}/${q.need} · ratés : ${q.miss}/${q.maxMiss+1}`,12,22)}
+  else{q.pause=Math.max(0,(q.pause||0)-dt);if(!q.pause)q.ph+=dt*q.speed*Math.PI;const x=0.5+0.5*Math.sin(q.ph),bx=20,bw=Wc-40,by=Hc/2-14;g.fillStyle='#14202a';g.fillRect(bx,by,bw,28);g.fillStyle='rgba(95,255,154,0.5)';g.fillRect(bx+bw*(q.zc-q.zone/2),by,bw*q.zone,28);g.fillStyle=q.flash>0?'#5fff9a':q.flashBad>0?'#ff6b6b':'#ffd23f';g.fillRect(bx+bw*x-3,by-8,6,44);q.flash=Math.max(0,(q.flash||0)-dt);q.flashBad=Math.max(0,(q.flashBad||0)-dt);g.font='600 13px system-ui';g.textAlign='left';g.fillStyle='#8fb0c0';g.fillText(`Émissions réussies : ${q.hits}/${q.need} · ratés : ${q.miss}/${q.maxMiss+1}`,12,22)}
   if(!QTE)return;const left=QTE.lim-QTE.t;g.fillStyle=left<5?'#ff6b6b':'#8fb0c0';g.font='600 12px system-ui';g.textAlign='right';g.fillText(`⏱ ${Math.max(0,left).toFixed(1)} s`,Wc-12,22);g.textAlign='left';
   if(left<=0){qteEnd(false);return}requestAnimationFrame(qteLoop)}
 function renderEraBar(){
@@ -1300,7 +1333,7 @@ function initB(b){
   else if(t==='tunnel_entree'||t==='pont_entree'){b.item=null;b.prog=0}
   else if(t==='tunnel_sortie'||t==='pont_sortie'){b.q=[];b.pushCd=0}
   else if(kind(t)==='coffre'){b.store=b.store||{};b.used=Object.values(b.store).reduce((a,v)=>a+v,0)}
-  else if(t==='lanceur'||t==='recepteur'){b.store=b.store||{};b.count=Object.values(b.store).reduce((a,v)=>a+v,0);b.cd=0;b.pushCd=0;b.incoming=0;b.lk=b.lk||null}
+  else if(kind(t)==='lanceur'||kind(t)==='recepteur'){b.store=b.store||{};b.count=Object.values(b.store).reduce((a,v)=>a+v,0);b.cd=0;b.pushCd=0;b.incoming=0;b.lk=b.lk||null}
 }
 const bsz=t=>(B[t]&&B[t].size)||1;
 function placeB(type,x,y,r,o=0){
@@ -1328,6 +1361,7 @@ function canPlace(type,x,y,o=ME){
   if(P(o).dead)return 'Ton noyau est détruit : attends d\'être réanimé';
   if(!unlocked(type,o))return P(o).level<B[type].lvl?`Débloqué au niveau ${B[type].lvl}`:reqMsg(B[type].req);
   if(x<0||y<0||x>=W||y>=H)return 'Hors de la carte';
+  if(B[type].car){const rb=at(x,y);if(!rb||!RAILK(rb.type))return 'Pose-le sur une voie ferrée';if(trAnyAt(tI(x,y)))return 'Il y a déjà un wagon ici';if(trains().filter(t=>t.o===o).reduce((a,t)=>a+t.cars.length,0)>=60)return 'Maximum 60 wagons et locomotives';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
   if(DOCKED.has(type)){const st=at(x,y);if(!st||st.type!=='station'||st.owner!==o)return `Pose le ${B[type].n.toLowerCase()} sur ta station de recharge`;if(robots.some(r=>DOCKED.has(r.kind)&&r.st&&r.st[0]===st.x&&r.st[1]===st.y))return 'Cette station est déjà occupée (une station = un robot)';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
   if(B[type].unit){if(terAt(x,y)===3)return 'Impossible de poser un robot sur l\'eau';if(!zoneOpen(x,y,o))return 'Zone verrouillée';if(robots.filter(r=>r.owner===o&&(r.kind||'robot')===type).length>=MAX_ROBOTS)return `Maximum ${MAX_ROBOTS} ${B[type].n.toLowerCase()}s`;if(grid[y][x])return 'Case occupée';if(!canAfford(B[type].cost,o))return 'Ressources insuffisantes';return null}
   {const z=bsz(type);if(x+z>W||y+z>H)return 'Hors de la carte';for(let j=0;j<z;j++)for(let i=0;i<z;i++){if(terAt(x+i,y+j)===3&&type!=='pont_entree'&&type!=='pont_sortie')return 'Impossible de construire sur l\'eau (sauf les ponts)';if(grid[y+j][x+i])return 'Case occupée';if(!zoneOpen(x+i,y+j,o)){const Z=ZONES[ZMAP[y+j][x+i]];return `${Z.n} : zone débloquée au niveau ${Z.lvl}`}if(z>1&&monsterOn(x+i,y+j))return 'Un monstre est sur cette case'}}
@@ -1344,6 +1378,7 @@ const ACT={
   place(o,t,x,y,r){
     if(!B[t])return 'Inconnu';
     if(DOCKED.has(t)){const e=canPlace(t,x,y,o);if(e)return e;const st=at(x,y);pay(B[t].cost,o);const r=newRobot(st.x+1,st.y+1,o,t);r.st=[st.x,st.y];robots.push(r);return null}
+    if(B[t].car){const e=canPlace(t,x,y,o);if(e)return e;pay(B[t].cost,o);addCar(o,t,x,y);P(o).fresh=false;return null}
     if(B[t].unit){const e=canPlace(t,x,y,o);if(e)return e;pay(B[t].cost,o);robots.push(newRobot(x+0.5,y+0.5,o,t));P(o).fresh=false;return null}
     const ex=at(x,y);
     if(BELT.has(t)&&ex&&BELT.has(ex.type)){
@@ -1353,10 +1388,19 @@ const ACT={
       refund(B[ex.type].cost,o);pay(B[t].cost,o);const it=ex.item,pg=ex.prog;removeB(ex);const nb=placeB(t,x,y,r,o);nb.item=it;nb.prog=pg;return null;
     }
     const e=canPlace(t,x,y,o);if(e)return e;
-    pay(B[t].cost,o);placeB(t,x,y,r,o);P(o).fresh=false;return null;
+    pay(B[t].cost,o);{const nb=placeB(t,x,y,r,o);if(nb&&kind(t)==='gare'){S.gseq=(S.gseq||0)+1;nb.gid=S.gseq}}P(o).fresh=false;return null;
   },
+  moff(o,x,y,v){const b=at(x,y);if(!b||b.type==='noyau'||!takeOver(o,b.owner))return null;b.off=!!v;NET.bver++;return null},
+  tr(o,id,op,v){const t=trains().find(q=>q.id===id);if(!t||!takeOver(o,t.o))return null;
+    if(op==='spd')t.spd=clamp(+v||3,1,8);else if(op==='mode'&&['auto','liste','garer'].includes(v)){t.mode=v;if(v!=='garer'&&t.st==='park')t.st='go'}else if(op==='park'){t.park=+v||null;if(t.st==='park')t.st='go'}
+    else if(op==='stop'){const g=+v;t.stops=t.stops.includes(g)?t.stops.filter(x=>x!==g):t.stops.concat([g])}else if(op==='wait')t.wait=clamp(+v||8,2,120);
+    else if(op==='run'){t.run=!!v;if(t.run&&t.st!=='run')t.st='go'}else if(op==='rev'){if(!trStill(t))return 'Arrête d\'abord le train';trReverse(t);t.left=t.path[0]}
+    else if(op==='couple'){if(!trStill(t))return 'Arrête d\'abord le train';if(!trCouple(t))return 'Aucun wagon arrêté juste devant ou derrière ce train'}
+    else if(op==='uncouple'){if(!trUncouple(t))return 'Arrête le train ; le dernier véhicule doit être un wagon'}
+    else if(op==='del'){if(!trStill(t))return 'Arrête d\'abord le train';trDel(o,t)}
+    NET.bver++;return null},
   rotate(o,x,y,r){const b=at(x,y);if(!b||!takeOver(o,b.owner)||!ROTATABLE.has(b.type))return null;b.rot=(r==null||r<0)?(b.rot+1)%4:r;NET.bver++;return null},
-  demolish(o,x,y){const b=at(x,y);if(!b||b.type==='noyau')return null;if(!takeOver(o,b.owner))return 'Ce bâtiment appartient à ton coéquipier';demolishB(b,o);return null},
+  demolish(o,x,y){const b=at(x,y);if(!b||b.type==='noyau')return null;if(RAILK(b.type)&&trAnyAt(tI(x,y)))return 'Un train est sur cette voie : retire-le d\'abord (régulateur d\'infos)';if(!takeOver(o,b.owner))return 'Ce bâtiment appartient à ton coéquipier';demolishB(b,o);return null},
   recipe(o,x,y,i){
     const b=at(x,y);if(!b||!takeOver(o,b.owner)||!['assembleur','forge','centrifugeuse','synthetiseur','nanofab'].includes(B[b.type].rs))return null;
     const r=RECIPES[B[b.type].rs][i];if(!r||!recUnlocked(r,o)||i===b.recipe)return null;
@@ -1373,8 +1417,8 @@ const ACT={
     notify(to,`${playerName(o)} t'a donné ${n} ${ITEMS[item].n}`);
     return null;
   },
-  filter(o,x,y,item){const b=at(x,y);if(!b||b.type!=='extracteur'||!takeOver(o,b.owner))return null;b.filter=item&&ITEMS[item]?item:null;NET.bver++;return null},
-  link(o,lx,ly,rx,ry){const l=at(lx,ly),r=at(rx,ry);if(!l||!r||l.type!=='lanceur'||r.type!=='recepteur'||!takeOver(o,l.owner)||!takeOver(o,r.owner))return 'Choisis un de tes réceptionneurs';l.lk=[rx,ry];NET.bver++;return null},
+  filter(o,x,y,item){const b=at(x,y);if(!b||(b.type!=='extracteur'&&b.type!=='bras_robot')||!takeOver(o,b.owner))return null;b.filter=item&&ITEMS[item]?item:null;NET.bver++;return null},
+  link(o,lx,ly,rx,ry){const l=at(lx,ly),r=at(rx,ry);if(!l||!r||kind(l.type)!=='lanceur'||kind(r.type)!=='recepteur'||!takeOver(o,l.owner)||!takeOver(o,r.owner))return 'Choisis un de tes réceptionneurs';l.lk=[rx,ry];NET.bver++;return null},
   vote(o,on){if(!coop())return null;S.votes[o]=!!on;return null},
   revive(o,t){
     if(!coop())return null;if(t==null)t=S.players.findIndex((q,k)=>k!==o&&q.dead);if(t<0||t>=NP()||t===o)return null;
@@ -1472,6 +1516,8 @@ function curRecipe(b){if(AUTO_RS.has(B[b.type].rs))return b.crafting||fonderieRe
 function accepts(t,item,fx,fy){
   if(!t)return false;
   if(t.type==='noyau')return !P(t.owner).dead;
+  if(RAILK(t.type)){const c=carAt(t.x,t.y);return !!(c&&c.car.k==='wagon'&&c.car.n<WCAP)}
+  if(kind(t.type)==='bras_robot'||kind(t.type)==='regulateur')return false;
   if(t.type==='conduit_temporel')return CONDUIT.has(item)&&!!CTX.futur;
   if(t.type==='emetteur_temporel')return !!EMIT[item]&&!!CTX.present&&total('chrono_sable',t.owner)>=1;
   const side=dirOf(fx-t.x,fy-t.y);
@@ -1481,8 +1527,8 @@ function accepts(t,item,fx,fy){
   if(kind(t.type)==='fusionneur')return side>=0&&!t.buf[side];
   if(kind(t.type)==='repartiteur')return side===(t.rot+2)%4&&!t.item;
   if(kind(t.type)==='coffre')return t.used<B[t.type].cap;
-  if(t.type==='lanceur')return t.count<20;
-  if(t.type==='recepteur')return false;
+  if(kind(t.type)==='lanceur')return t.count<(B[t.type].cap||20);
+  if(kind(t.type)==='recepteur')return false;
   if(GENS.has(t.type))return item===(B[t.type].fuel||'petrole')&&t.fuel<10;
   const rs=B[t.type].rs;
   if(AUTO_RS.has(rs)){
@@ -1498,10 +1544,11 @@ function give(t,item,fx,fy){
   if(t.type==='noyau'){const p=P(t.owner);addInv(t.owner,item,1);p.made[item]=(p.made[item]||0)+1;stat(t.owner,'n',item);return}
   if(BELT.has(t.type)||t.type==='tunnel_entree'||t.type==='pont_entree'){t.item=item;t.prog=0;return}
   if(t.type==='emetteur_temporel'){const ps=CTX.present&&CTX.present.S,e=EMIT[item];if(ps&&e&&ps.players[t.owner]&&total('chrono_sable',t.owner)>=1){take('chrono_sable',1,t.owner);stat(t.owner,'c','chrono_sable');const q=ps.players[t.owner];q.inv[e[0]]=(q.inv[e[0]]||0)+e[1];S.sent=(S.sent||0)+1}t.flash=0.3;return}
+  if(RAILK(t.type)){const c=carAt(t.x,t.y);if(c){c.car.s[item]=(c.car.s[item]||0)+1;c.car.n++}return}
   if(t.type==='conduit_temporel'){const F=CTX.futur&&CTX.futur.S;if(F&&F.players[t.owner]){const q=F.players[t.owner];q.inv[item]=(q.inv[item]||0)+1}t.flash=0.3;return}
   if(kind(t.type)==='fusionneur'){t.buf[dirOf(fx-t.x,fy-t.y)]=item;return}
   if(kind(t.type)==='repartiteur'){t.item=item;return}
-  if(t.type==='lanceur'){t.store[item]=(t.store[item]||0)+1;t.count++;return}
+  if(kind(t.type)==='lanceur'){t.store[item]=(t.store[item]||0)+1;t.count++;return}
   if(kind(t.type)==='coffre'){t.store[item]=(t.store[item]||0)+1;t.used++;const p=P(t.owner);p.made[item]=(p.made[item]||0)+1;stat(t.owner,'n',item);return}
   if(GENS.has(t.type)){t.fuel++;return}
   t.inb[item]=(t.inb[item]||0)+1;
@@ -1515,6 +1562,9 @@ function tryPush(b,item,dir=b.rot){
 }
 function updB(b,dt){
   const d=B[b.type],t=b.type,o=b.owner,pr=S.era==='futur'?(S.emp>0&&d.pw<0?0:(b.npr??1)):P(o).pr;
+  if(b.off||(d.rail&&!d.pw))return;
+  if(kind(t)==='bras_robot'){updArm(b,dt,pr);return}
+  if(kind(t)==='regulateur')return;
   if(BELT.has(t)){
     if(b.item){if(b.prog<1)b.prog=Math.min(1,b.prog+dt*d.spd*mBelt(o)*(TER[b.y*W+b.x]===2?1.6:1));if(b.prog>=1&&tryPush(b,b.item)){b.item=null;b.prog=0}}
     return;
@@ -1592,22 +1642,23 @@ function updB(b,dt){
     }
     return;
   }
-  if(t==='lanceur'){
+  if(kind(t)==='lanceur'){
     b.cd-=dt*pr;
     let tg=b.lk?at(b.lk[0],b.lk[1]):null;
-    if(!tg||tg.type!=='recepteur'||tg.owner!==o){tg=nearestReceiver(b);b.lk=tg?[tg.x,tg.y]:null}
+    if(!tg||kind(tg.type)!=='recepteur'||tg.owner!==o){tg=nearestReceiver(b);b.lk=tg?[tg.x,tg.y]:null}
     if(tg){b.aim=Math.atan2(tg.y-b.y,tg.x-b.x)}
+    if(d.batch&&b.count<d.batch){b.hold=(b.hold||0)+dt;if(b.hold<20)tg=null}
     if(tg&&b.cd<=0&&b.count>0){
-      const n=Math.min(5,b.count,40-(tg.count+tg.incoming));
+      const n=Math.min(d.batch||5,b.count,(B[tg.type].cap||40)-(tg.count+tg.incoming));b.hold=0;
       if(n>0){const items={};let left=n;for(const k in b.store){const q=Math.min(b.store[k],left);if(q>0){items[k]=q;b.store[k]-=q;left-=q}if(!left)break}
         b.count-=n;tg.incoming+=n;const d2=Math.hypot(tg.x-b.x,tg.y-b.y);
-        CAPS.push({sx:b.x+0.5,sy:b.y+0.5,tx:tg.x+0.5,ty:tg.y+0.5,rx:tg.x,ry:tg.y,t:0,dur:Math.max(0.6,d2/9),items,n,owner:o,it:Object.keys(items)[0]});
-        b.cd=1.2;b.kick=0.25;sfx('launch')}
+        CAPS.push({sx:b.x+0.5,sy:b.y+0.5,tx:tg.x+0.5,ty:tg.y+0.5,rx:tg.x,ry:tg.y,t:0,dur:d.rocket?Math.max(2.5,d2/7):Math.max(0.6,d2/9),items,n,owner:o,it:Object.keys(items)[0],rk:d.rocket?1:0});
+        b.cd=d.lcd||1.2;b.kick=0.25;sfx('launch');if(d.rocket)sfx('boom')}
     }
     if(b.kick>0)b.kick-=dt;
     return;
   }
-  if(t==='recepteur'){
+  if(kind(t)==='recepteur'){
     b.pushCd-=dt;
     if(b.count>0&&b.pushCd<=0){const k=Object.keys(b.store).find(q=>b.store[q]>0);if(k&&tryPush(b,k)){b.store[k]--;b.count--;b.pushCd=0.08}}
     return;
@@ -1718,7 +1769,7 @@ function nearestChest(r){let best=null,bd=1e9;for(const c of chests){if(c.owner!
 function moveTo(r,x,y,dt){const sp=2.4*mRob(r.owner),dx=x-r.x,dy=y-r.y,d=Math.hypot(dx,dy);if(d<0.05)return true;const s=Math.min(d,sp*dt);r.x+=dx/d*s;r.y+=dy/d*s;return d<0.08}
 function nearestDrop(r){
   let best=null,bd=1e9;
-  for(const b of buildings){if(b.owner!==r.owner)continue;if(b.type==='recepteur'&&b.count+b.incoming<40||kind(b.type)==='coffre'&&b.used<B[b.type].cap){const d=(b.x-r.x)**2+(b.y-r.y)**2;if(d<bd){bd=d;best=b}}}
+  for(const b of buildings){if(b.owner!==r.owner)continue;if(kind(b.type)==='recepteur'&&b.count+b.incoming<(B[b.type].cap||40)||kind(b.type)==='coffre'&&b.used<B[b.type].cap){const d=(b.x-r.x)**2+(b.y-r.y)**2;if(d<bd){bd=d;best=b}}}
   if(best)return best;
   const c=cores[r.owner];return c&&!P(r.owner).dead?c:null;
 }
@@ -1727,7 +1778,7 @@ function updDrone(r,dt){
   if(r.count>=cap||(r.state==='idle'&&r.count>0)){
     if(r.cd<=0){const tg=nearestDrop(r);if(!tg){r.nochest=true;return}r.nochest=false;
       const tx=tg.type==='noyau'?tg.x+1.5:tg.x+0.5,ty=tg.type==='noyau'?tg.y+1.5:tg.y+0.5;
-      if(tg.type==='recepteur')tg.incoming+=r.count;
+      if(kind(tg.type)==='recepteur')tg.incoming+=r.count;
       CAPS.push({sx:r.x,sy:r.y,tx,ty,rx:tg.x,ry:tg.y,t:0,dur:Math.max(0.6,Math.hypot(tx-r.x,ty-r.y)/9),items:r.cargo,n:r.count,owner:o,it:Object.keys(r.cargo)[0]||'lingot_fer'});
       r.cargo={};r.count=0;r.cd=0.8;sfx('launch');if(r.state==='idle')r.state='seek'}
     return;
@@ -1959,12 +2010,73 @@ function detonate(b){
   if(b.owner===ME)shake=Math.max(shake,Math.min(14,R*3));
   removeB(b);
 }
-function nearestReceiver(b){let best=null,bd=1e9;for(const r of buildings){if(r.type!=='recepteur'||r.owner!==b.owner)continue;const d=(r.x-b.x)**2+(r.y-b.y)**2;if(d<bd){bd=d;best=r}}return best}
+function nearestReceiver(b){let best=null,bd=1e9;for(const r of buildings){if(kind(r.type)!=='recepteur'||r.owner!==b.owner)continue;const d=(r.x-b.x)**2+(r.y-b.y)**2;if(d<bd){bd=d;best=r}}return best}
+
+const WCAP=200,RAILK=t=>!!(B[t]&&B[t].rail);
+function tI(x,y){return y*W+x}
+function railRaw(i){const x=i%W,y=(i/W)|0,b=at(x,y);if(!b||!RAILK(b.type))return[];const d=B[b.type],out=[];
+  if(d.rlink){const [dx,dy]=DIRS[b.rot];out.push(tI(x-dx,y-dy));for(let k=1;k<=d.reach;k++){const q=at(x+dx*k,y+dy*k);if(q&&q.type===d.rlink&&q.rot===b.rot){out.push(tI(q.x,q.y));break}}return out}
+  if(d.rlinkOf){const [dx,dy]=DIRS[b.rot];out.push(tI(x+dx,y+dy));const R=B[d.rlinkOf].reach;for(let k=1;k<=R;k++){const q=at(x-dx*k,y-dy*k);if(q&&q.type===d.rlinkOf&&q.rot===b.rot){out.push(tI(q.x,q.y));break}}return out}
+  for(const [dx,dy] of DIRS){const nx=x+dx,ny=y+dy;if(nx>=0&&ny>=0&&nx<W&&ny<H)out.push(tI(nx,ny))}return out}
+function railConns(i){return railRaw(i).filter(j=>{const x=j%W,y=(j/W)|0,b=at(x,y);return b&&RAILK(b.type)&&railRaw(j).includes(i)})}
+function railJump(a,b){return Math.abs(a%W-b%W)+Math.abs(((a/W)|0)-((b/W)|0))}
+function railNext(h,prev){const c=railConns(h).filter(j=>j!==prev);if(!c.length)return -1;if(prev===h||prev==null)return c[0];
+  const vx=Math.sign(h%W-prev%W),vy=Math.sign(((h/W)|0)-((prev/W)|0));let best=c[0],bs=-9;for(const j of c){const wx=Math.sign(j%W-h%W),wy=Math.sign(((j/W)|0)-((h/W)|0)),sc=vx*wx+vy*wy;if(sc>bs){bs=sc;best=j}}return best}
+function trains(){return S?(S.trains=S.trains||[]):[]}
+const trStill=t=>t.prog>=0.999&&t.st!=='run';
+function carAt(x,y){const i=tI(x,y);for(const t of trains()){if(!trStill(t))continue;for(let k=0;k<t.cars.length;k++)if(t.path[k]===i)return{t,car:t.cars[k],k}}return null}
+function trOcc(i,self){for(const t of trains()){if(t===self)continue;for(let k=0;k<t.cars.length;k++)if(t.path[k]===i)return true;if(t.prog<1&&t.path[0]===i)return true}return false}
+function trAnyAt(i){for(const t of trains())for(let k=0;k<t.cars.length;k++)if(t.path[k]===i)return t;return null}
+function gareAt(i){const b=at(i%W,(i/W)|0);return b&&kind(b.type)==='gare'?b:null}
+function trReverse(t){const n=t.cars.length;const tiles=t.path.slice(0,n).reverse();t.path=tiles.concat([tiles[n-1]]);t.cars.reverse();t.prog=1}
+function trHasLoco(t){return t.cars.some(c=>c.k==='loco')}
+function newTrain(o,car,i){S.tseq=(S.tseq||0)+1;return{id:S.tseq,o,cars:[car],path:[i,i],prog:1,seg:1,st:'stop',spd:3,mode:'auto',wait:8,stops:[],park:null,run:false,left:-1,wt:0}}
+function addCar(o,type,x,y){const i=tI(x,y),k=B[type].car;const car=k==='loco'?{k:'loco',t:type}:{k:'wagon',t:type,s:{},n:0};trains().push(newTrain(o,car,i));NET.bver++}
+function trCouple(t){let done=0;for(let g=0;g<8;g++){if(!trStill(t))break;const n=t.cars.length,head=t.path[0],tail=t.path[n-1];let hit=false;
+  for(const u of trains()){if(u===t||u.o!==t.o||!trStill(u))continue;const m=u.cars.length,uh=u.path[0],ut=u.path[m-1];const tiles=u.path.slice(0,m);
+    const ends=[[tail,'t'],[head,'h']];for(const [e,side] of ends){const cn=railConns(e);let part=null,cars=null;
+      if(cn.includes(uh)){part=tiles;cars=u.cars.slice()}else if(cn.includes(ut)){part=tiles.slice().reverse();cars=u.cars.slice().reverse()}
+      if(!part)continue;const mine=t.path.slice(0,n);
+      if(side==='t'){const all=mine.concat(part);t.path=all.concat([all[all.length-1]]);t.cars=t.cars.concat(cars)}
+      else{const all=part.slice().reverse().concat(mine);t.path=all.concat([all[all.length-1]]);t.cars=cars.slice().reverse().concat(t.cars)}
+      const L=trains();L.splice(L.indexOf(u),1);hit=true;done++;break}
+    if(hit)break}
+  if(!hit)break}
+  t.prog=1;NET.bver++;return done}
+function trUncouple(t){const n=t.cars.length;if(n<2||!trStill(t))return false;const c=t.cars[n-1];if(c.k==='loco')return false;const i=t.path[n-1];t.cars.pop();t.path=t.path.slice(0,n-1).concat([t.path[n-2]]);
+  const u=newTrain(t.o,c,i);u.run=false;trains().push(u);NET.bver++;return true}
+function updTrain(t,dt){const n=t.cars.length;if(!trHasLoco(t)){t.st='stop';t.prog=1;return}
+  if(t.st==='wait'){t.wt-=dt;if(t.wt>0)return;t.st='go'}
+  if(t.prog<1){t.prog=Math.min(1,t.prog+dt*t.spd/Math.max(1,t.seg));if(t.prog<1){t.st='run';return}}
+  const h=t.path[0];
+  if(h!==t.left){const g=gareAt(h);if(g){if(t.mode==='garer'&&g.gid===t.park){t.st='park';return}
+    if(t.run&&(t.mode==='auto'||(t.mode==='liste'&&t.stops.includes(g.gid)))){t.st='wait';t.wt=t.wait;t.left=h;return}}}
+  if(t.mode==='garer'&&t.st==='park'&&gareAt(h)&&gareAt(h).gid===t.park)return;
+  if(!t.run){t.st='stop';return}
+  const nx=railNext(h,t.path[1]);
+  if(nx<0){trReverse(t);t.st='wait';t.wt=1;t.left=t.path[0];return}
+  if(trOcc(nx,t)){t.st='blocked';return}
+  t.path.unshift(nx);t.path.length=n+1;t.seg=railJump(h,nx);t.prog=0;t.st='run';if(h!==t.left)t.left=-1;
+}
+function updTrains(dt){for(const t of trains())updTrain(t,dt)}
+function trDel(o,t){for(const c of t.cars){refund(B[c.t&&B[c.t]?c.t:(c.k==='loco'?'locomotive':'wagon')].cost,o);if(c.s)for(const k in c.s)addInv(o,k,c.s[k])}const L=trains();L.splice(L.indexOf(t),1);NET.bver++}
+// bras robot
+function armSrc(x,y,o,flt){const c=carAt(x,y);if(c&&c.car.k==='wagon'&&c.t.o===o){const ks=Object.keys(c.car.s).filter(k=>c.car.s[k]>0&&(!flt||k===flt));return ks.length?{ks,take:k=>{c.car.s[k]--;c.car.n--}}:null}
+  const b=at(x,y);if(!b)return null;
+  if((kind(b.type)==='coffre'&&b.owner===o)||b.type==='coffre_partage'){const ks=Object.keys(b.store).filter(k=>b.store[k]>0&&(!flt||k===flt));return ks.length?{ks,take:k=>{b.store[k]--;b.used--}}:null}
+  if(kind(b.type)==='recepteur'&&b.owner===o){const ks=Object.keys(b.store).filter(k=>b.store[k]>0&&(!flt||k===flt));return ks.length?{ks,take:k=>{b.store[k]--;b.count--}}:null}
+  if(b.type==='noyau'&&b.owner===o&&flt&&total(flt,o)>=1)return{ks:[flt],take:k=>{take(k,1,o);stat(o,'c',k)}};
+  return null}
+function updArm(b,dt,pr){const d=B[b.type];b.sw=Math.max(0,(b.sw||0)-dt*2.5);b.cd=(b.cd||0)-dt*pr;if(b.cd>0||pr<=0)return;
+  const [dx,dy]=DIRS[b.rot],src=armSrc(b.x-dx,b.y-dy,b.owner,b.filter);if(!src){b.cd=0.3;return}
+  const tg=at(b.x+dx,b.y+dy);if(!tg){b.cd=0.3;return}
+  for(const k of src.ks){if(accepts(tg,k,b.x,b.y)){src.take(k);give(tg,k,b.x,b.y);b.cd=1/(d.rate*mMach(b.owner));b.sw=1;b.held=k;return}}
+  b.cd=0.3}
 function updCaps(dt){
     for(const c of CAPS){c.t+=dt;if(c.t>=c.dur){const r=at(c.rx,c.ry),p=P(c.owner);
     if(r&&kind(r.type)==='coffre'){for(const k in c.items){const n=Math.min(c.items[k],B[r.type].cap-r.used);r.store[k]=(r.store[k]||0)+n;r.used+=n;if(c.items[k]>n)addInv(c.owner,k,c.items[k]-n);p.made[k]=(p.made[k]||0)+c.items[k]}}
     else if(r&&r.type==='noyau'){for(const k in c.items){addInv(r.owner,k,c.items[k]);p.made[k]=(p.made[k]||0)+c.items[k]}}
-    else if(r&&r.type==='recepteur'){for(const k in c.items){r.store[k]=(r.store[k]||0)+c.items[k]}r.count+=c.n;r.incoming=Math.max(0,r.incoming-c.n);p.launched=(p.launched||0)+c.n}
+    else if(r&&kind(r.type)==='recepteur'){for(const k in c.items){r.store[k]=(r.store[k]||0)+c.items[k]}r.count+=c.n;r.incoming=Math.max(0,r.incoming-c.n);p.launched=(p.launched||0)+c.n}
     fx({k:'boom',x:c.tx,y:c.ty,r:0.45,col:'255,220,150',t:0.25,max:0.25});c.done=true}}
   CAPS=CAPS.filter(c=>!c.done);
 }
@@ -2077,7 +2189,7 @@ function update(dt){
   SHIELDS=S.players.map(()=>0);for(const b of buildings)if(b.type==='bouclier'&&P(b.owner).pr>0.5)SHIELDS[b.owner]++;
   for(let i=0;i<buildings.length;i++)updB(buildings[i],dt);
   for(const r of robots)updR(r,dt);
-  updCaps(dt);
+  updCaps(dt);updTrains(dt);
   statTick(dt);if(S.era!=='futur'){updUG(dt);updWorlds(dt)}else updFut(dt);for(const b of buildings)if(b.launchT>0)b.launchT=Math.max(0,b.launchT-dt);
   if(S.terr){LAVAT+=dt;if(LAVAT>=0.5){const k=LAVAT;LAVAT=0;
     for(const b of [...buildings]){if(TER[b.y*W+b.x]!==1)continue;b.hp-=maxHp(b)*0.01*k;NET.bdirtyHp=true;if(Math.random()<0.3)addPart({kind:'smoke',x:b.x+0.5,y:b.y+0.6,vx:0,vy:-0.5,life:1,max:1,size:0.12,col:'255,120,50'});if(b.hp<=0){if(B[b.type].lure){detonate(b);continue}fx({k:'boom',x:b.x+0.5,y:b.y+0.5,r:0.9,col:'255,120,40',t:0.45,max:0.45});removeB(b)}}
@@ -2287,7 +2399,80 @@ function body(c,x,y,s,col){
   c.fillStyle='rgba(255,255,255,0.12)';c.fillRect(x+m*2.2,y+m*1.9,s-4.4*m,s*0.05);
 }
 function badge(c,x,y,s){c.fillStyle='#ffd23f';c.strokeStyle='rgba(0,0,0,0.6)';c.lineWidth=1;c.beginPath();c.moveTo(x+s*0.1,y+s*0.3);c.lineTo(x+s*0.2,y+s*0.12);c.lineTo(x+s*0.3,y+s*0.3);c.closePath();c.fill();c.stroke()}
+
+// ---------- dessin : voies, trains, bras, régulateur, fusées ----------
+function offMark(c,x,y,s){c.fillStyle='rgba(0,0,0,0.45)';c.fillRect(x,y,s*bsz('x'),s);c.fillStyle='#ffd23f';c.font=`700 ${Math.max(8,s*0.34)}px system-ui`;c.textAlign='center';c.fillText('⏸',x+s/2,y+s*0.62)}
+function railDirs(b){if(!grid[b.y]||grid[b.y][b.x]!==b)return B[b.type].rlink||B[b.type].rlinkOf?[b.rot,(b.rot+2)%4]:[0,2];const i=tI(b.x,b.y),out=[];for(const j of railConns(i)){const dx=j%W-b.x,dy=((j/W)|0)-b.y;if(Math.abs(dx)+Math.abs(dy)!==1)continue;out.push(DIRS.findIndex(d=>d[0]===dx&&d[1]===dy))}return out.length?out:[0,2]}
+function drawRails(c,x,y,s,dirs,bed,mag){const cx=x+s/2,cy=y+s/2;if(bed){c.fillStyle=bed;c.fillRect(x+s*0.08,y+s*0.08,s*0.84,s*0.84)}
+  for(const d of dirs){const [dx,dy]=DIRS[d],qx=-dy,qy=dx;c.strokeStyle=mag?'#2a3a4a':'#5a4128';c.lineWidth=Math.max(1,s*0.1);for(const f of[0.12,0.32,0.5]){c.beginPath();c.moveTo(cx+dx*s*f+qx*s*0.3,cy+dy*s*f+qy*s*0.3);c.lineTo(cx+dx*s*f-qx*s*0.3,cy+dy*s*f-qy*s*0.3);c.stroke()}}
+  c.fillStyle=mag?'#2a3a4a':'#5a4128';c.beginPath();c.arc(cx,cy,s*0.26,0,7);c.fill();
+  c.strokeStyle=mag?'#5ff3ff':'#c9ced6';c.lineWidth=Math.max(1,s*0.06);for(const d of dirs){const [dx,dy]=DIRS[d],qx=-dy,qy=dx;for(const sd of[-1,1]){c.beginPath();c.moveTo(cx+qx*s*0.18*sd,cy+qy*s*0.18*sd);c.lineTo(cx+dx*s*0.5+qx*s*0.18*sd,cy+dy*s*0.5+qy*s*0.18*sd);c.stroke()}}
+  if(dirs.length>1){c.fillStyle='#c9ced6';c.beginPath();c.arc(cx,cy,s*0.06,0,7);c.fill()}}
+function drawCar(c,k,X,Y,a,s,col,load,run,now){c.save();c.translate(X,Y);c.rotate(a);const L=s*0.44,Wd=s*0.3;
+  c.fillStyle='rgba(0,0,0,0.35)';rr(c,-L+s*0.04,-Wd+s*0.06,L*2,Wd*2,s*0.08);c.fill();
+  if(k==='loco'){c.fillStyle=col||'#c0392b';rr(c,-L,-Wd,L*2,Wd*2,s*0.1);c.fill();c.fillStyle='#22262e';rr(c,-L*0.9,-Wd*0.8,L*0.8,Wd*1.6,s*0.06);c.fill();c.fillStyle='#8fd8ff';c.fillRect(-L*0.75,-Wd*0.55,L*0.45,Wd*1.1);
+    c.fillStyle='#2a2a2a';c.beginPath();c.arc(L*0.35,0,s*0.09,0,7);c.fill();c.fillStyle=Math.sin(now*8)>0||!run?'#ffe9a0':'#fff6d0';c.beginPath();c.arc(L*0.95,0,s*0.05,0,7);c.fill();c.strokeStyle='rgba(0,0,0,0.5)';c.lineWidth=Math.max(1,s*0.03);rr(c,-L,-Wd,L*2,Wd*2,s*0.1);c.stroke()}
+  else{c.fillStyle='#4a5560';rr(c,-L,-Wd,L*2,Wd*2,s*0.08);c.fill();c.fillStyle='#2b333b';c.fillRect(-L*0.85,-Wd*0.7,L*1.7,Wd*1.4);
+    if(load&&load.n>0){const f=Math.min(1,load.n/WCAP);const it=Object.keys(load.s).sort((p,q)=>load.s[q]-load.s[p])[0];c.fillStyle=ITEMS[it]?ITEMS[it].c:'#aaa';c.globalAlpha=0.85;c.fillRect(-L*0.85,-Wd*0.7,L*1.7*f,Wd*1.4);c.globalAlpha=1}
+    c.strokeStyle='#1a1f24';c.lineWidth=Math.max(1,s*0.03);rr(c,-L,-Wd,L*2,Wd*2,s*0.08);c.stroke()}
+  c.restore()}
+function railPos(i){return[i%W+0.5,((i/W)|0)+0.5]}
+function viaPair(a,b){const A=at(a%W,(a/W)|0),Bq=at(b%W,(b/W)|0);return A&&Bq&&((kind(A.type)==='viaduc_e'&&kind(Bq.type)==='viaduc_s')||(kind(A.type)==='viaduc_s'&&kind(Bq.type)==='viaduc_e'))&&railJump(a,b)>1}
+function tunPair(a,b){const A=at(a%W,(a/W)|0),Bq=at(b%W,(b/W)|0);return A&&Bq&&((kind(A.type)==='rail_tunnel_e'&&kind(Bq.type)==='rail_tunnel_s')||(kind(A.type)==='rail_tunnel_s'&&kind(Bq.type)==='rail_tunnel_e'))&&railJump(a,b)>1}
+function drawTrains(c,ox,oy,T,now){
+  for(const b of buildings){if(kind(b.type)!=='viaduc_e')continue;const r=railRaw(tI(b.x,b.y)),ex=r[1];if(ex==null)continue;const [x1,y1]=railPos(tI(b.x,b.y)),[x2,y2]=railPos(ex);const H2=T*0.35;
+    c.fillStyle='rgba(0,0,0,0.25)';c.save();c.lineCap='butt';c.strokeStyle='rgba(0,0,0,0.25)';c.lineWidth=T*0.6;c.beginPath();c.moveTo(ox+x1*T,oy+y1*T);c.lineTo(ox+x2*T,oy+y2*T);c.stroke();
+    const n=railJump(tI(b.x,b.y),ex);for(let k=1;k<n;k++){const f=k/n,px=ox+(x1+(x2-x1)*f)*T,py=oy+(y1+(y2-y1)*f)*T;c.fillStyle='#6a7280';c.fillRect(px-T*0.07,py-H2,T*0.14,H2)}
+    c.strokeStyle='#9aa4b0';c.lineWidth=T*0.62;c.beginPath();c.moveTo(ox+x1*T,oy+y1*T-H2*0.5);c.lineTo(ox+(x1+(x2-x1)*0.5/n)*T,oy+(y1+(y2-y1)*0.5/n)*T-H2);c.lineTo(ox+(x2-(x2-x1)*0.5/n)*T,oy+(y2-(y2-y1)*0.5/n)*T-H2);c.lineTo(ox+x2*T,oy+y2*T-H2*0.5);c.stroke();
+    c.strokeStyle='#c9ced6';c.lineWidth=Math.max(1,T*0.05);for(const sd of[-1,1]){const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),qx=-dy/L*0.18*sd*T,qy=dx/L*0.18*sd*T;c.beginPath();c.moveTo(ox+x1*T+qx,oy+y1*T-H2*0.5+qy);c.lineTo(ox+(x1+dx*0.5/n)*T+qx,oy+(y1+dy*0.5/n)*T-H2+qy);c.lineTo(ox+(x2-dx*0.5/n)*T+qx,oy+(y2-dy*0.5/n)*T-H2+qy);c.lineTo(ox+x2*T+qx,oy+y2*T-H2*0.5+qy);c.stroke()}
+    c.restore()}
+  for(const t of trains()){const n=t.cars.length,f=Math.min(1,t.prog);
+    for(let k=n-1;k>=0;k--){const a=t.path[k+1]??t.path[k],b=t.path[k];const [ax,ay]=railPos(a),[bx,by]=railPos(b);
+      if(tunPair(a,b)&&f>0.05&&f<0.95)continue;let lift=0;if(viaPair(a,b))lift=T*0.35*Math.min(1,Math.min(f,1-f)*6);
+      const X=ox+(ax+(bx-ax)*f)*T,Y=oy+(ay+(by-ay)*f)*T-lift;let ang=Math.atan2(by-ay,bx-ax);if(a===b){const nb=t.path[k-1]!=null?t.path[k-1]:(t.path[k+1]!=null?t.path[k+1]:b);const [px,py]=railPos(nb);ang=nb===b?0:(k>0?Math.atan2(py-by,px-bx):Math.atan2(by-py,bx-px))}
+      const car=t.cars[k];drawCar(c,car.k,X,Y,ang,T,car.k==='loco'?pcol(t.o):null,car.k==='wagon'?car:null,t.st==='run',now);
+      if(car.k==='loco'){c.fillStyle='#fff';c.font=`700 ${Math.max(7,T*0.22)}px system-ui`;c.textAlign='center';c.fillText(t.id,X,Y-T*0.32);if(t.st==='run'&&Math.random()<0.25)addPart({kind:'smoke',x:X/T-ox/T,y:Y/T-oy/T-0.2,vx:0,vy:-0.3,life:0.7,max:0.7,size:0.1,col:'190,190,200'})}}}
+}
+function drawRocket(cp,ox,oy,T){const f=Math.min(1,cp.t/cp.dur),gx=cp.sx+(cp.tx-cp.sx)*f,gy=cp.sy+(cp.ty-cp.sy)*f,dist=Math.hypot(cp.tx-cp.sx,cp.ty-cp.sy),h=(Math.min(14,4+dist*0.4))*4*f*(1-f);
+  const X=ox+gx*T,Y=oy+gy*T,Yh=Y-h*T;const up=f<0.5;const ang=Math.atan2((cp.ty-cp.sy)*0.4,(cp.tx-cp.sx))*0.3+(up?-Math.PI/2:Math.PI/2)*(Math.abs(0.5-f)*2)+(up?0:0);
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(X,Y,T*0.25,T*0.1,0,0,7);ctx.fill();
+  ctx.save();ctx.translate(X,Yh);ctx.rotate(up?-0.15:Math.PI+0.15);const s=T*0.9;
+  ctx.fillStyle='rgba(255,170,60,0.9)';ctx.beginPath();ctx.moveTo(-s*0.12,s*0.3);ctx.lineTo(0,s*(0.55+Math.random()*0.25));ctx.lineTo(s*0.12,s*0.3);ctx.fill();
+  ctx.fillStyle='#eef0f4';ctx.beginPath();ctx.moveTo(0,-s*0.45);ctx.quadraticCurveTo(s*0.18,-s*0.2,s*0.14,s*0.3);ctx.lineTo(-s*0.14,s*0.3);ctx.quadraticCurveTo(-s*0.18,-s*0.2,0,-s*0.45);ctx.fill();
+  ctx.fillStyle='#d0392b';ctx.beginPath();ctx.moveTo(0,-s*0.45);ctx.quadraticCurveTo(s*0.1,-s*0.32,s*0.12,-s*0.22);ctx.lineTo(-s*0.12,-s*0.22);ctx.quadraticCurveTo(-s*0.1,-s*0.32,0,-s*0.45);ctx.fill();
+  ctx.fillStyle='#d0392b';ctx.beginPath();ctx.moveTo(-s*0.14,s*0.15);ctx.lineTo(-s*0.26,s*0.34);ctx.lineTo(-s*0.14,s*0.3);ctx.fill();ctx.beginPath();ctx.moveTo(s*0.14,s*0.15);ctx.lineTo(s*0.26,s*0.34);ctx.lineTo(s*0.14,s*0.3);ctx.fill();
+  ctx.fillStyle='#5fd0ff';ctx.beginPath();ctx.arc(0,-s*0.08,s*0.05,0,7);ctx.fill();ctx.restore();
+  if(Math.random()<0.7)addPart({kind:'smoke',x:gx,y:gy-h+(up?0.4:-0.4),vx:(Math.random()-0.5)*0.3,vy:0.2,life:0.9,max:0.9,size:0.14,col:'220,220,225'})}
+const DRAWX0={
+  rail:(c,b,x,y,s)=>drawRails(c,x,y,s,railDirs(b)),
+  rail_mag:(c,b,x,y,s)=>drawRails(c,x,y,s,railDirs(b),null,1),
+  gare:(c,b,x,y,s)=>{c.fillStyle='#b08a3a';c.fillRect(x+s*0.04,y+s*0.04,s*0.92,s*0.92);c.fillStyle='#e8c46a';c.fillRect(x+s*0.04,y+s*0.04,s*0.92,s*0.08);c.fillRect(x+s*0.04,y+s*0.88,s*0.92,s*0.08);drawRails(c,x,y,s,railDirs(b));c.fillStyle='#1a1d22';c.beginPath();c.arc(x+s*0.82,y+s*0.2,s*0.16,0,7);c.fill();c.fillStyle='#ffd23f';c.font=`700 ${Math.max(7,s*0.22)}px system-ui`;c.textAlign='center';c.fillText(b.gid||'G',x+s*0.82,y+s*0.28)},
+  rail_tunnel_e:(c,b,x,y,s)=>tunDraw(c,b,x,y,s,true),rail_tunnel_s:(c,b,x,y,s)=>tunDraw(c,b,x,y,s,false),
+  viaduc_e:(c,b,x,y,s)=>viaDraw(c,b,x,y,s,true),viaduc_s:(c,b,x,y,s)=>viaDraw(c,b,x,y,s,false),
+  locomotive:(c,b,x,y,s,now)=>drawCar(c,"loco",x+s/2,y+s/2,(b.rot||0)*Math.PI/2,s,'#c0392b',null,false,0),
+  wagon:(c,b,x,y,s,now)=>drawCar(c,'wagon',x+s/2,y+s/2,(b.rot||0)*Math.PI/2,s,null,{n:120,s:{lingot_fer:120}},false,0),
+  bras_robot:(c,b,x,y,s,now)=>{const cx=x+s/2,cy=y+s/2,d=B[b.type]&&B[b.type].col?B[b.type]:B.bras_robot;c.fillStyle='#2a2e36';c.beginPath();c.arc(cx,cy,s*0.36,0,7);c.fill();c.fillStyle=d.col;c.beginPath();c.arc(cx,cy,s*0.2,0,7);c.fill();
+    const sw=b.sw||0,a=(b.rot||0)*Math.PI/2+Math.PI*(1-sw);const ex=cx+Math.cos(a)*s*0.42,ey=cy+Math.sin(a)*s*0.42;c.strokeStyle='#ffcf5a';c.lineWidth=Math.max(2,s*0.12);c.lineCap='round';c.beginPath();c.moveTo(cx,cy);c.lineTo(ex,ey);c.stroke();c.lineCap='butt';
+    c.fillStyle='#555';c.beginPath();c.arc(ex,ey,s*0.08,0,7);c.fill();if(sw>0.15&&b.held)drawItem(c,b.held,ex,ey,s*0.13);
+    const [dx,dy]=DIRS[b.rot||0];c.fillStyle='rgba(255,210,63,0.9)';c.beginPath();c.moveTo(cx+dx*s*0.48,cy+dy*s*0.48);c.lineTo(cx+dx*s*0.34-dy*s*0.08,cy+dy*s*0.34+dx*s*0.08);c.lineTo(cx+dx*s*0.34+dy*s*0.08,cy+dy*s*0.34-dx*s*0.08);c.fill();
+    if(b.filter){drawItem(c,b.filter,x+s*0.2,y+s*0.2,s*0.12)}},
+  regulateur:(c,b,x,y,s,now)=>{body(c,x,y,s,'#1d3a4a');c.fillStyle='#061018';c.fillRect(x+s*0.18,y+s*0.18,s*0.64,s*0.46);for(let k=0;k<4;k++){const w=(0.2+0.4*Math.abs(Math.sin((now||1)*1.7+k*1.3)));c.fillStyle=['#3fd0ff','#5fff9a','#ffd23f','#ff6ad5'][k];c.fillRect(x+s*0.24,y+s*(0.23+k*0.1),s*0.52*w,s*0.05)}c.fillStyle='#3fd0ff';c.fillRect(x+s*0.3,y+s*0.72,s*0.4,s*0.06)},
+  silo_fusee:(c,b,x,y,s,now)=>{body(c,x,y,s,'#3a4250');const cx=x+s/2,cy=y+s/2;const d=B[b.type]&&B[b.type].cap?B[b.type]:B.silo_fusee,f=Math.min(1,(b.count||0)/d.cap);c.fillStyle='#ffd23f';c.fillRect(x+s*0.1,y+s*0.9-s*0.75*f,s*0.07,s*0.75*f);
+    const lift=b.kick>0?(0.25-b.kick)*s*1.5:0;if(b.kick>0&&b.kick>0.2)return;c.save();c.translate(cx,cy-lift);c.fillStyle='#eef0f4';c.beginPath();c.moveTo(0,-s*0.42);c.quadraticCurveTo(s*0.16,-s*0.2,s*0.12,s*0.3);c.lineTo(-s*0.12,s*0.3);c.quadraticCurveTo(-s*0.16,-s*0.2,0,-s*0.42);c.fill();c.fillStyle='#d0392b';c.beginPath();c.moveTo(0,-s*0.42);c.lineTo(s*0.1,-s*0.22);c.lineTo(-s*0.1,-s*0.22);c.fill();c.fillRect(-s*0.2,s*0.18,s*0.08,s*0.14);c.fillRect(s*0.12,s*0.18,s*0.08,s*0.14);c.fillStyle='#5fd0ff';c.beginPath();c.arc(0,-s*0.06,s*0.05,0,7);c.fill();c.restore()},
+  pad_fusee:(c,b,x,y,s)=>{body(c,x,y,s,'#2c3440');const cx=x+s/2,cy=y+s/2;c.strokeStyle='#ffd23f';c.lineWidth=Math.max(1,s*0.05);c.beginPath();c.arc(cx,cy,s*0.3,0,7);c.stroke();c.fillStyle='#ffd23f';c.font=`800 ${Math.max(8,s*0.32)}px system-ui`;c.textAlign='center';c.fillText('H',cx,cy+s*0.11);
+    const [dx,dy]=DIRS[b.rot||0];c.fillStyle='#5fd0ff';c.beginPath();c.moveTo(cx+dx*s*0.48,cy+dy*s*0.48);c.lineTo(cx+dx*s*0.36-dy*s*0.08,cy+dy*s*0.36+dx*s*0.08);c.lineTo(cx+dx*s*0.36+dy*s*0.08,cy+dy*s*0.36-dx*s*0.08);c.fill();const f=Math.min(1,(b.count||0)/((B[b.type]&&B[b.type].cap)||200));c.fillStyle='#5fff9a';c.fillRect(x+s*0.1,y+s*0.86,s*0.8*f,s*0.05)},
+};
+const DRAWX=Object.assign({},DRAWX0,{gare_mag:(c,b,x,y,s,n)=>DRAWX0.gare(c,b,x,y,s,n),tube_e:(c,b,x,y,s)=>tunDraw(c,b,x,y,s,true),tube_s:(c,b,x,y,s)=>tunDraw(c,b,x,y,s,false),pont_mag_e:(c,b,x,y,s)=>viaDraw(c,b,x,y,s,true),pont_mag_s:(c,b,x,y,s)=>viaDraw(c,b,x,y,s,false),
+  loco_mag:(c,b,x,y,s)=>drawCar(c,'loco',x+s/2,y+s/2,(b.rot||0)*Math.PI/2,s,'#2fd0ff',null,false,0),wagon_mag:(c,b,x,y,s)=>drawCar(c,'wagon',x+s/2,y+s/2,(b.rot||0)*Math.PI/2,s,null,{n:120,s:{plaque_composite:120}},false,0),
+  bras_nano:(c,b,x,y,s,n)=>DRAWX0.bras_robot(c,b,x,y,s,n),regulateur_ia:(c,b,x,y,s,n)=>DRAWX0.regulateur(c,b,x,y,s,n),silo_orbital:(c,b,x,y,s,n)=>DRAWX0.silo_fusee(c,b,x,y,s,n),pad_orbital:(c,b,x,y,s,n)=>DRAWX0.pad_fusee(c,b,x,y,s,n)});
+function tunDraw(c,b,x,y,s,ent){const r=b.rot||0;drawRails(c,x,y,s,[ent?(r+2)%4:r]);const [dx,dy]=DIRS[r],cx=x+s/2,cy=y+s/2,px=ent?cx+dx*s*0.18:cx-dx*s*0.18,py=ent?cy+dy*s*0.18:cy-dy*s*0.18;
+  c.save();c.translate(px,py);c.rotate(r*Math.PI/2+(ent?0:Math.PI));c.fillStyle='#4a3a2a';c.fillRect(-s*0.1,-s*0.46,s*0.3,s*0.92);c.fillStyle='#0a0806';c.beginPath();c.moveTo(-s*0.02,-s*0.3);c.lineTo(-s*0.02,s*0.3);c.lineTo(s*0.2,s*0.3);c.lineTo(s*0.2,-s*0.3);c.fill();c.fillStyle='#7a6a5a';c.fillRect(-s*0.12,-s*0.46,s*0.06,s*0.92);c.restore();
+  const lk=railRaw(tI(b.x,b.y))[1]!=null&&grid[b.y]&&grid[b.y][b.x]===b;if(grid[b.y]&&grid[b.y][b.x]===b&&!lk){c.fillStyle='#ff6b6b';c.font=`700 ${Math.max(8,s*0.3)}px system-ui`;c.textAlign='center';c.fillText('?',cx,cy+s*0.1)}}
+function viaDraw(c,b,x,y,s,ent){const r=b.rot||0;drawRails(c,x,y,s,[0,1,2,3].filter(d=>d===r||d===(r+2)%4),'#6a7280');const [dx,dy]=DIRS[r],cx=x+s/2,cy=y+s/2;const g=c.createLinearGradient(cx-dx*s*0.5,cy-dy*s*0.5,cx+dx*s*0.5,cy+dy*s*0.5);g.addColorStop(ent?0:1,'rgba(154,164,176,0)');g.addColorStop(ent?1:0,'rgba(154,164,176,0.75)');c.fillStyle=g;c.fillRect(x+s*0.1,y+s*0.1,s*0.8,s*0.8);
+  c.fillStyle='#fff';c.font=`700 ${Math.max(7,s*0.24)}px system-ui`;c.textAlign='center';c.fillText(ent?'▲':'▼',cx,cy+s*0.09)}
 function drawB(c,b,x,y,s,now){
+  if(DRAWX[b.type]){DRAWX[b.type](c,b,x,y,s,now);if(b.off&&now>0)offMark(c,x,y,s);return}
+  if(b.off&&now>0){drawB0(c,b,x,y,s,now);offMark(c,x,y,s);return}
   drawB0(c,b,x,y,s,now);const d=B[b.type];if(!d||d.era!=='futur')return;
   if(!BELT.has(b.type)&&kind(b.type)!=='pylone'){const z=bsz(b.type)*s;c.strokeStyle='rgba(95,243,255,0.5)';c.lineWidth=Math.max(1,s*0.035);rr(c,x+s*0.1,y+s*0.1,z-s*0.2,z-s*0.2,s*0.16);c.stroke();
     c.strokeStyle='rgba(95,243,255,0.35)';c.beginPath();c.moveTo(x+s*0.1,y+s*0.3);c.lineTo(x+s*0.22,y+s*0.3);c.lineTo(x+s*0.28,y+s*0.22);c.moveTo(x+z-s*0.1,y+z-s*0.3);c.lineTo(x+z-s*0.22,y+z-s*0.3);c.stroke()}
@@ -2484,7 +2669,7 @@ function drawB0(c,b,x,y,s,now){
     case 'lanceur':{
       body(c,x,y,s,d.col);
       c.fillStyle='#2a2e36';c.beginPath();c.arc(cx,cy,s*0.26,0,7);c.fill();
-      const fill=Math.min(1,(b.count||0)/20);c.fillStyle='#ffd23f';c.beginPath();c.moveTo(cx,cy);c.arc(cx,cy,s*0.26,-Math.PI/2,-Math.PI/2+fill*Math.PI*2);c.closePath();c.globalAlpha=0.35;c.fill();c.globalAlpha=1;
+      const fill=Math.min(1,(b.count||0)/(d.cap||20));c.fillStyle='#ffd23f';c.beginPath();c.moveTo(cx,cy);c.arc(cx,cy,s*0.26,-Math.PI/2,-Math.PI/2+fill*Math.PI*2);c.closePath();c.globalAlpha=0.35;c.fill();c.globalAlpha=1;
       c.save();c.translate(cx,cy);c.rotate(b.aim??-Math.PI/2);const kk=(b.kick>0?b.kick*0.4:0);c.fillStyle='#d9dde4';c.fillRect(-s*0.05-kk*s,-s*0.1,s*0.5,s*0.2);c.fillStyle='#3a2a20';c.fillRect(s*0.36-kk*s,-s*0.12,s*0.1,s*0.24);c.restore();
       c.fillStyle=d.col;c.beginPath();c.arc(cx,cy,s*0.12,0,7);c.fill();
       break;}
@@ -2847,9 +3032,10 @@ function draw(now){
   const x0=Math.floor(-ox/T)-1,x1=Math.ceil((cw-ox)/T)+1,y0=Math.floor(-oy/T)-1,y1=Math.ceil((ch-oy)/T)+1;
   const vis=b=>b.x>=x0&&b.x<=x1&&b.y>=y0&&b.y<=y1;
   if(S.terr){for(let y=Math.max(0,y0);y<=Math.min(H-1,y1);y++)for(let x=Math.max(0,x0);x<=Math.min(W-1,x1);x++){const t=TER[y*W+x];if(t===1){ctx.globalAlpha=0.18+0.14*Math.sin(now*2+x*0.7+y*1.3);ctx.fillStyle='#ffb347';ctx.fillRect(ox+x*T,oy+y*T,T,T)}else if(t===3){ctx.globalAlpha=0.25;ctx.strokeStyle='#cfeaff';ctx.lineWidth=1;const wy=oy+(y+0.5+0.25*Math.sin(now*1.5+x))*T;ctx.beginPath();ctx.moveTo(ox+x*T+T*0.15,wy);ctx.lineTo(ox+x*T+T*0.55,wy);ctx.stroke()}}ctx.globalAlpha=1}
-  for(const b of buildings)if(BELT.has(b.type)&&vis(b))drawB(ctx,b,ox+b.x*T,oy+b.y*T,T,now);
+  for(const b of buildings)if((BELT.has(b.type)||B[b.type].rail)&&vis(b))drawB(ctx,b,ox+b.x*T,oy+b.y*T,T,now);
   for(const b of buildings)if(BELT.has(b.type)&&b.item&&vis(b)){const [dx,dy]=DIRS[b.rot];drawItem(ctx,b.item,ox+(b.x+0.5+dx*(b.prog-0.5))*T,oy+(b.y+0.5+dy*(b.prog-0.5))*T,T*0.34)}
-  for(const b of buildings)if(!BELT.has(b.type)&&vis(b))drawB(ctx,b,ox+b.x*T,oy+b.y*T,T,now);
+  for(const b of buildings)if(!BELT.has(b.type)&&!B[b.type].rail&&vis(b))drawB(ctx,b,ox+b.x*T,oy+b.y*T,T,now);
+  drawTrains(ctx,ox,oy,T,now);
   for(const c of cores)drawB(ctx,c,ox+c.x*T,oy+c.y*T,T,now);
   if(S.era==='futur'){drawGrid(ox,oy,T,now);drawBunkers(ox,oy,T,now);drawCoeur(ox,oy,T,now)}
   for(const b of buildings){const mh=maxHp(b);if(b.hp<mh-0.5&&vis(b)){ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(ox+b.x*T+T*0.1,oy+b.y*T+T*0.02,T*0.8,T*0.07);ctx.fillStyle='#f2a33a';ctx.fillRect(ox+b.x*T+T*0.1,oy+b.y*T+T*0.02,T*0.8*b.hp/mh,T*0.07)}}
@@ -2880,6 +3066,7 @@ function draw(now){
   }
   // capsules en vol
   for(const c of CAPS){
+    if(c.rk){drawRocket(c,ox,oy,T);continue}
     const f=Math.min(1,c.t/c.dur),gx=c.sx+(c.tx-c.sx)*f,gy=c.sy+(c.ty-c.sy)*f,dist=Math.hypot(c.tx-c.sx,c.ty-c.sy),h=Math.min(6,dist*0.3)*4*f*(1-f);
     const X=ox+gx*T,Y=oy+gy*T,Yh=Y-h*T;
     ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(X,Y,T*0.22*(1-h/12),T*0.1*(1-h/12),0,0,7);ctx.fill();
@@ -2888,7 +3075,7 @@ function draw(now){
     drawItem(ctx,c.it,X,Yh,T*0.18);
     if(Math.random()<0.5)addPart({kind:'smoke',x:gx,y:gy-h,vx:0,vy:0,life:0.5,max:0.5,size:0.08,col:'200,200,210'});
   }
-  if(sel&&sel.type==='lanceur'&&sel.lk){ctx.strokeStyle='rgba(255,210,63,0.6)';ctx.setLineDash([6,6]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ox+(sel.x+0.5)*T,oy+(sel.y+0.5)*T);ctx.lineTo(ox+(sel.lk[0]+0.5)*T,oy+(sel.lk[1]+0.5)*T);ctx.stroke();ctx.setLineDash([])}
+  if(sel&&kind(sel.type)==='lanceur'&&sel.lk){ctx.strokeStyle='rgba(255,210,63,0.6)';ctx.setLineDash([6,6]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ox+(sel.x+0.5)*T,oy+(sel.y+0.5)*T);ctx.lineTo(ox+(sel.lk[0]+0.5)*T,oy+(sel.lk[1]+0.5)*T);ctx.stroke();ctx.setLineDash([])}
   if(linkFrom){ctx.strokeStyle='rgba(143,208,255,0.85)';ctx.setLineDash([4,4]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ox+(linkFrom.x+0.5)*T,oy+(linkFrom.y+0.5)*T);ctx.lineTo(mouse.x,mouse.y);ctx.stroke();ctx.setLineDash([])}
   // particules
   for(const p of parts){
@@ -3482,6 +3669,70 @@ function hintTick(){if(!S||ERA!=='futur'||RUN!=='futur'||S.era!=='futur')return;
 setTimeout(()=>{document.getElementById('hintOk').onclick=()=>{if(HINTCUR){META.hints=META.hints||{};META.hints[HINTCUR]=1;saveMeta()}$('hint').hidden=true};
 $('hintOff').onclick=()=>{META.noHints=true;saveMeta();$('hint').hidden=true;toast('Aides désactivées (réactivables dans l\'onglet Journal)')}},0);
 setInterval(()=>{try{hintTick()}catch(e){console.error(e)}},1500);
+
+// ================= RÉGULATEUR D'INFOS =================
+let REGTAB='mach',REGOPEN={};
+const ST_TR={run:'🟢 En route',go:'🟢 Départ',wait:'🟡 En gare',park:'🅿 Garé',stop:'⏹ À l\'arrêt',blocked:'🔴 Bloqué (voie occupée)'};
+function openReg(tab){if(tab)REGTAB=tab;$('regDlg').hidden=false;renderReg()}
+function myGares(){return buildings.filter(b=>kind(b.type)==='gare'&&mineB(b)).sort((a,b)=>(a.gid||0)-(b.gid||0))}
+function regMach(){const mine=buildings.filter(b=>mineB(b)&&!BELT.has(b.type)&&!B[b.type].rail&&kind(b.type)!=='mur'&&b.type!=='noyau');const by={};for(const b of mine)(by[b.type]=by[b.type]||[]).push(b);
+  const p=P(ME);let h=`<p class="mut">${mine.length} bâtiments · énergie ${p.prod} / ${p.cons}${p.cons>p.prod?' <span class="bad">(manque d\'énergie)</span>':''}. Clique sur ⏸ pour arrêter une machine, 📍 pour la voir.</p>`;
+  const cats=[['prod','⚙ Production'],['log','📦 Logistique'],['nrj','⚡ Énergie'],['def','🛡 Défense'],['trap','🪤 Pièges'],['train','🚂 Trains']];
+  for(const [ct,cn] of cats){const ts=Object.keys(by).filter(t=>B[t].cat===ct);if(!ts.length)continue;h+=`<h4>${cn}</h4>`;
+    for(const t of ts){const L=by[t],off=L.filter(b=>b.off).length;h+=`<details ${REGOPEN[t]?'open':''} data-rgo="${t}"><summary>${B[t].n} <span class="mut">× ${L.length}${off?` · ${off} à l'arrêt`:''}</span></summary>`;
+      for(const b of L.slice(0,60)){const d=B[t];let st=b.off?'<span class="bad">⏸ arrêt</span>':(d.pw<0&&p.pr<1?'<span class="pur">⚡ ralenti</span>':'<span class="okc">▶ marche</span>');let ctl='';
+        if(DRILLS.has(t)){const it=deposit[b.y][b.x];if(it&&ITEMS[it])ctl+=`mine ${sw(it)} ${ITEMS[it].n}`}
+        if(['assembleur','forge','centrifugeuse','synthetiseur','nanofab'].includes(d.rs)){ctl+=`<select data-rgs="rec:${b.x}:${b.y}">${RECIPES[d.rs].map((r,i)=>recUnlocked(r,b.owner)?`<option value="${i}" ${i===b.recipe?'selected':''}>${ITEMS[r.out].n}</option>`:'').join('')}</select>`}
+        if(kind(t)==='bras_robot'||t==='extracteur'){const ks=ITEM_ORDER.filter(k=>k===b.filter||Math.floor(total(k))>0);ctl+=`filtre <select data-rgs="flt:${b.x}:${b.y}"><option value="">${kind(t)==='bras_robot'?'tout':'aucun'}</option>${ks.map(k=>`<option value="${k}" ${k===b.filter?'selected':''}>${ITEMS[k].n}</option>`).join('')}</select>`}
+        if(kind(t)==='lanceur'){const rs=buildings.filter(r=>kind(r.type)==='recepteur'&&mineB(r));const cur=b.lk?b.lk.join(','):'';ctl+=`${Math.round(b.count||0)}/${d.cap||20} → <select data-rgs="lk:${b.x}:${b.y}"><option value="">le plus proche</option>${rs.map(r=>`<option value="${r.x},${r.y}" ${cur===r.x+','+r.y?'selected':''}>${B[r.type].n} (${r.x},${r.y}) · ${Math.round(Math.hypot(r.x-b.x,r.y-b.y))} cases</option>`).join('')}</select>`}
+        if(kind(t)==='coffre')ctl+=`${Math.round(b.used||0)}/${d.cap}`;
+        if(kind(t)==='gare')ctl+=`Gare n°${b.gid}`;
+        h+=`<div class="rgrow"><span class="nm">(${b.x}, ${b.y}) · ${st}</span>${ctl}<button data-rg="moff:${b.x}:${b.y}:${b.off?0:1}" title="Marche / arrêt">${b.off?'▶':'⏸'}</button><button data-rg="cam:${b.x}:${b.y}">📍</button></div>`}
+      if(L.length>60)h+=`<p class="mut">… et ${L.length-60} autres</p>`;h+='</details>'}}
+  const rb=robots.filter(r=>r.owner===ME&&(r.kind||'robot')==='robot');
+  if(rb.length){h+='<h4>🤖 Robots collecteurs</h4>';for(const r of rb){h+=`<div class="rgrow"><span class="nm">Robot n°${r.id} · ${r.state==='mine'?'mine':r.state==='seek'?'cherche':r.state}</span>va miner <select data-rgs="pref:${r.id}"><option value="auto" ${r.pref==='auto'?'selected':''}>automatique (le plus utile)</option>${ROBOT_ORES.filter(o=>depositExists(o)).map(o=>`<option value="${o}" ${r.pref===o?'selected':''}>${ITEMS[o].n}</option>`).join('')}</select><button data-rg="cam:${Math.floor(r.x)}:${Math.floor(r.y)}">📍</button></div>`}}
+  if(!mine.length&&!rb.length)h+='<p class="mut">Aucun bâtiment pour l\'instant.</p>';
+  return h}
+function regTrains(){const T=trains().filter(t=>t.o===ME||takeOver(ME,t.o)),gs=myGares();let h=`<p class="mut">Pose une locomotive sur une voie (rail magnétique dans le futur), des wagons juste derrière, clique sur « Accrocher », puis sur « Démarrer ». Le train fait demi-tour au bout des voies. ${gs.length} gare${gs.length>1?'s':''}.</p>`;
+  if(!T.length)return h+`<p class="mut">Aucun train. Catégorie « Trains » en bas de l\'écran (niveau ${S.era==='futur'?'8 du futur':'15'}).</p>`;
+  for(const t of T){const loco=trHasLoco(t),nw=t.cars.filter(c=>c.k==='wagon').length,inv={};let n=0;for(const c of t.cars)if(c.s)for(const k in c.s){if(c.s[k]>0){inv[k]=(inv[k]||0)+c.s[k];n+=c.s[k]}}
+    const pos=t.path[0],px=pos%W,py=(pos/W)|0,g=gareAt(pos);
+    const cont=Object.keys(inv).sort((a,b)=>inv[b]-inv[a]).slice(0,8).map(k=>`${sw(k)}${inv[k]}`).join(' ')||'<span class="mut">vide</span>';
+    if(!loco){h+=`<div class="trc"><div class="top"><b>🚃 ${nw} wagon${nw>1?'s':''} libre${nw>1?'s':''}</b><span class="mut">(${px}, ${py})</span><span style="margin-left:auto"></span><button data-rg="tcam:${t.id}">📍</button><button data-rg="tdel:${t.id}">🗑 Retirer</button></div><div class="rgrow">Chargement ${n}/${nw*WCAP} : ${cont}</div><p class="mut" style="font-size:11px">Accroche-le depuis la locomotive voisine.</p></div>`;continue}
+    h+=`<div class="trc"><div class="top"><b>🚂 Train n°${t.id}</b><span>${nw} wagon${nw>1?'s':''}</span><span>${ST_TR[t.st]||t.st}${t.st==='wait'?` (${Math.ceil(t.wt)} s)`:''}${g?` · gare n°${g.gid}`:''}</span><span style="margin-left:auto"></span><button class="${t.run?'':'prim'}" data-rg="trun:${t.id}:${t.run?0:1}">${t.run?'⏸ Arrêter':'▶ Démarrer'}</button><button data-rg="tcam:${t.id}">📍</button></div>
+      <div class="rgrow">Chargement ${n}/${nw*WCAP} : ${cont}</div>
+      <div class="rgrow">Vitesse <input type="range" min="1" max="8" step="1" value="${t.spd}" data-rgr="tspd:${t.id}"><b>${t.spd}</b> cases/s</div>
+      <div class="rgrow">Arrêts <select data-rgs="tmode:${t.id}"><option value="auto" ${t.mode==='auto'?'selected':''}>à toutes les gares</option><option value="liste" ${t.mode==='liste'?'selected':''}>seulement aux gares cochées</option><option value="garer" ${t.mode==='garer'?'selected':''}>aller se garer à une gare précise</option></select>
+        ${t.mode==='garer'?`gare <select data-rgs="tpark:${t.id}"><option value="">—</option>${gs.map(g=>`<option value="${g.gid}" ${t.park===g.gid?'selected':''}>n°${g.gid} (${g.x}, ${g.y})</option>`).join('')}</select>`:`attente <select data-rgs="twait:${t.id}">${[3,5,8,15,30,60].map(v=>`<option value="${v}" ${t.wait===v?'selected':''}>${v} s</option>`).join('')}</select>`}</div>
+      ${t.mode==='liste'?`<div class="gs">${gs.map(g=>`<label><input type="checkbox" data-rgc="tstop:${t.id}:${g.gid}" ${t.stops.includes(g.gid)?'checked':''}> Gare n°${g.gid}</label>`).join('')||'<span class="mut">Pose des gares sur tes voies</span>'}</div>`:''}
+      <div class="rgrow"><button data-rg="tcouple:${t.id}">🔗 Accrocher les wagons voisins</button><button data-rg="tunc:${t.id}">✂ Décrocher le dernier wagon</button><button data-rg="trev:${t.id}">↩ Demi-tour</button><button data-rg="tdel:${t.id}">🗑 Retirer</button></div></div>`}
+  return h}
+function regFus(){const L=buildings.filter(b=>kind(b.type)==='lanceur'&&mineB(b)),R=buildings.filter(b=>kind(b.type)==='recepteur'&&mineB(b));let h='<p class="mut">Choisis où chaque silo ou lanceur envoie ses objets.</p>';
+  if(!L.length)return h+`<p class="mut">Aucun ${S.era==='futur'?'lanceur orbital (Logistique, niveau 18 du futur)':'silo à fusée ni lanceur (Logistique, niveaux 10 et 25)'}.</p>`;
+  for(const b of L){const d=B[b.type],cur=b.lk?b.lk.join(','):'';h+=`<div class="rgrow"><span class="nm">${d.n} (${b.x}, ${b.y}) · ${Math.round(b.count||0)}/${d.cap||20}</span>→ <select data-rgs="lk:${b.x}:${b.y}"><option value="">le plus proche</option>${R.map(r=>`<option value="${r.x},${r.y}" ${cur===r.x+','+r.y?'selected':''}>${B[r.type].n} (${r.x},${r.y})</option>`).join('')}</select><button data-rg="cam:${b.x}:${b.y}">📍</button></div>`}
+  return h}
+function renderReg(){if(!S)return;$('regTitle').textContent=S.era==='futur'?'🤖 Régulateur IA':'📟 Régulateur d\'infos';
+  $('regTabs').innerHTML=[['mach','⚙ Machines'],['trains','🚂 Trains'],['fus','🚀 Fusées']].map(([k,n])=>`<button class="${REGTAB===k?'on':''}" data-rt="${k}">${n}</button>`).join('');
+  $('regBody').innerHTML='<div class="rg">'+(REGTAB==='trains'?regTrains():REGTAB==='fus'?regFus():regMach())+'</div>'}
+function regAct(...a){const e=act(...a);if(e)toast(e);setTimeout(renderReg,80)}
+setTimeout(()=>{const D=document.getElementById('regDlg');
+  D.addEventListener('click',e=>{if(e.target.id==='regDlg'||e.target.id==='regX'){D.hidden=true;return}
+    const rt=e.target.closest('[data-rt]');if(rt){REGTAB=rt.dataset.rt;renderReg();return}
+    const b=e.target.closest('[data-rg]');if(!b)return;const [k,a1,a2,a3]=b.dataset.rg.split(':');
+    if(k==='moff'){const q=at(+a1,+a2);regAct('moff',+a1,+a2,+a3);if(NET.role==='guest'&&q)q.off=!!+a3}
+    else if(k==='cam'){cam.x=+a1+0.5;cam.y=+a2+0.5;D.hidden=true}
+    else if(k==='tcam'){const t=trains().find(q=>q.id===+a1);if(t){cam.x=t.path[0]%W+0.5;cam.y=((t.path[0]/W)|0)+0.5;D.hidden=true}}
+    else if(k==='trun')regAct('tr',+a1,'run',+a2);else if(k==='tcouple')regAct('tr',+a1,'couple');else if(k==='tunc')regAct('tr',+a1,'uncouple');else if(k==='trev')regAct('tr',+a1,'rev');
+    else if(k==='tdel'){if(b.dataset.arm){regAct('tr',+a1,'del')}else{b.dataset.arm=1;b.textContent='Confirmer ?';setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='🗑 Retirer'}},3000)}}});
+  D.addEventListener('toggle',e=>{const d=e.target.closest&&e.target.closest('[data-rgo]');if(d)REGOPEN[d.dataset.rgo]=d.open},true);
+  D.addEventListener('change',e=>{const el=e.target;
+    if(el.dataset.rgs){const [k,a1,a2]=el.dataset.rgs.split(':'),v=el.value;
+      if(k==='rec'){regAct('recipe',+a1,+a2,+v)}else if(k==='flt'){regAct('filter',+a1,+a2,v||null)}else if(k==='pref'){regAct('rpref',+a1,v)}
+      else if(k==='lk'){if(v){const [rx,ry]=v.split(',').map(Number);regAct('link',+a1,+a2,rx,ry)}else{const q=at(+a1,+a2);if(q){q.lk=null}renderReg()}}
+      else if(k==='tmode')regAct('tr',+a1,'mode',v);else if(k==='tpark')regAct('tr',+a1,'park',v);else if(k==='twait')regAct('tr',+a1,'wait',v)}
+    else if(el.dataset.rgr){const [k,a1]=el.dataset.rgr.split(':');regAct('tr',+a1,'spd',+el.value)}
+    else if(el.dataset.rgc){const [k,a1,a2]=el.dataset.rgc.split(':');regAct('tr',+a1,'stop',+a2)}});
+  setInterval(()=>{if(D.hidden)return;const ae=document.activeElement;if(ae&&D.contains(ae)&&(ae.tagName==='SELECT'||ae.tagName==='INPUT'))return;try{renderReg()}catch(e){console.error(e)}},1000)},0);
 function renderLore(){const LORE=LOREBOOK,L=LORE[lorePg];$('loreTag').textContent=L.tag;$('lorePg').textContent=`${lorePg+1} / ${LORE.length}`;$('loreTitle').textContent=L.t;
   $('loreTxt').innerHTML=L.x.map((t,i)=>`<span class="ln" style="animation-delay:${i*0.45}s">${esc(t)}</span>`).join('\n\n')+(L.sig?`<span class="sig ln" style="animation-delay:${L.x.length*0.45}s">${esc(L.sig)}</span>`:'');
   $('lorePrev').style.visibility=lorePg?'visible':'hidden';$('loreNext').textContent=lorePg<LORE.length-1?'Suivant →':LOREBOOK===LORE2?'🐝 Descendre dans la ruche':LOREBOOK!==window.LORE0?'Fermer':'🔬 Ouvrir les recherches du labo';}
@@ -3625,8 +3876,13 @@ function bInfo(b,isSel){
   }
   if(b.type==='machine_temporelle'){h+=`<p class="pur">Destination : la Surface futuriste</p><div class="btnrow"><button class="prim" data-act="tardis">🕰 ${futOpen()?'Aller dans le futur':'Voyager vers le futur'}</button></div>`}
   if(b.type==='rampe'){const done=S.ug&&S.ug.found&&S.ug.found.neptune;h+=done?'<p class="okc">🚀 Neptune est atteinte !</p><div class="btnrow"><button class="blue" data-act="goneptune">Aller sur Neptune</button></div>':`<p>Carburant du lancement : 100 hélium-3 + 10 piles à fusion</p>${isSel&&mine?'<div class="btnrow"><button class="prim" data-act="launch">🚀 Lancer la fusée vers Neptune</button></div>':''}`}
-  if(b.type==='lanceur'){const tg=b.lk?at(b.lk[0],b.lk[1]):null;h+=`<p>Chargement : ${Math.round(b.count||0)} / 20</p>`+(tg&&tg.type==='recepteur'?`<p class="okc">Cible : réceptionneur à ${Math.round(Math.hypot(tg.x-b.x,tg.y-b.y))} cases</p>`:'<p class="bad">Aucun réceptionneur : pose-en un près de ton noyau</p>');if(isSel&&mine)h+=`<div class="btnrow"><button class="blue" data-act="link">${linkFrom===b?'Clique un réceptionneur sur la carte…':'Changer de cible'}</button></div>`}
-  if(b.type==='recepteur')h+=`<p>Stock : ${Math.round(b.count||0)} / 40</p><p class="mut">Oriente la flèche vers ton noyau, un tapis ou une machine (touche R).</p>`;
+  if(kind(b.type)==='lanceur'){const tg=b.lk?at(b.lk[0],b.lk[1]):null;h+=`<p>Chargement : ${Math.round(b.count||0)} / ${d.cap||20}${d.batch?` (décolle par ${d.batch})`:''}</p>`+(tg&&kind(tg.type)==='recepteur'?`<p class="okc">Cible : réceptionneur à ${Math.round(Math.hypot(tg.x-b.x,tg.y-b.y))} cases</p>`:'<p class="bad">Aucun réceptionneur : pose-en un près de ton noyau</p>');if(isSel&&mine)h+=`<div class="btnrow"><button class="blue" data-act="link">${linkFrom===b?'Clique un réceptionneur sur la carte…':'Changer de cible'}</button></div>`}
+  if(kind(b.type)==='recepteur')h+=`<p>Stock : ${Math.round(b.count||0)} / ${d.cap||40}</p><p class="mut">Oriente la flèche vers ton noyau, un tapis ou une machine (touche R).</p>`;
+  if(kind(b.type)==='regulateur')h+='<p class="mut">Le tableau de bord de ton usine.</p><div class="btnrow"><button class="prim" data-act="regopen">📟 Ouvrir le régulateur</button></div>';
+  if(kind(b.type)==='bras_robot'){const [dx,dy]=DIRS[b.rot];const sb=at(b.x-dx,b.y-dy),tb=at(b.x+dx,b.y+dy);h+=`<p>Prend dans : <b>${sb?(sb.type==='noyau'?'ton noyau':B[sb.type].n):'rien'}</b> → pose dans : <b>${tb?(tb.type==='noyau'?'ton noyau':B[tb.type].n):'rien'}</b></p><p>Filtre : ${b.filter?sw(b.filter)+' <b>'+ITEMS[b.filter].n+'</b>':'<span class="mut">tout</span>'}</p><p class="mut">Touche R pour tourner. Pour vider ton noyau, choisis un filtre.</p>`;
+    if(isSel&&mine){const ks=ITEM_ORDER.filter(k=>k===b.filter||Math.floor(total(k))>0).slice(0,40);h+='<div class="btnrow"><button data-flt="" class="'+(b.filter?'':'prim')+'">tout</button>'+ks.map(k=>`<button class="${k===b.filter?'prim':''}" data-flt="${k}" title="${ITEMS[k].n}">${sw(k)}</button>`).join('')+'</div>'}}
+  if(B[b.type].rail){const tr=trAnyAt(tI(b.x,b.y));if(kind(b.type)==='gare')h+=`<p class="pur">Gare n°${b.gid}</p>`;if(B[b.type].rlink||B[b.type].rlinkOf){const ok=railRaw(tI(b.x,b.y))[1]!=null;h+=ok?'<p class="okc">Relié à l\'autre extrémité</p>':`<p class="bad">Pose l'autre extrémité (${B[B[b.type].rlink||B[b.type].rlinkOf].n}) dans le sens de la flèche, même orientation.</p>`}
+    if(tr){const nw=tr.cars.filter(c=>c.k==='wagon').length;h+=`<p>${trHasLoco(tr)?`🚂 Train n°${tr.id} · ${nw} wagon${nw>1?'s':''} · ${ST_TR[tr.st]||''}`:`🚃 Wagon libre (à accrocher)`}</p><div class="btnrow"><button class="prim" data-act="regtrain">📟 Régler dans le régulateur</button></div>`}}
   if(b.type==='coffre_partage')h+='<p class="okc">🤝 Partagé : tout le monde peut y déposer et y puiser</p>';
   if(kind(b.type)==='coffre'){if(guest)h+=`<p>Rempli : ${Math.round((b.used||0))} / ${d.cap}</p>`;else{const ks=Object.keys(b.store).filter(k=>b.store[k]>0);h+=`<p>Rempli : ${b.used} / ${d.cap}</p><div class="inv">${ks.map(k=>`<div class="it">${sw(k)}<span>${ITEMS[k].n}</span><span class="n">${b.store[k]}</span></div>`).join('')||'<span class="mut">Vide</span>'}</div>`}}
   if(GENS.has(b.type)){const fu=ITEMS[d.fuel||'petrole'].n;h+=(guest?'':`<p>${fu} en réserve : ${b.fuel}</p>`)+(b.burn>0?`<p class="okc">En marche (+${d.pw} énergie)</p>`:`<p class="bad">À l'arrêt — amène du ${fu.toLowerCase()} par tapis</p>`)}
@@ -3764,7 +4020,7 @@ $('pane').addEventListener('pointerdown',e=>{
   const rec=e.target.closest('[data-rec]');
   if(rec&&!rec.disabled&&sel&&(B[sel.type]?.rs==='assembleur'||B[sel.type]?.rs==='forge'||B[sel.type]?.rs==='centrifugeuse'||B[sel.type]?.rs==='synthetiseur')){const i=+rec.dataset.rec;act('recipe',sel.x,sel.y,i);if(NET.role==='guest')sel.recipe=i;renderPane(true);return}
   const fl=e.target.closest('[data-flt]');
-  if(fl&&sel&&sel.type==='extracteur'){const v=fl.dataset.flt||null;act('filter',sel.x,sel.y,v);if(NET.role==='guest')sel.filter=v;renderPane(true);return}
+  if(fl&&sel&&(sel.type==='extracteur'||kind(sel.type)==='bras_robot')){const v=fl.dataset.flt||null;act('filter',sel.x,sel.y,v);if(NET.role==='guest')sel.filter=v;renderPane(true);return}
   const pf=e.target.closest('[data-pref]');
   if(pf&&sel&&sel.isRobot){act('rpref',sel.id,pf.dataset.pref);if(NET.role==='guest')sel.pref=pf.dataset.pref;renderPane(true);return}
   const cr=e.target.closest('[data-craft]');
@@ -3787,13 +4043,15 @@ $('pane').addEventListener('pointerdown',e=>{
   if(k==='launch'&&sel&&sel.type==='rampe'){const err=act('launch',sel.x,sel.y);if(err)toast(err);else{sel.launchT=4;sfx('launch');sfx('boom')}}
   if(k==='goneptune')setLayer('neptune');
   if(k==='ch4')openCh();
+  if(k==='regopen'){if(!buildings.some(q=>kind(q.type)==='regulateur'&&mineB(q))){toast(S.era==='futur'?'Construis d\'abord un régulateur IA':'Construis d\'abord un régulateur d\'infos');return}openReg('mach')}
+  if(k==='regtrain'){if(!buildings.some(q=>kind(q.type)==='regulateur'&&mineB(q))){toast(S.era==='futur'?'Construis un régulateur IA (Logistique, niveau 4) pour régler tes trains':'Construis un régulateur d\'infos (Logistique, niveau 12) pour régler tes trains');return}openReg('trains')}
   if(k==='hintsReset'){META.hints={};META.noHints=false;saveMeta();renderPane(true);toast('Les aides du futur réapparaîtront',true)}
   if(k==='tardis'){if(futOpen()&&CTX.futur){setEra('futur');return}const err=act('tempo');if(err){toast(err);return}sfx('level');sfx('launch');let n=0;const iv=setInterval(()=>{n++;if(CTX.futur){clearInterval(iv);setEra('futur')}else if(n>60)clearInterval(iv)},100)}
   if(k==='rcancel')act('rcancel');
   if(k==='bpsel')startSelect();
   if(k==='bppaste'&&BP.clip)startPaste();
   if(k==='bpsave'&&BP.clip){const nm=prompt('Nom du plan :',BP.clip.name||'Mon plan');if(nm!==null){const pl=loadPlans();pl.unshift(Object.assign({},BP.clip,{name:nm.slice(0,30)||'Plan'}));savePlans(pl.slice(0,12));toast('Plan enregistré',true)}}
-  if(k==='link'&&sel&&sel.type==='lanceur'){linkFrom=sel;toast('Clique sur un de tes réceptionneurs (Échap pour annuler)',true)}
+  if(k==='link'&&sel&&kind(sel.type)==='lanceur'){linkFrom=sel;toast('Clique sur un de tes réceptionneurs (Échap pour annuler)',true)}
   if(k==='revive'){const err=act('revive',sel&&sel.type==='noyau'?sel.owner:undefined);if(err)toast(err)}
   if(k==='talreset'){for(const t of TALENTS){META.points+=(META.talents[t.id]||0)*t.cost}META.talents={};saveMeta();applyTalentsLive()}
   if(k==='rebirth'&&P(ME).level>=capOf(ME)&&!coop()){if(rbArm&&Date.now()-rbArm<4000){rbArm=0;rebirth();return}rbArm=Date.now()}
@@ -3911,7 +4169,7 @@ canvas.addEventListener('mousedown',e=>{
   updMouse(e);
   if(e.button===0&&linkFrom){
     const r=at(mouse.tx,mouse.ty);
-    if(r&&r.type==='recepteur'&&mineB(r)){const err=act('link',linkFrom.x,linkFrom.y,r.x,r.y);if(err)toast(err);else{toast('Lanceur relié !',true);if(NET.role==='guest')linkFrom.lk=[r.x,r.y]}}
+    if(r&&kind(r.type)==='recepteur'&&mineB(r)){const err=act('link',linkFrom.x,linkFrom.y,r.x,r.y);if(err)toast(err);else{toast('Lanceur relié !',true);if(NET.role==='guest')linkFrom.lk=[r.x,r.y]}}
     else toast('Ce n\'est pas un de tes réceptionneurs');
     linkFrom=null;refreshUI(true);return;
   }
@@ -4036,7 +4294,7 @@ miniCv.addEventListener('contextmenu',e=>e.preventDefault());
 function snapshot(){const d=withEra('present',snapCore);if(d&&(RUN==='futur'||CTX.futur)){const f=withEra('futur',snapCore);if(f)d.F={S:f.S,b:f.b,q:[]}}return d}
 function snapCore(){
   if(S&&S.era!=='futur'){S.ugD=bitsEnc(UGD);S.ugS=bitsEnc(UGS)}
-  return {v:3,mapV:MAP_V,savedAt:Date.now(),S,gm:{metas:NET.metas||{}},b:buildings.map(b=>({t:b.type,x:b.x,y:b.y,r:b.rot,h:b.hp,o:b.owner,rc:b.recipe||0,st:b.store,lk:b.lk,fl:b.filter})),rb:robots.map(r=>({x:r.x,y:r.y,h:r.hp,c:r.cargo,n:r.count,p:r.pref,o:r.owner,k:r.kind,ch:r.charge,st:r.st})),m:monsters.map(m=>({t:m.type,x:m.x,y:m.y,h:m.hp,mh:m.maxhp,d:m.dmg,hm:m.hpMul,dm:m.dmgMul})),q:spawnQ};
+  return {v:3,mapV:MAP_V,savedAt:Date.now(),S,gm:{metas:NET.metas||{}},b:buildings.map(b=>({t:b.type,x:b.x,y:b.y,r:b.rot,h:b.hp,o:b.owner,rc:b.recipe||0,st:b.store,lk:b.lk,fl:b.filter,of:b.off?1:undefined,gi:b.gid})),rb:robots.map(r=>({x:r.x,y:r.y,h:r.hp,c:r.cargo,n:r.count,p:r.pref,o:r.owner,k:r.kind,ch:r.charge,st:r.st})),m:monsters.map(m=>({t:m.type,x:m.x,y:m.y,h:m.hp,mh:m.maxhp,d:m.dmg,hm:m.hpMul,dm:m.dmgMul})),q:spawnQ};
 }
 let localSavedAt=0;
 function save(){
@@ -4064,7 +4322,7 @@ function applySave(d){
   loadUGState();
   for(const p of S.players){p.craftQ=p.craftQ||[];p.goalsDone=p.goalsDone||[];p.made=p.made||{}}
   if(d.gm){if(d.gm.metas){NET.metas=d.gm.metas}else{guestMeta=d.gm;NET.metas={1:d.gm}}}
-  for(const o of d.b){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}if(o.lk)b.lk=o.lk;if(o.fl&&ITEMS[o.fl])b.filter=o.fl}
+  for(const o of d.b){if(!B[o.t]||grid[o.y]?.[o.x])continue;const b=placeB(o.t,o.x,o.y,o.r,o.o||0);b.hp=o.h;if(o.rc)b.recipe=o.rc;if(o.st){b.store=o.st;initB(b);b.hp=o.h}if(o.lk)b.lk=o.lk;if(o.fl&&ITEMS[o.fl])b.filter=o.fl;if(o.of)b.off=true;if(o.gi)b.gid=o.gi}
   robots=(d.rb||[]).map(o=>{const r=newRobot(o.x,o.y,o.o||0,UNIT_KINDS.includes(o.k)?o.k:'robot');r.hp=o.h;r.cargo=o.c||{};r.count=o.n||0;r.pref=o.p||'auto';if(o.ch!=null)r.charge=o.ch;if(o.st)r.st=o.st;return r});
   const okM=o=>o&&MT[o.t]&&isFinite(o.x)&&isFinite(o.y)&&isFinite(o.h)&&o.h>0;
   monsters=(d.m||[]).filter(okM).slice(0,MAX_ALIVE).map(o=>({id:monSeq++,type:o.t,x:o.x,y:o.y,hp:o.h,maxhp:o.mh,dmg:o.d,cd:0,ox:(Math.random()-0.5)*0.4,oy:(Math.random()-0.5)*0.4,fx:0,fy:1,seed:Math.random()*10,flash:0,spawnT:6,hpMul:o.hm||1,dmgMul:o.dm||1}));
@@ -4452,7 +4710,7 @@ function hostMoveGuest(peer,t){
 function sanCos(c){const o={};if(typeof c.col==='string'&&/^#[0-9a-fA-F]{6}$/.test(c.col))o.col=c.col;if(typeof c.skin==='string'&&c.skin.length<16)o.skin=c.skin;return o}
 const PINGT={},CHATT={};
 let WBV=1;
-const GUEST_ACTS=new Set(['coeur','bunk','tempo','c4reset','c4vote','c4svote','c4force','c4go','c4obj','c4boss','trappe','atlas','nid','reine','lab','launch','probe','pgo','pstop','precall','wplace','wdel','ping','chat','research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
+const GUEST_ACTS=new Set(['moff','tr','coeur','bunk','tempo','c4reset','c4vote','c4svote','c4force','c4go','c4obj','c4boss','trappe','atlas','nid','reine','lab','launch','probe','pgo','pstop','precall','wplace','wdel','ping','chat','research','rcancel','filter','link','place','rotate','demolish','recipe','rpref','rdel','give','vote','revive','craft']);
 function bcRoom(){
   if(NET.role==='host'&&NET.room&&(NET.guestHere||NET.specs.size))return NET.room;
   if(NET.role==='solo'&&SPEC.room&&SPEC.specs.size)return SPEC.room;
@@ -4478,8 +4736,8 @@ function encBuildings(){
     else if(kind(b.type)==='cryo'||b.type==='brouilleur')ex=b.active?1:0;
     else if(b.type==='cantine')ex=b.fed?1:0;
     else if(b.type==='extracteur')ex=b.filter?ITEM_ORDER.indexOf(b.filter)+1:0;
-    else if(b.type==='lanceur')ex=Math.round((b.count||0)/20*63);
-    else if(b.type==='recepteur')ex=Math.round((b.count||0)/40*63);
+    else if(kind(b.type)==='lanceur')ex=Math.round((b.count||0)/(B[b.type].cap||20)*63);
+    else if(kind(b.type)==='recepteur')ex=Math.round((b.count||0)/(B[b.type].cap||40)*63);
     else if(GENS.has(b.type))ex=b.burn>0?1:0;
     else if(kind(b.type)==='coffre')ex=Math.round(b.used/B[b.type].cap*63);
     else if(kind(b.type)==='reparateur')ex=b.healing?1:0;
@@ -4513,9 +4771,11 @@ function hostNetTick(now){
   let ta='';for(const b of buildings)if(TURRETS.has(b.type)&&b.tgt)ta+=e2(b.x)+e2(b.y)+e1(((b.angle/(Math.PI*2))*64+64)%64)+(b.noAmmo?'1':'0');
   const rb=robots.map(r=>[r.id,Math.round(r.x*10),Math.round(r.y*10),Math.round(r.hp),Math.round(r.maxhp),RSTATES.indexOf(r.state),r.count,r.owner,r.pref,r.tx??-1,r.ty??-1,r.mine?ITEM_ORDER.indexOf(r.mine):-1,r.nochest?1:0,UNIT_KINDS.indexOf(r.kind||'robot'),Math.round((r.charge||0)*100),Math.round(r.ftime||0)]);
   const msg=NET.msgOut.splice(0,5);
-  const cp=CAPS.map(c=>[Math.round(c.sx*10),Math.round(c.sy*10),Math.round(c.tx*10),Math.round(c.ty*10),+c.t.toFixed(2),+c.dur.toFixed(2),ITEM_ORDER.indexOf(c.it)]);
-  const lk=buildings.filter(b=>b.type==='lanceur'&&b.lk).map(b=>[b.x,b.y,b.lk[0],b.lk[1]]);
-  RM.emit('st',{e:ET(),fo:S.futOpen?1:0,fl:S.era==='futur'?[S.hk1?1:0,S.tis1?1:0,S.omni?1:0,S.omniOn?1:0,+(S.emp||0).toFixed(1)]:undefined,ec:S.era==='futur'&&S.echo&&(S.echoV!==NET.ecSent||now-NET.ecAt>20000)?(NET.ecSent=S.echoV,NET.ecAt=now,S.echo):undefined,bkn:S.bk,bkc:S.bkcd?S.bkcd.map(t=>Math.max(0,Math.ceil(t-S.t))):undefined,pb:(S.probes||[]).map(p=>[p.o,Math.round(p.x*10),Math.round(p.y*10),p.n,p.st==='dig'?1:0,p.ret?1:0,p.lv||1,Math.floor(p.xp||0)]),sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ak:Object.fromEntries([...NET.guests.values()].map(g=>[g.slot,g.lastSeq])),sl:Object.fromEntries([...NET.guests.values()].map(g=>[g.sid,g.slot])),nm:NET.names,pc:S.players.map((_,o)=>o===0?sanCos(META.cos||{}):NET.cosAll[o]||{}),ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
+  const cp=CAPS.map(c=>[Math.round(c.sx*10),Math.round(c.sy*10),Math.round(c.tx*10),Math.round(c.ty*10),+c.t.toFixed(2),+c.dur.toFixed(2),ITEM_ORDER.indexOf(c.it),c.rk?1:0]);
+  const trn=S.trains&&S.trains.length?S.trains.map(t=>[t.id,t.o,t.cars.map(c=>c.k==='loco'?'L':'W').join(''),t.path,+t.prog.toFixed(2),t.st,t.spd,t.mode,t.wait,t.park||0,t.stops,t.run?1:0,t.cars.map(c=>c.s?Object.entries(c.s).filter(e=>e[1]>0).map(e=>[ITEM_ORDER.indexOf(e[0]),e[1]]):0),t.seg]):undefined;
+  const gss=1?buildings.filter(b=>kind(b.type)==='gare').map(b=>[b.x,b.y,b.gid]):undefined;
+  const lk=buildings.filter(b=>kind(b.type)==='lanceur'&&b.lk).map(b=>[b.x,b.y,b.lk[0],b.lk[1]]);
+  RM.emit('st',{tr:trn,gs:gss,e:ET(),fo:S.futOpen?1:0,fl:S.era==='futur'?[S.hk1?1:0,S.tis1?1:0,S.omni?1:0,S.omniOn?1:0,+(S.emp||0).toFixed(1)]:undefined,ec:S.era==='futur'&&S.echo&&(S.echoV!==NET.ecSent||now-NET.ecAt>20000)?(NET.ecSent=S.echoV,NET.ecAt=now,S.echo):undefined,bkn:S.bk,bkc:S.bkcd?S.bkcd.map(t=>Math.max(0,Math.ceil(t-S.t))):undefined,pb:(S.probes||[]).map(p=>[p.o,Math.round(p.x*10),Math.round(p.y*10),p.n,p.st==='dig'?1:0,p.ret?1:0,p.lv||1,Math.floor(p.xp||0)]),sp:NET.spOut||undefined,ts:Math.round(now),cp,lk,w:S.wave,wt:Math.round(S.waveTimer),v:S.votes,o:S.over?1:0,k:S.kills,bk:S.bossKills,ak:Object.fromEntries([...NET.guests.values()].map(g=>[g.slot,g.lastSeq])),sl:Object.fromEntries([...NET.guests.values()].map(g=>[g.sid,g.slot])),nm:NET.names,pc:S.players.map((_,o)=>o===0?sanCos(META.cos||{}):NET.cosAll[o]||{}),ps,ta,rb,msg,hm:META.talents||{}}).catch(()=>{});
   if(now-(NET.biAt||0)<400)return;NET.biAt=now;
   let bi='';for(const b of buildings)if(BELT.has(b.type)&&b.item)bi+=e2(b.x)+e2(b.y)+e2(ITEM_ORDER.indexOf(b.item))+e1(b.prog*63);
   sendChunks('bi',bi,{ts:Math.round(now),e:ET()},RM);
@@ -4583,7 +4843,7 @@ function guestApplyBuildings(str){
     const b={type:t,x,y,rot:d1(str,i+6)&3,owner:Math.min(3,d1(str,i+7)),hp:0};initB(b);b.hp=d1(str,i+8)/63*maxHp(b);const ex=d2(str,i+9);
     if(kind(t)==='cryo'||t==='brouilleur')b.active=!!ex;if(t==='cantine')b.fed=!!ex;
     if(t==='extracteur')b.filter=ex>0?ITEM_ORDER[ex-1]||null:null;
-    if(t==='lanceur')b.count=ex/63*20;if(t==='recepteur')b.count=ex/63*40;
+    if(kind(t)==='lanceur')b.count=ex/63*(B[t].cap||20);if(kind(t)==='recepteur')b.count=ex/63*(B[t].cap||40);
     b.warn=!!(ex&32);if(TURRETS.has(t)){b.hacked=ex&1;b.warn=false}if(t==='dome_bouclier'){b.pool=ex/63*B[t].pool;b.warn=false}if(t==='hangar_drones'){b.dn=ex;b.warn=false}
     if(MACHINES.has(t)){b.recipe=ex&15;b.crafting=ex&16?{t:1}:null;b.prog=0.5}else if(GENS.has(t))b.burn=ex?1:0;else if(kind(t)==='coffre')b.used=ex/63*B[t].cap;else if(kind(t)==='reparateur')b.healing=!!ex;
     if(DRILLS.has(t))b.spin=0;
@@ -4645,8 +4905,9 @@ function guestApplyState(d){
   if(Array.isArray(d.bkn))S.bk=d.bkn.map(x=>x?1:0);if(Array.isArray(d.bkc))S.bkcL=d.bkc.map(v=>Date.now()+(v|0)*1000);
   if(typeof d.w==='number'){if(d.w>S.wave&&S.wave>0||d.w>S.wave&&d.w===1){}S.wave=d.w}
   if(typeof d.wt==='number')S.waveTimer=d.wt;
-  if(Array.isArray(d.cp)){const n0=CAPS.length;CAPS=d.cp.map(a=>({sx:a[0]/10,sy:a[1]/10,tx:a[2]/10,ty:a[3]/10,t:a[4],dur:a[5],it:ITEM_ORDER[a[6]]||'lingot_fer'}));if(CAPS.some(c=>c.t<0.3))sfx('launch')}
-  if(Array.isArray(d.lk))for(const a of d.lk){const b=at(a[0],a[1]);if(b&&b.type==='lanceur'){b.lk=[a[2],a[3]];b.aim=Math.atan2(a[3]-a[1],a[2]-a[0])}}
+  {if(Array.isArray(d.tr))S.trains=d.tr.map(a=>({id:a[0],o:a[1],cars:[...a[2]].map((k,i)=>k==='L'?{k:'loco'}:{k:'wagon',s:Object.fromEntries((a[12][i]||[]).map(e=>[ITEM_ORDER[e[0]],e[1]])),n:(a[12][i]||[]).reduce((x,e)=>x+e[1],0)}),path:a[3],prog:a[4],st:a[5],spd:a[6],mode:a[7],wait:a[8],park:a[9]||null,stops:a[10],run:!!a[11],seg:a[13]||1}));else if(d.tr===undefined&&S.trains&&S.trains.length)S.trains=[];if(Array.isArray(d.gs))for(const g of d.gs){const b=at(g[0],g[1]);if(b&&kind(b.type)==='gare')b.gid=g[2]}}
+  if(Array.isArray(d.cp)){const n0=CAPS.length;CAPS=d.cp.map(a=>({sx:a[0]/10,sy:a[1]/10,tx:a[2]/10,ty:a[3]/10,t:a[4],dur:a[5],it:ITEM_ORDER[a[6]]||'lingot_fer',rk:a[7]?1:0}));if(CAPS.some(c=>c.t<0.3))sfx('launch')}
+  if(Array.isArray(d.lk))for(const a of d.lk){const b=at(a[0],a[1]);if(b&&kind(b.type)==='lanceur'){b.lk=[a[2],a[3]];b.aim=Math.atan2(a[3]-a[1],a[2]-a[0])}}
   if(Array.isArray(d.v))S.votes=S.players.map((_,o)=>!!d.v[o]);
   S.kills=d.k|0;S.bossKills=d.bk|0;
   if(d.hm)NET.hostMeta={talents:d.hm};
@@ -4690,6 +4951,7 @@ function guestFrame(dt){
   for(const b of buildings){if(BELT.has(b.type)&&b.item&&b.prog<1)b.prog=Math.min(1,b.prog+dt*B[b.type].spd*mBelt(b.owner));if(MACHINES.has(b.type)&&b.crafting)b.spin=(b.spin||0)+dt*4;if(DRILLS.has(b.type))b.spin=(b.spin||0)+dt*8*(P(b.owner).pr||1)}
   for(const e of effects)e.t-=dt;effects=effects.filter(e=>e.t>0);
   for(const c of CAPS)c.t=Math.min(c.dur,c.t+dt);
+  if(S.trains)for(const t of S.trains)if(t.st==='run'&&t.prog<1)t.prog=Math.min(1,t.prog+dt*t.spd/Math.max(1,t.seg));
   for(const b of buildings)if(b.launchT>0)b.launchT=Math.max(0,b.launchT-dt);
   if(S.probes)for(const p of S.probes)if(p.gx!=null){const k=Math.min(1,dt*6);p.x+=(p.gx-p.x)*k;p.y+=(p.gy-p.y)*k}
   for(const r of robots)if(r.kind==='gardien'&&r.state==='fight')r.ftime=Math.max(0,(r.ftime||0)-dt);

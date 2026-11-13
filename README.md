@@ -113,6 +113,30 @@ Après la Reine de la Ruche, clique sur ton noyau → « Démarrer le prochain c
 - Journal (nouvel onglet) : toutes les pages d'histoire déjà découvertes, du chapitre 1 au chapitre 5, à relire quand on veut (28 pages, compteur et marque « nouveau »).
 - Aides du futur : 15 bulles qui s'affichent une seule fois au bon moment (pylônes, machine non raccordée, manque d'énergie, recycleur, bunkers et talkie-walkie, hackers et pare-feu, EMP, réparation…). Bouton pour les désactiver ou les revoir dans l'onglet Journal.
 
+## Trains, bras robots, fusées et régulateur (v45)
+- Nouvelle catégorie **Trains** (Présent, niveau 15) :
+  - Voie ferrée (se relie toute seule aux voies voisines, les monstres marchent dessus) et Gare (numérotée).
+  - Voie souterraine : tunnel ferroviaire entrée/sortie (niv 20, jusqu'à 12 cases sous les bâtiments ou l'eau).
+  - Voie en hauteur : viaduc, rampe de montée/descente (niv 22, jusqu'à 14 cases au-dessus de tout).
+  - Locomotive et wagons (200 objets chacun). La locomotive est posée à l'arrêt : on accroche les wagons puis on la démarre dans le régulateur. Demi-tour automatique au bout des voies.
+  - Les wagons arrêtés se chargent par tapis ou par bras robot.
+- **Bras robot** (Logistique, niv 12) : prend derrière lui (coffre, wagon arrêté, réceptionneur, ou ton noyau avec un filtre) et pose devant (noyau, tapis, machine, coffre, wagon). 2 objets/s, filtre réglable.
+- **Fusées cargo** (niv 25) : le silo envoie 25 objets par fusée vers une plateforme d'atterrissage (ou un réceptionneur), distance illimitée.
+- **Régulateur d'infos** (Logistique, niv 12) : tableau de bord de l'usine.
+  - Machines : liste de toutes tes machines, marche/arrêt, recettes, filtres, minerai miné par chaque robot collecteur, bouton pour aller voir.
+  - Trains : vitesse (1 à 8 cases/s), démarrer/arrêter, accrocher/décrocher les wagons, demi-tour, arrêts (toutes les gares, gares cochées, ou se garer à une gare précise), temps d'attente.
+  - Fusées : choix de la destination de chaque silo ou lanceur.
+- QTE du talkie-walkie plus facile : à l'épreuve « Émettre au bon moment », le curseur va 2 à 2,5 fois moins vite, la zone verte est plus large, un raté de plus est permis, le curseur marque une pause après chaque réussite, et l'épreuve dure 40 s au lieu de 25.
+
+## Trains et logistique dans le futur (v46)
+- La catégorie **Trains** existe aussi dans la Surface futuriste, avec ses propres versions (ressources du futur) :
+  - Rail magnétique et Station maglev (niv 6 du futur), Tube souterrain entrée/sortie (niv 12), Rail suspendu montée/descente (niv 15).
+  - Locomotive maglev et Wagon maglev (niv 8, 200 objets par wagon).
+- **Bras nano** (Logistique, niv 5 du futur) : comme le bras robot, 3 objets/s, doit être alimenté.
+- **Régulateur IA** (Logistique, niv 4 du futur) : les mêmes onglets Machines / Trains / Fusées que le régulateur d'infos.
+- **Lanceur orbital** et **Quai orbital** (niv 18 du futur) : fusées de 25 objets.
+- Les trains du Présent et du Futur sont séparés (chaque époque a les siens) et marchent en multijoueur et dans les sauvegardes.
+
 ## Commandes
 
 | Action | Touche |
